@@ -23,7 +23,8 @@ export default function LoginScreen() {
   }, [isLoggedIn, router,isMounted]);
 
   const handleLogin = () => {
-    if (userValues?.username === "test" && userValues?.password === "123") {
+    const trimmedUsername = userValues?.username?.trim() || "";
+    if (trimmedUsername === "test" && userValues?.password === "123") {
       login();
     }
   };

@@ -1,5 +1,6 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
+import LogoutButton from "@/components/settings/logoutButton";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -26,6 +27,7 @@ export default function SettingsPage() {
           Aquí puedes ajustar tus preferencias de la aplicación.
         </ThemedText>
         <ChangeThemeButton />
+        <LogoutButton />
       </ThemedView>
     </ParallaxScrollView>
   );
