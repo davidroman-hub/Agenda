@@ -5,7 +5,7 @@ import ParallaxScrollView from "@/components/parallax-scroll-view";
 import ProtectedRoute from "@/components/protected-route";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { useCounterStore } from "@/stores/counter-store";
+import useCounterStore from "@/stores/counter-store";
 import useLoginStore from "@/stores/login-store";
 
 export default function HomeScreen() {

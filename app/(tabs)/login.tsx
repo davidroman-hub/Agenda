@@ -2,18 +2,23 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import useLoginStore from "@/stores/login-store";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 
 export default function LoginScreen() {
   const { setUserValues, userValues, login, isLoggedIn } = useLoginStore();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && isLoggedIn) {
       router.replace("/(tabs)");
     }
-  }, [isLoggedIn, router]);
+  }, [isLoggedIn, router,isMounted]);
 
   const handleLogin = () => {
     if (userValues?.username === "test" && userValues?.password === "123") {
