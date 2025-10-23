@@ -219,6 +219,10 @@ export const styles = StyleSheet.create({
     opacity: 0.6,
     marginTop: 2,
   },
+  transitionPage: {
+    minHeight: 300,
+    width: "90%",
+  },
 });
 
 // Función para crear estilos dinámicos basados en el tema
@@ -253,6 +257,15 @@ export const createDynamicStyles = (
     navigationControls: {
       ...styles.navigationControls,
       borderTopColor: colorScheme === "dark" ? "#404040" : "#e0e0e0",
+    },
+    pageTransition: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
     },
   });
 };

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import type { StateStorage } from 'zustand/middleware';
 
 // Adaptador para usar AsyncStorage con Zustand persist
@@ -6,6 +7,10 @@ import type { StateStorage } from 'zustand/middleware';
 export const mmkvStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
     try {
+      // Evitar errores en el servidor
+      if (!globalThis.window && Platform.OS === 'web') {
+        return null;
+      }
       const value = await AsyncStorage.getItem(name);
       return value;
     } catch (error) {

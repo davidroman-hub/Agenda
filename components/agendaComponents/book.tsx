@@ -11,6 +11,10 @@ import { createDynamicStyles, styles } from "./bookStyles";
 export default function Book() {
   const { daysToShow, viewMode } = useBookSettingsStore();
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  const [showPageTransition, setShowPageTransition] = useState(false);
+  const [transitionProgress, setTransitionProgress] = useState(0);
 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
@@ -71,28 +75,98 @@ export default function Book() {
     return lines;
   };
 
-  // Funciones para navegación de páginas
+  // Funciones para navegación de páginas con efecto de doblez realista
   const goToNextPage = () => {
-    setCurrentPageIndex(prev => prev + 1);
+    setShowPageTransition(true);
+    setTransitionProgress(0);
+    
+    // Efecto más rápido y suave
+    const duration = 250;
+    const steps = 10;
+    
+    for (let i = 1; i <= steps; i++) {
+      setTimeout(() => {
+        setTransitionProgress((i / steps) * 100);
+        if (i === Math.floor(steps / 2)) {
+          // Cambiar contenido en la mitad de la animación
+          setCurrentPageIndex(prev => prev + 1);
+        }
+        if (i === steps) {
+          // Terminar efecto
+          setShowPageTransition(false);
+          setTransitionProgress(0);
+        }
+      }, (duration / steps) * i);
+    }
   };
 
   const goToPrevPage = () => {
-    setCurrentPageIndex(prev => Math.max(0, prev - 1));
+    if (currentPageIndex === 0) return;
+    
+    setShowPageTransition(true);
+    setTransitionProgress(0);
+    
+    // Efecto más rápido y suave para página anterior
+    const duration = 250;
+    const steps = 10;
+    
+    for (let i = 1; i <= steps; i++) {
+      setTimeout(() => {
+        setTransitionProgress((i / steps) * 100);
+        if (i === Math.floor(steps / 2)) {
+          // Cambiar contenido en la mitad de la animación
+          setCurrentPageIndex(prev => Math.max(0, prev - 1));
+        }
+        if (i === steps) {
+          // Terminar efecto
+          setShowPageTransition(false);
+          setTransitionProgress(0);
+        }
+      }, (duration / steps) * i);
+    }
   };
 
-  // Gesture handler para swipe
+  // Gesture handler para swipe que no interfiere con scroll vertical
   const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => false, // No capturar inmediatamente
     onMoveShouldSetPanResponder: (_, gestureState) => {
-      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 20;
+      const { dx, dy } = gestureState;
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+      
+      // Solo activar si el movimiento horizontal es claramente mayor que el vertical
+      // Y si el movimiento horizontal es significativo
+      return absDx > 25 && absDx > absDy * 2; // Horizontal debe ser al menos 2x mayor que vertical
+    },
+    onPanResponderGrant: () => {
+      setIsFlipping(true);
+    },
+    onPanResponderMove: (_, gestureState) => {
+      const { dx } = gestureState;
+      // Solo mostrar dirección si estamos seguros que es horizontal
+      if (Math.abs(dx) > 30) {
+        setSwipeDirection(dx > 0 ? 'right' : 'left');
+      }
     },
     onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dx > 50) {
+      setIsFlipping(false);
+      setSwipeDirection(null);
+      
+      const { dx, vx } = gestureState;
+      const threshold = 40; // Un poco más alto para ser más específico
+      
+      if (dx > threshold || vx > 0.8) {
         // Swipe derecha - página anterior
         goToPrevPage();
-      } else if (gestureState.dx < -50) {
+      } else if (dx < -threshold || vx < -0.8) {
         // Swipe izquierda - página siguiente
         goToNextPage();
       }
+    },
+    onPanResponderTerminate: () => {
+      // Reset estados si el gesto es interrumpido
+      setIsFlipping(false);
+      setSwipeDirection(null);
     },
   });
 
@@ -204,8 +278,106 @@ export default function Book() {
     );
   };
 
+  // Calcular offset para el efecto visual más pronunciado
+  const getTranslateX = () => {
+    if (swipeDirection === 'right') return 8;
+    if (swipeDirection === 'left') return -8;
+    return 0;
+  };
+
+  // Efecto de página doblándose - más realista
+  const renderPageFoldEffect = () => {
+    if (!showPageTransition) return null;
+    
+    // Calcular el progreso de la animación (0 a 1)
+    const progress = transitionProgress / 100;
+    
+    // Crear efecto de doblez más suave y realista
+    const scaleX = 1 - (progress * 0.3); // Reducción más sutil
+    const rotateY = progress * 15; // Rotación más suave
+    const translateX = progress * 50; // Movimiento más moderado
+    const opacity = 1 - (progress * 0.8); // Desvanecimiento gradual
+    
+    return (
+      <ThemedView 
+        style={[
+          dynamicStyles.pageTransition,
+          {
+            transform: [
+              { translateX },
+              { scaleX },
+              { rotateY: `${rotateY}deg` }
+            ],
+            opacity: opacity,
+            zIndex: 1000,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: progress * 10,
+              height: progress * 5,
+            },
+            shadowOpacity: progress * 0.3,
+            shadowRadius: progress * 8,
+            elevation: progress * 10,
+          }
+        ]}
+      >
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={false}
+        >
+          {/* Renderizar el contenido de la página actual que se está doblando */}
+          {viewMode === 'expanded' ? (
+            <>
+              {Array.from({ length: Math.ceil(days.length / 2) }, (_, pairIndex) => {
+                const leftDay = days[pairIndex * 2];
+                const rightDay = days[pairIndex * 2 + 1];
+                
+                return (
+                  <ThemedView key={`fold-pair-${pairIndex}`} style={styles.expandedContainer}>
+                    {leftDay && renderPage(leftDay, pairIndex * 2, true)}
+                    <ThemedView style={dynamicStyles.centerBinding}>
+                      {Array.from({ length: 12 }, (_, index) => (
+                        <ThemedView
+                          key={`fold-spiral-${index}`}
+                          style={index % 2 === 0 ? styles.spiralRing : styles.spiralRingAlt}
+                        />
+                      ))}
+                    </ThemedView>
+                    {rightDay && renderPage(rightDay, pairIndex * 2 + 1, false)}
+                  </ThemedView>
+                );
+              })}
+            </>
+          ) : (
+            days.map((day, dayIndex) => (
+              <React.Fragment key={`fold-${day.toISOString()}`}>
+                {renderPage(day, dayIndex)}
+                {dayIndex < days.length - 1 && (
+                  <ThemedView style={styles.pageSeparator} />
+                )}
+              </React.Fragment>
+            ))
+          )}
+        </ScrollView>
+      </ThemedView>
+    );
+  };
+
   return (
-    <ThemedView style={dynamicStyles.container} {...panResponder.panHandlers}>
+    <ThemedView 
+      style={[
+        dynamicStyles.container,
+        {
+          opacity: isFlipping ? 0.7 : 1,
+          transform: [{ translateX: getTranslateX() }]
+        }
+      ]}
+      {...panResponder.panHandlers}
+    >
+      {/* Efecto de página doblándose */}
+      {renderPageFoldEffect()}
+      
       <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
