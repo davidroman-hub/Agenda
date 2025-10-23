@@ -52,6 +52,17 @@ export default function TabLayout() {
           href: isLoggedIn ? "/(tabs)/explore" : null,
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="gear" color={color} />
+          ),
+          // Mostrar solo si está logueado
+          href: isLoggedIn ? "/(tabs)/settings" : null,
+        }}
+      />
     </Tabs>
   );
 }

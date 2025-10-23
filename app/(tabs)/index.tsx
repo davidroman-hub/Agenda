@@ -1,10 +1,7 @@
-import { Image } from "expo-image";
 import { Button, StyleSheet } from "react-native";
 
-import ParallaxScrollView from "@/components/parallax-scroll-view";
+import Book from "@/components/agendaComponents/book";
 import ProtectedRoute from "@/components/protected-route";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import useCounterStore from "@/stores/counter-store";
 import useLoginStore from "@/stores/login-store";
 
@@ -14,7 +11,7 @@ export default function HomeScreen() {
 
   return (
     <ProtectedRoute>
-      <ParallaxScrollView
+      {/* <ParallaxScrollView
         headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
         headerImage={
           <Image
@@ -22,27 +19,10 @@ export default function HomeScreen() {
             style={styles.reactLogo}
           />
         }
-      >
-        <ThemedView style={styles.titleContainer}>
-          {isLoggedIn ? (
-            <ThemedText type="title" style={styles.bigHelloText}>
-              ¡Bienvenido, {userValues?.username}! {count}
-            </ThemedText>
-          ) : (
-            <ThemedText type="title" style={styles.bigHelloText}>
-              Agenda! {count}
-            </ThemedText>
-          )}
-        </ThemedView>
-
-        <ThemedView style={styles.buttonContainer}>
-          <Button onPress={increment} title="Increment (+)" />
-          <Button onPress={decrement} title="Decrement (-)" />
-          <Button onPress={reset} title="Reset (0)" />
-        </ThemedView>
-
+      > */}
+        <Book />
         <Button title="Logout" onPress={logout} />
-      </ParallaxScrollView>
+      {/* </ParallaxScrollView> */}
     </ProtectedRoute>
   );
 }
