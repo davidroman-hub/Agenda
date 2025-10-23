@@ -1,3 +1,4 @@
+import PublicRoute from "@/components/public-route";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import useLoginStore from "@/stores/login-store";
@@ -15,6 +16,7 @@ export default function LoginScreen() {
   }, []);
 
   useEffect(() => {
+    console.log("isLoggedIn changed:", isLoggedIn);
     if (isMounted && isLoggedIn) {
       router.replace("/(tabs)");
     }
@@ -27,7 +29,8 @@ export default function LoginScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <PublicRoute>
+      <ThemedView style={styles.container}>
       {/* Header con logo o título */}
       <ThemedView style={styles.headerContainer}>
         <ThemedText type="title" style={styles.title}>
@@ -97,6 +100,7 @@ export default function LoginScreen() {
         </ThemedText>
       </ThemedView>
     </ThemedView>
+    </PublicRoute>
   );
 }
 

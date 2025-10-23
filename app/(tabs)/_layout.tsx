@@ -17,6 +17,9 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarButton: HapticTab,
+        // Ocultar el tab bar cuando no está logueado (solo mostrar login)
+        tabBarStyle: isLoggedIn ? undefined : { display: 'none' },
+
       }}
     >
       <Tabs.Screen
@@ -26,7 +29,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="person.circle" color={color} />
           ),
-          // Ocultar el tab si ya está logueado
+          // Ocultar completamente el tab si ya está logueado
           href: isLoggedIn ? null : "/(tabs)/login",
         }}
       />
