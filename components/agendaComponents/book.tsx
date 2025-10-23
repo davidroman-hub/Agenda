@@ -34,6 +34,7 @@ export default function Book() {
       "viernes",
       "sábado",
     ];
+
     const monthNames = [
       "enero",
       "febrero",
@@ -193,8 +194,16 @@ export default function Book() {
                   {/* Página izquierda */}
                   {leftDay && renderPage(leftDay, pairIndex * 2, true)}
                   
-                  {/* Línea central (como el lomo de la agenda) */}
-                  <ThemedView style={styles.centerBinding} />
+                  {/* Línea central (como el resorte de cuaderno) */}
+                  <ThemedView style={dynamicStyles.centerBinding}>
+                    {/* Generar anillos del resorte con variación */}
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <ThemedView
+                        key={`spiral-${index}`}
+                        style={index % 2 === 0 ? styles.spiralRing : styles.spiralRingAlt}
+                      />
+                    ))}
+                  </ThemedView>
                   
                   {/* Página derecha */}
                   {rightDay && renderPage(rightDay, pairIndex * 2 + 1, false)}

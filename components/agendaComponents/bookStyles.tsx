@@ -102,9 +102,8 @@ export const styles = StyleSheet.create({
     marginLeft: 1,
   },
   centerBinding: {
-    width: 4,
-    backgroundColor: "#8B4513", // Color marrón para simular el lomo de la agenda
-    borderRadius: 2,
+    width: 20,
+    borderRadius: 4,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -113,6 +112,45 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  // Elementos individuales del resorte
+  spiralRing: {
+    width: 12,
+    height: 8,
+    borderWidth: 2,
+    borderColor: "#C0C0C0", // Color plateado metálico
+    borderRadius: 6,
+    backgroundColor: "#F0F0F0", // Fondo ligeramente gris para simular metal
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 1,
+    elevation: 2,
+    marginVertical: 1,
+  },
+  // Variante alternativa para crear efecto de profundidad
+  spiralRingAlt: {
+    width: 10,
+    height: 6,
+    borderWidth: 1.5,
+    borderColor: "#A8A8A8", // Color más oscuro para contraste
+    borderRadius: 5,
+    backgroundColor: "#E8E8E8",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 1,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 1,
+    marginVertical: 1,
   },
   // Estilos específicos para elementos en modo expandido
   expandedPageHeader: {
@@ -167,6 +205,10 @@ export const createDynamicStyles = (
     line: {
       ...styles.line,
       borderBottomColor: colorScheme === "dark" ? "#404040" : "#e9ecef",
+    },
+    centerBinding: {
+      ...styles.centerBinding,
+      backgroundColor: colorScheme === "dark" ? "#000000" : "#ffffff",
     },
   });
 };
