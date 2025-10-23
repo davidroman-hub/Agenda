@@ -179,6 +179,46 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
+  // Estilos para controles de navegación
+  navigationControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  navButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  navButtonDisabled: {
+    backgroundColor: '#cccccc',
+    opacity: 0.6,
+  },
+  navButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pageIndicator: {
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  pageIndicatorContainer: {
+    alignItems: 'center',
+  },
+  modeIndicator: {
+    fontSize: 12,
+    opacity: 0.6,
+    marginTop: 2,
+  },
 });
 
 // Función para crear estilos dinámicos basados en el tema
@@ -209,6 +249,10 @@ export const createDynamicStyles = (
     centerBinding: {
       ...styles.centerBinding,
       backgroundColor: colorScheme === "dark" ? "#000000" : "#ffffff",
+    },
+    navigationControls: {
+      ...styles.navigationControls,
+      borderTopColor: colorScheme === "dark" ? "#404040" : "#e0e0e0",
     },
   });
 };

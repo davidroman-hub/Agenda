@@ -3,24 +3,28 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import useBookSettingsStore from "@/stores/boook-settings";
-import React from "react";
-import { ScrollView, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { PanResponder, ScrollView, TouchableOpacity } from "react-native";
 import BookActions from "./bookSettings";
 import { createDynamicStyles, styles } from "./bookStyles";
 
 export default function Book() {
   const { daysToShow, viewMode } = useBookSettingsStore();
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
 
-  // Obtener la fecha actual y los próximos días
+  // Obtener las fechas según la página actual
   const today = new Date();
   const days: Date[] = [];
 
+  // Calcular el offset basado en la página actual y el modo de vista
+  const startOffset = currentPageIndex * daysToShow;
+
   for (let i = 0; i < daysToShow; i++) {
     const date = new Date(today);
-    date.setDate(today.getDate() + i);
+    date.setDate(today.getDate() + startOffset + i);
     days.push(date);
   }
 
@@ -66,6 +70,31 @@ export default function Book() {
     }
     return lines;
   };
+
+  // Funciones para navegación de páginas
+  const goToNextPage = () => {
+    setCurrentPageIndex(prev => prev + 1);
+  };
+
+  const goToPrevPage = () => {
+    setCurrentPageIndex(prev => Math.max(0, prev - 1));
+  };
+
+  // Gesture handler para swipe
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 20;
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx > 50) {
+        // Swipe derecha - página anterior
+        goToPrevPage();
+      } else if (gestureState.dx < -50) {
+        // Swipe izquierda - página siguiente
+        goToNextPage();
+      }
+    },
+  });
 
   // Crear estilos dinámicos basados en el tema
   const dynamicStyles = createDynamicStyles(colorScheme ?? "light", colors);
@@ -176,7 +205,7 @@ export default function Book() {
   };
 
   return (
-    <ThemedView style={dynamicStyles.container}>
+    <ThemedView style={dynamicStyles.container} {...panResponder.panHandlers}>
       <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -227,6 +256,38 @@ export default function Book() {
           })
         )}
       </ScrollView>
+      
+      {/* Controles de navegación */}
+      <ThemedView style={dynamicStyles.navigationControls}>
+        <TouchableOpacity 
+          style={[styles.navButton, currentPageIndex === 0 && styles.navButtonDisabled]}
+          onPress={goToPrevPage}
+          disabled={currentPageIndex === 0}
+        >
+          <ThemedText style={styles.navButtonText}>← Anterior</ThemedText>
+        </TouchableOpacity>
+        
+        <ThemedView style={styles.pageIndicatorContainer}>
+          <ThemedText style={styles.pageIndicator}>
+            Página {currentPageIndex + 1}
+          </ThemedText>
+          <ThemedText style={styles.modeIndicator}>
+            {(() => {
+              if (viewMode === 'expanded') return '6 días';
+              if (viewMode === 'single') return '1 día';
+              return `${daysToShow} días`;
+            })()}
+          </ThemedText>
+        </ThemedView>
+        
+        <TouchableOpacity 
+          style={styles.navButton}
+          onPress={goToNextPage}
+        >
+          <ThemedText style={styles.navButtonText}>Siguiente →</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+      
       <BookActions />
     </ThemedView>
   );
