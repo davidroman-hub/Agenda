@@ -1,8 +1,11 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import React from "react";
+import useAgendaTasksStore from "@/stores/agenda-tasks-store";
+import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
+
 import { styles } from "../bookStyles";
+import TaskEditModal from "./TaskEditModal";
 
 interface BookPageProps {
   readonly day: Date;
@@ -14,16 +17,31 @@ interface BookPageProps {
   readonly dynamicStyles: any;
 }
 
-export default function BookPage({ 
-  day, 
-  dayIndex, 
-  isLeftPage = false, 
-  viewMode, 
-  colorScheme, 
-  colors, 
-  dynamicStyles 
+// Objeto vacío estable para evitar re-renders innecesarios
+const EMPTY_TASKS = {};
+
+export default function BookPage({
+  day,
+  dayIndex,
+  isLeftPage = false,
+  viewMode,
+  colorScheme,
+  colors,
+  dynamicStyles,
 }: BookPageProps) {
-  
+  // Formatear fecha para el store (YYYY-MM-DD)
+  const dateKey = day.toISOString().split("T")[0];
+
+  // Suscribirse directamente a las tareas de esta fecha específica
+  const dayTasks = useAgendaTasksStore(
+    (state) => state.tasksByDate[dateKey] || EMPTY_TASKS
+  );
+  const { addTask, updateTask, deleteTask, toggleTaskCompletion } =
+    useAgendaTasksStore();
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingLine, setEditingLine] = useState<number | null>(null);
+  const [editingTask, setEditingTask] = useState<string>("");
   const formatDate = (date: Date) => {
     const dayNames = [
       "domingo",
@@ -68,10 +86,49 @@ export default function BookPage({
   };
 
   const dateInfo = formatDate(day);
-  
+
+  // Funciones para manejar las tareas
+  const handleLinePress = (lineNumber: number) => {
+    const existingTask = dayTasks[lineNumber];
+    setEditingLine(lineNumber);
+    setEditingTask(existingTask?.text || "");
+    setModalVisible(true);
+  };
+
+  const handleSaveTask = (text: string) => {
+    if (editingLine !== null) {
+      const existingTask = dayTasks[editingLine];
+
+      if (existingTask) {
+        updateTask(dateKey, editingLine, { text });
+      } else {
+        addTask(dateKey, editingLine, text);
+      }
+
+      setModalVisible(false);
+      setEditingLine(null);
+      setEditingTask("");
+    }
+  };
+
+  const handleDeleteTask = () => {
+    if (editingLine !== null) {
+      deleteTask(dateKey, editingLine);
+      setModalVisible(false);
+      setEditingLine(null);
+      setEditingTask("");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setModalVisible(false);
+    setEditingLine(null);
+    setEditingTask("");
+  };
+
   // Determinar estilo de página según el modo de vista
   let pageStyle;
-  if (viewMode === 'expanded') {
+  if (viewMode === "expanded") {
     if (isLeftPage) {
       pageStyle = [dynamicStyles.page, styles.leftPage];
     } else {
@@ -80,39 +137,41 @@ export default function BookPage({
   } else {
     pageStyle = dynamicStyles.page;
   }
-  
+
   return (
-    <ThemedView 
-      style={pageStyle}
-    >
+    <ThemedView style={pageStyle}>
       {/* Encabezado de la página como agenda real */}
       <ThemedView
         style={[
-          styles.pageHeader, 
+          styles.pageHeader,
           dynamicStyles.pageHeaderBorder,
-          viewMode === 'expanded' ? styles.expandedPageHeader : null
+          viewMode === "expanded" ? styles.expandedPageHeader : null,
         ]}
       >
-        <ThemedText style={[
-          styles.dayName,
-          viewMode === 'expanded' ? styles.expandedDayName : null
-        ]}>
+        <ThemedText
+          style={[
+            styles.dayName,
+            viewMode === "expanded" ? styles.expandedDayName : null,
+          ]}
+        >
           {dateInfo.dayName}
         </ThemedText>
         <ThemedView style={styles.dateContainer}>
           <ThemedText
             style={[
-              styles.dayNumber, 
+              styles.dayNumber,
               dynamicStyles.dayNumber,
-              viewMode === 'expanded' ? styles.expandedDayNumber : null
+              viewMode === "expanded" ? styles.expandedDayNumber : null,
             ]}
           >
             {dateInfo.dayNumber}
           </ThemedText>
-          <ThemedText style={[
-            styles.monthYear,
-            viewMode === 'expanded' ? styles.expandedMonthYear : null
-          ]}>
+          <ThemedText
+            style={[
+              styles.monthYear,
+              viewMode === "expanded" ? styles.expandedMonthYear : null,
+            ]}
+          >
             {dateInfo.monthName} {dateInfo.year}
           </ThemedText>
         </ThemedView>
@@ -123,48 +182,119 @@ export default function BookPage({
         {generateLines().map((lineNumber) => (
           <TouchableOpacity
             key={`${dayIndex}-line-${lineNumber}`}
-            style={viewMode === 'expanded' ? 
-              [dynamicStyles.line, styles.expandedLine] : 
-              dynamicStyles.line
+            style={
+              viewMode === "expanded"
+                ? [dynamicStyles.line, styles.expandedLine]
+                : dynamicStyles.line
             }
-            onPress={() => {
-              console.log(
-                `Agregar tarea en línea ${lineNumber} para ${dateInfo.dayName} ${dateInfo.dayNumber}`
-              );
-            }}
+            onPress={() => handleLinePress(lineNumber)}
           >
-            <ThemedText style={[
-              styles.lineNumber,
-              viewMode === 'expanded' ? styles.expandedLineNumber : null
-            ]}>
+            <ThemedText
+              style={[
+                styles.lineNumber,
+                viewMode === "expanded" ? styles.expandedLineNumber : null,
+              ]}
+            >
               {lineNumber}
             </ThemedText>
             <ThemedView style={styles.writingLine}>
-              {/* Contenido de ejemplo */}
-              {dayIndex === 0 && lineNumber === 2 && (
-                <ThemedText style={styles.taskText}>
-                  📅 Reunión con el equipo - 10:00 AM
-                </ThemedText>
-              )}
-              {dayIndex === 0 && lineNumber === 4 && (
-                <ThemedText style={styles.taskText}>
-                  ✅ Revisar reportes mensuales
-                </ThemedText>
-              )}
-              {dayIndex === 1 && lineNumber === 3 && (
-                <ThemedText style={styles.taskText}>
-                  🎯 Presentación cliente importante - 2:00 PM
-                </ThemedText>
-              )}
-              {dayIndex === 2 && lineNumber === 5 && (
-                <ThemedText style={styles.taskText}>
-                  💪 Gimnasio - 4:00 PM
-                </ThemedText>
-              )}
+              {(() => {
+                const task = dayTasks[lineNumber];
+                if (task) {
+                  return (
+                    <ThemedView
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flex: 1,
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={(() => {
+                          let borderColor;
+                          if (task.completed) {
+                            borderColor = "#4CAF50";
+                          } else if (colorScheme === "dark") {
+                            borderColor = "#888";
+                          } else {
+                            borderColor = "#666";
+                          }
+
+                          return {
+                            marginRight: 8,
+                            width: 20,
+                            height: 25,
+                            borderWidth: 2,
+                            borderColor,
+                            backgroundColor: task.completed
+                              ? "#4CAF50"
+                              : "transparent",
+                            borderRadius: 3,
+                            justifyContent: "center",
+                            alignItems: "center",
+                          };
+                        })()}
+                        onPress={() =>
+                          toggleTaskCompletion(dateKey, lineNumber)
+                        }
+                      >
+                        {task.completed && (
+                          <ThemedText
+                            style={{
+                              fontSize: 16,
+                              color: "white",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            ✓
+                          </ThemedText>
+                        )}
+                      </TouchableOpacity>
+                      <ThemedText
+                        style={[
+                          styles.taskText,
+                          { flex: 1 },
+                          task.completed && {
+                            textDecorationLine: "line-through",
+                            opacity: 0.6,
+                          },
+                        ]}
+                      >
+                        {task.text.length > 30
+                          ? `${task.text.slice(0, 25)}...`
+                          : task.text}
+                      </ThemedText>
+                    </ThemedView>
+                  );
+                }
+                return (
+                  <ThemedText
+                    style={[
+                      styles.taskText,
+                      { opacity: 0.4, fontStyle: "italic" },
+                    ]}
+                  ></ThemedText>
+                );
+              })()}
             </ThemedView>
           </TouchableOpacity>
         ))}
       </ThemedView>
+
+      {/* Modal para editar tareas */}
+      <TaskEditModal
+        visible={modalVisible}
+        initialText={editingTask}
+        onSave={handleSaveTask}
+        toggleTaskCompletion={toggleTaskCompletion}
+        date={dateKey}
+        completed={dayTasks[editingLine as number]?.completed || false}
+        lineNumber={editingLine as number}
+        onCancel={handleCancelEdit}
+        onDelete={editingTask ? handleDeleteTask : undefined}
+        colorScheme={colorScheme as "light" | "dark"}
+        colors={colors}
+      />
     </ThemedView>
   );
 }
