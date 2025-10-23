@@ -3,29 +3,32 @@ import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ExpandoButton() {
-  const { setDaysToShow, daysToShow, setViewMode } = useBookSettingsStore();
+  const { setDaysToShow, daysToShow, setViewMode, viewMode } =
+    useBookSettingsStore();
   const [isExpanded, setIsExpanded] = useState(false);
+
   const handlePress = () => {
     setIsExpanded(!isExpanded);
   };
 
   const optiones = [
     { id: 1, label: daysToShow === 6 ? "3 dias" : "6 dias" },
-    { id: 2, label: "expandido" },
-    { id: 3, label: "singular" },
+    { id: 2, label: "•  •\n•  •\n•  •" },
+    { id: 3, label: "•" },
   ];
 
   const manageOptions = (optionId: number) => {
     if (optionId === 1) {
       const newDays = daysToShow === 6 ? 3 : 6;
       setDaysToShow(newDays);
-      setViewMode('normal');
-    } else if (optionId === 2) {
+    } else if (optionId === 2 && daysToShow === 6) {
+      setViewMode("expanded");
+    } else if (optionId === 2 && daysToShow === 1) {
+      setViewMode("expanded");
       setDaysToShow(6);
-      setViewMode('expanded');
     } else if (optionId === 3) {
       setDaysToShow(1);
-      setViewMode('single');
+      setViewMode("single");
     }
     setIsExpanded(false);
   };
@@ -55,9 +58,10 @@ export default function ExpandoButton() {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 30,
+    bottom: 80, // Más margin-bottom (antes era 30)
     right: 20,
     alignItems: "center",
+    zIndex: 1000,
   },
   optionsContainer: {
     marginBottom: 15,
