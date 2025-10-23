@@ -24,7 +24,7 @@ const ChangeThemeButton = () => {
         <ThemedText style={styles.icon}>
           {colorScheme === "light" ? "🌙" : "☀️"}
         </ThemedText>
-        <ThemedText style={[styles.buttonText, { color: '#ffffff' }]}>
+        <ThemedText style={[styles.buttonText, { color: colors.background }]}>
           {colorScheme === "light" ? "Modo Oscuro" : "Modo Claro"}
         </ThemedText>
       </ThemedView>
@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginVertical: 10,
     shadowColor: '#000',
+    color: '#fff',
     shadowOffset: {
       width: 0,
       height: 2,
