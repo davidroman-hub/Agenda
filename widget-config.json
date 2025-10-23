@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-dev-client",
+        {
+          "addGeneratedScheme": false
+        }
+      ]
+    ]
+  },
+  "ios": {
+    "widgets": [
+      {
+        "name": "AgendaWidget",
+        "displayName": "Agenda de Hoy",
+        "description": "Muestra las tareas del día actual",
+        "families": ["systemSmall", "systemMedium"],
+        "configuration": {
+          "kind": "AgendaWidget",
+          "intent": "AgendaWidgetConfigurationIntent"
+        }
+      }
+    ]
+  },
+  "android": {
+    "widgets": [
+      {
+        "name": "AgendaWidget", 
+        "label": "Agenda de Hoy",
+        "description": "Muestra las tareas del día actual",
+        "minWidth": "110dp",
+        "minHeight": "110dp",
+        "targetCellWidth": 2,
+        "targetCellHeight": 2,
+        "maxResizeWidth": "250dp",
+        "maxResizeHeight": "250dp",
+        "resizeMode": "horizontal|vertical",
+        "widgetCategory": "home_screen",
+        "initialLayout": "@layout/agenda_widget"
+      }
+    ]
+  }
+}
