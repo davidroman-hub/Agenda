@@ -1,10 +1,13 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
+import ChangeThemeButton from "@/components/settings/changeThemeButton";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Button, StyleSheet, TextStyle, ViewStyle } from "react-native";
+import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 
 export default function SettingsPage() {
+
+  console.log("Rendering SettingsPage");
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
@@ -22,10 +25,7 @@ export default function SettingsPage() {
         <ThemedText style={dynamicStyles.text}>
           Aquí puedes ajustar tus preferencias de la aplicación.
         </ThemedText>
-        <Button
-          title="Guardar Cambios"
-          onPress={() => alert("Cambios guardados")}
-        />
+        <ChangeThemeButton />
       </ThemedView>
     </ParallaxScrollView>
   );
