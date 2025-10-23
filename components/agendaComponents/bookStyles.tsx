@@ -87,6 +87,60 @@ export const styles = StyleSheet.create({
     height: 20,
     backgroundColor: "transparent",
   },
+  // Estilos para vista expandida (como agenda real abierta)
+  expandedContainer: {
+    flexDirection: "row",
+    marginVertical: 10,
+    gap: 2,
+  },
+  leftPage: {
+    flex: 1,
+    marginRight: 1,
+  },
+  rightPage: {
+    flex: 1,
+    marginLeft: 1,
+  },
+  centerBinding: {
+    width: 4,
+    backgroundColor: "#8B4513", // Color marrón para simular el lomo de la agenda
+    borderRadius: 2,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  // Estilos específicos para elementos en modo expandido
+  expandedPageHeader: {
+    paddingBottom: 10,
+    marginBottom: 15,
+  },
+  expandedDayName: {
+    fontSize: 18,
+  },
+  expandedDayNumber: {
+    fontSize: 24,
+  },
+  expandedMonthYear: {
+    fontSize: 10,
+  },
+  expandedLine: {
+    minHeight: 32,
+    paddingVertical: 6,
+  },
+  expandedLineNumber: {
+    fontSize: 10,
+    width: 20,
+    marginRight: 10,
+  },
+  expandedTaskText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
 });
 
 // Función para crear estilos dinámicos basados en el tema

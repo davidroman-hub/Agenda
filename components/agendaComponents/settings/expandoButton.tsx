@@ -3,7 +3,7 @@ import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ExpandoButton() {
-  const { setDaysToShow, daysToShow } = useBookSettingsStore();
+  const { setDaysToShow, daysToShow, setViewMode } = useBookSettingsStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const handlePress = () => {
     setIsExpanded(!isExpanded);
@@ -11,19 +11,21 @@ export default function ExpandoButton() {
 
   const optiones = [
     { id: 1, label: daysToShow === 6 ? "3 dias" : "6 dias" },
-    { id: 2, label: "2 dias" },
-    { id: 3, label: "3 dias" },
+    { id: 2, label: "expandido" },
+    { id: 3, label: "singular" },
   ];
 
   const manageOptions = (optionId: number) => {
     if (optionId === 1) {
-      setDaysToShow(daysToShow === 6 ? 3 : 6);
+      const newDays = daysToShow === 6 ? 3 : 6;
+      setDaysToShow(newDays);
+      setViewMode('normal');
     } else if (optionId === 2) {
-      setDaysToShow(2);
+      setDaysToShow(6);
+      setViewMode('expanded');
     } else if (optionId === 3) {
-      setDaysToShow(3);
-    } else {
-      setDaysToShow(3);
+      setDaysToShow(1);
+      setViewMode('single');
     }
     setIsExpanded(false);
   };

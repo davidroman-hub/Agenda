@@ -9,12 +9,12 @@ import BookActions from "./bookSettings";
 import { createDynamicStyles, styles } from "./bookStyles";
 
 export default function Book() {
-  const { daysToShow } = useBookSettingsStore();
+  const { daysToShow, viewMode } = useBookSettingsStore();
 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
 
-  // Obtener la fecha actual y los próximos 2 días
+  // Obtener la fecha actual y los próximos días
   const today = new Date();
   const days: Date[] = [];
 
@@ -69,6 +69,111 @@ export default function Book() {
   // Crear estilos dinámicos basados en el tema
   const dynamicStyles = createDynamicStyles(colorScheme ?? "light", colors);
 
+  // Función para renderizar una página individual
+  const renderPage = (day: Date, dayIndex: number, isLeftPage = false) => {
+    const dateInfo = formatDate(day);
+    
+    // Determinar estilo de página según el modo de vista
+    let pageStyle;
+    if (viewMode === 'expanded') {
+      if (isLeftPage) {
+        pageStyle = [dynamicStyles.page, styles.leftPage];
+      } else {
+        pageStyle = [dynamicStyles.page, styles.rightPage];
+      }
+    } else {
+      pageStyle = dynamicStyles.page;
+    }
+    
+    return (
+      <ThemedView 
+        key={day.toISOString()} 
+        style={pageStyle}
+      >
+        {/* Encabezado de la página como agenda real */}
+        <ThemedView
+          style={[
+            styles.pageHeader, 
+            dynamicStyles.pageHeaderBorder,
+            viewMode === 'expanded' ? styles.expandedPageHeader : null
+          ]}
+        >
+          <ThemedText style={[
+            styles.dayName,
+            viewMode === 'expanded' ? styles.expandedDayName : null
+          ]}>
+            {dateInfo.dayName}
+          </ThemedText>
+          <ThemedView style={styles.dateContainer}>
+            <ThemedText
+              style={[
+                styles.dayNumber, 
+                dynamicStyles.dayNumber,
+                viewMode === 'expanded' ? styles.expandedDayNumber : null
+              ]}
+            >
+              {dateInfo.dayNumber}
+            </ThemedText>
+            <ThemedText style={[
+              styles.monthYear,
+              viewMode === 'expanded' ? styles.expandedMonthYear : null
+            ]}>
+              {dateInfo.monthName} {dateInfo.year}
+            </ThemedText>
+          </ThemedView>
+        </ThemedView>
+
+        {/* Líneas de escritura como en agenda real */}
+        <ThemedView style={styles.linesContainer}>
+          {generateLines().map((lineNumber) => (
+            <TouchableOpacity
+              key={`${dayIndex}-line-${lineNumber}`}
+              style={viewMode === 'expanded' ? 
+                [dynamicStyles.line, styles.expandedLine] : 
+                dynamicStyles.line
+              }
+              onPress={() => {
+                console.log(
+                  `Agregar tarea en línea ${lineNumber} para ${dateInfo.dayName} ${dateInfo.dayNumber}`
+                );
+              }}
+            >
+              <ThemedText style={[
+                styles.lineNumber,
+                viewMode === 'expanded' ? styles.expandedLineNumber : null
+              ]}>
+                {lineNumber}
+              </ThemedText>
+              <ThemedView style={styles.writingLine}>
+                {/* Contenido de ejemplo */}
+                {dayIndex === 0 && lineNumber === 2 && (
+                  <ThemedText style={styles.taskText}>
+                    📅 Reunión con el equipo - 10:00 AM
+                  </ThemedText>
+                )}
+                {dayIndex === 0 && lineNumber === 4 && (
+                  <ThemedText style={styles.taskText}>
+                    ✅ Revisar reportes mensuales
+                  </ThemedText>
+                )}
+                {dayIndex === 1 && lineNumber === 3 && (
+                  <ThemedText style={styles.taskText}>
+                    🎯 Presentación cliente importante - 2:00 PM
+                  </ThemedText>
+                )}
+                {dayIndex === 2 && lineNumber === 5 && (
+                  <ThemedText style={styles.taskText}>
+                    💪 Gimnasio - 4:00 PM
+                  </ThemedText>
+                )}
+              </ThemedView>
+            </TouchableOpacity>
+          ))}
+        </ThemedView>
+      </ThemedView>
+    );
+  };
+
   return (
     <ThemedView style={dynamicStyles.container}>
       <ScrollView
@@ -76,78 +181,42 @@ export default function Book() {
         showsVerticalScrollIndicator={false}
       >
         {/* Páginas de la agenda */}
-        {days.map((day, dayIndex) => {
-          const dateInfo = formatDate(day);
-          return (
-            <ThemedView key={day.toISOString()} style={dynamicStyles.page}>
-              {/* Encabezado de la página como agenda real */}
-              <ThemedView
-                style={[styles.pageHeader, dynamicStyles.pageHeaderBorder]}
-              >
-                <ThemedText style={styles.dayName}>
-                  {dateInfo.dayName}
-                </ThemedText>
-                <ThemedView style={styles.dateContainer}>
-                  <ThemedText
-                    style={[styles.dayNumber, dynamicStyles.dayNumber]}
-                  >
-                    {dateInfo.dayNumber}
-                  </ThemedText>
-                  <ThemedText style={styles.monthYear}>
-                    {dateInfo.monthName} {dateInfo.year}
-                  </ThemedText>
+        {viewMode === 'expanded' ? (
+          // Vista expandida: mostrar días en pares lado a lado (como agenda real)
+          <>
+            {Array.from({ length: Math.ceil(days.length / 2) }, (_, pairIndex) => {
+              const leftDay = days[pairIndex * 2];
+              const rightDay = days[pairIndex * 2 + 1];
+              
+              return (
+                <ThemedView key={`pair-${pairIndex}`} style={styles.expandedContainer}>
+                  {/* Página izquierda */}
+                  {leftDay && renderPage(leftDay, pairIndex * 2, true)}
+                  
+                  {/* Línea central (como el lomo de la agenda) */}
+                  <ThemedView style={styles.centerBinding} />
+                  
+                  {/* Página derecha */}
+                  {rightDay && renderPage(rightDay, pairIndex * 2 + 1, false)}
                 </ThemedView>
-              </ThemedView>
-
-              {/* Líneas de escritura como en agenda real */}
-              <ThemedView style={styles.linesContainer}>
-                {generateLines().map((lineNumber) => (
-                  <TouchableOpacity
-                    key={`${dayIndex}-line-${lineNumber}`}
-                    style={dynamicStyles.line}
-                    onPress={() => {
-                      console.log(
-                        `Agregar tarea en línea ${lineNumber} para ${dateInfo.dayName} ${dateInfo.dayNumber}`
-                      );
-                    }}
-                  >
-                    <ThemedText style={styles.lineNumber}>
-                      {lineNumber}
-                    </ThemedText>
-                    <ThemedView style={styles.writingLine}>
-                      {/* Contenido de ejemplo */}
-                      {dayIndex === 0 && lineNumber === 2 && (
-                        <ThemedText style={styles.taskText}>
-                          📅 Reunión con el equipo - 10:00 AM
-                        </ThemedText>
-                      )}
-                      {dayIndex === 0 && lineNumber === 4 && (
-                        <ThemedText style={styles.taskText}>
-                          ✅ Revisar reportes mensuales
-                        </ThemedText>
-                      )}
-                      {dayIndex === 1 && lineNumber === 3 && (
-                        <ThemedText style={styles.taskText}>
-                          🎯 Presentación cliente importante - 2:00 PM
-                        </ThemedText>
-                      )}
-                      {dayIndex === 2 && lineNumber === 5 && (
-                        <ThemedText style={styles.taskText}>
-                          💪 Gimnasio - 4:00 PM
-                        </ThemedText>
-                      )}
-                    </ThemedView>
-                  </TouchableOpacity>
-                ))}
-              </ThemedView>
-
-              {/* Separador de página */}
-              {dayIndex < days.length - 1 && (
-                <ThemedView style={styles.pageSeparator} />
-              )}
-            </ThemedView>
-          );
-        })}
+              );
+            })}
+          </>
+        ) : (
+          // Vista normal: mostrar días uno tras otro
+          days.map((day, dayIndex) => {
+            const pageContent = renderPage(day, dayIndex);
+            return (
+              <React.Fragment key={day.toISOString()}>
+                {pageContent}
+                {/* Separador de página */}
+                {dayIndex < days.length - 1 && (
+                  <ThemedView style={styles.pageSeparator} />
+                )}
+              </React.Fragment>
+            );
+          })
+        )}
       </ScrollView>
       <BookActions />
     </ThemedView>
