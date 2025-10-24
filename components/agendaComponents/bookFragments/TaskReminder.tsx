@@ -1,16 +1,17 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { formatDateLocalized, formatTimeLocalized } from '@/utils/locale-config';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { Platform, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 
 interface TaskReminderProps {
-  reminderDate?: Date | null;
-  onReminderChange: (date: Date | null) => void;
-  isEnabled?: boolean;
-  onToggleEnabled: (enabled: boolean) => void;
-  taskDate: string;
+  readonly reminderDate?: Date | null;
+  readonly onReminderChange: (date: Date | null) => void;
+  readonly isEnabled?: boolean;
+  readonly onToggleEnabled: (enabled: boolean) => void;
+  readonly taskDate: string;
 }
 
 export default function TaskReminder({
@@ -30,21 +31,7 @@ const backgroundColor = useThemeColor({}, 'background');
 const taskDateTransform = new Date(taskDate);
 
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -77,11 +64,10 @@ const taskDateTransform = new Date(taskDate);
   };
 
   const openDateTimePicker = () => {
-    if (Platform.OS === 'ios') {
+    try {
       setShowDatePicker(true);
-    } else {
-      // En Android, mostrar primero el date picker
-      setShowDatePicker(true);
+    } catch (error) {
+      console.error('Error opening date picker:', error);
     }
   };
 
@@ -122,10 +108,10 @@ const taskDateTransform = new Date(taskDate);
             <View style={styles.selectedDateTime}>
               <View style={styles.dateTimeRow}>
                 <ThemedText style={[styles.dateLabel, { color: textColor }]}>
-                  📅 {formatDate(currentReminderDate)}
+                  📅 {formatDateLocalized(currentReminderDate)}
                 </ThemedText>
                 <ThemedText style={[styles.timeLabel, { color: textColor }]}>
-                  🕐 {formatTime(currentReminderDate)}
+                  🕐 {formatTimeLocalized(currentReminderDate)}
                 </ThemedText>
               </View>
               
@@ -142,17 +128,27 @@ const taskDateTransform = new Date(taskDate);
           )}
 
           {/* Date Picker - iOS muestra fecha y hora juntos */}
-          {showDatePicker && (
+          {showDatePicker && Platform.OS === 'ios' && (
             <DateTimePicker
               value={tempDate}
-              mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
-              display={Platform.OS === 'ios' ? 'compact' : 'default'}
+              mode="datetime"
+              display="compact"
               onChange={handleDateChange}
-              onTouchCancel={() => console.log('Date picker cancelled')}
               minimumDate={new Date()}
               maximumDate={taskDateTransform}
-              locale="es-ES"
-              style={Platform.OS === 'ios' ? styles.iosDatePicker : undefined}
+              style={styles.iosDatePicker}
+            />
+          )}
+
+          {/* Date Picker - Android separado */}
+          {showDatePicker && Platform.OS === 'android' && (
+            <DateTimePicker
+              value={tempDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+              maximumDate={taskDateTransform}
             />
           )}
 
@@ -163,7 +159,6 @@ const taskDateTransform = new Date(taskDate);
               mode="time"
               display="default"
               onChange={handleTimeChange}
-              locale="es-ES"
             />
           )}
         </View>
