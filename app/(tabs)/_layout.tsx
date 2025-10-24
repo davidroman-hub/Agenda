@@ -3,6 +3,7 @@ import React from "react";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import NotificationIconWithBadge from "@/components/ui/notification-icon-with-badge";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
@@ -60,7 +61,7 @@ export default function TabLayout() {
         options={{
           title: "Recordatorios",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="bell" color={color} />
+            <NotificationIconWithBadge color={color} size={28} />
           ),
           // Mostrar solo si está logueado
           href: isLoggedIn ? "/(tabs)/notifications" : null,
