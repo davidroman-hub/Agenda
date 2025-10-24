@@ -45,7 +45,7 @@ export default function TabLayout() {
           href: isLoggedIn ? "/(tabs)" : null,
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="explore"
         options={{
           title: "Explore",
@@ -55,7 +55,7 @@ export default function TabLayout() {
           // Mostrar solo si está logueado
           href: isLoggedIn ? "/(tabs)/explore" : null,
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="notifications"
         options={{
