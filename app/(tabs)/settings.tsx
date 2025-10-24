@@ -6,6 +6,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
+import pjson from '../../app.json';
+const versionJSON = pjson.expo.version;
 
 export default function SettingsPage() {
   console.log("Rendering SettingsPage");
@@ -26,7 +28,7 @@ export default function SettingsPage() {
         <ThemedText style={dynamicStyles.text}>
           Aquí puedes ajustar tus preferencias de la aplicación.
         </ThemedText>
-        <ThemedText style={dynamicStyles.text}>Version 1.0.0</ThemedText>
+        <ThemedText style={dynamicStyles.text}>Version {versionJSON}</ThemedText>
         <ChangeThemeButton />
         <TaskFontSizeButton />
         <LogoutButton />
