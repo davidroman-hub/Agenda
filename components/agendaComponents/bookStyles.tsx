@@ -63,6 +63,7 @@ export const styles = StyleSheet.create({
     minHeight: 40,
     borderBottomWidth: 1,
     paddingVertical: 8,
+    backgroundColor: "transparent", // Fondo transparente para todas las líneas
   },
   lineNumber: {
     fontSize: 12,
@@ -71,6 +72,7 @@ export const styles = StyleSheet.create({
     marginRight: 15,
     marginTop: 2,
     opacity: 0.6,
+  
   },
   writingLine: {
     backgroundColor: "transparent", ///<=== atras lineas escritura
@@ -82,6 +84,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: "italic",
     lineHeight: 22,
+    backgroundColor: "transparent",
   },
   pageSeparator: {
     height: 20,
@@ -249,6 +252,12 @@ export const createDynamicStyles = (
     line: {
       ...styles.line,
       borderBottomColor: colorScheme === "dark" ? "#404040" : "#e9ecef",
+      backgroundColor: "transparent", // Asegurar fondo transparente
+    },
+    lineWithTask: {
+      ...styles.line,
+      borderBottomColor: colorScheme === "dark" ? "#404040" : "#e9ecef",
+      backgroundColor: colorScheme === "dark" ? "rgba(100,100,100,0.1)" : "rgba(200,200,200,0.1)", // Fondo gris muy claro para líneas con tareas
     },
     centerBinding: {
       ...styles.centerBinding,

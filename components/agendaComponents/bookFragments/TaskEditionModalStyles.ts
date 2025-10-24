@@ -66,7 +66,7 @@ export const modalStyles = (colorScheme: "light" | "dark", colors: any) => ({
     backgroundColor: "#FFA500",
   },
   saveButton: {
-    backgroundColor: colors.tint,
+    backgroundColor: "#2196f3",
   },
   buttonText: {
     fontSize: 16,

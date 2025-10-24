@@ -179,16 +179,26 @@ export default function BookPage({
 
       {/* Líneas de escritura como en agenda real */}
       <ThemedView style={styles.linesContainer}>
-        {generateLines().map((lineNumber) => (
-          <TouchableOpacity
-            key={`${dayIndex}-line-${lineNumber}`}
-            style={
-              viewMode === "expanded"
-                ? [dynamicStyles.line, styles.expandedLine]
-                : dynamicStyles.line
-            }
-            onPress={() => handleLinePress(lineNumber)}
-          >
+        {generateLines().map((lineNumber) => {
+          const hasTask = dayTasks[lineNumber];
+          
+          let lineStyle;
+          if (hasTask) {
+            lineStyle = viewMode === "expanded" 
+              ? [dynamicStyles.lineWithTask, styles.expandedLine] 
+              : dynamicStyles.lineWithTask;
+          } else {
+            lineStyle = viewMode === "expanded" 
+              ? [dynamicStyles.line, styles.expandedLine] 
+              : dynamicStyles.line;
+          }
+          
+          return (
+            <TouchableOpacity
+              key={`${dayIndex}-line-${lineNumber}`}
+              style={lineStyle}
+              onPress={() => handleLinePress(lineNumber)}
+            >
             <ThemedText
               style={[
                 styles.lineNumber,
@@ -197,7 +207,7 @@ export default function BookPage({
             >
               {lineNumber}
             </ThemedText>
-            <ThemedView style={styles.writingLine}>
+            <ThemedView style={[styles.writingLine, { backgroundColor: "transparent" }]}>
               {(() => {
                 const task = dayTasks[lineNumber];
                 if (task) {
@@ -207,6 +217,7 @@ export default function BookPage({
                         flexDirection: "row",
                         alignItems: "center",
                         flex: 1,
+                        backgroundColor: "transparent", // Fondo transparente explícito
                       }}
                     >
                       <TouchableOpacity
@@ -278,7 +289,8 @@ export default function BookPage({
               })()}
             </ThemedView>
           </TouchableOpacity>
-        ))}
+          );
+        })}
       </ThemedView>
 
       {/* Modal para editar tareas */}

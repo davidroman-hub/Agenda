@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import React, { useState } from "react";
-import { Alert, Modal, TextInput, TouchableOpacity } from "react-native";
+import { Alert, Modal, TextInput, TouchableOpacity, View } from "react-native";
 import { modalStyles } from "./TaskEditionModalStyles";
 import TaskReminder from "./TaskReminder";
 
@@ -40,7 +40,7 @@ export default function TaskEditModal({
 
   React.useEffect(() => {
     setTaskText(initialText);
-    
+
     // Inicializar recordatorio desde la tarea existente
     if (initialReminder) {
       const reminderDateObj = new Date(initialReminder);
@@ -55,7 +55,8 @@ export default function TaskEditModal({
   const handleSave = () => {
     const trimmedText = taskText.trim();
     if (trimmedText.length > 0) {
-      const reminderString = reminderEnabled && reminderDate ? reminderDate.toISOString() : null;
+      const reminderString =
+        reminderEnabled && reminderDate ? reminderDate.toISOString() : null;
       onSave(trimmedText, reminderString);
       setTaskText("");
       setReminderDate(null);
@@ -138,7 +139,7 @@ export default function TaskEditModal({
             taskDate={date}
           />
 
-          <ThemedView style={modalStyles(colorScheme, colors).buttonsContainer}>
+          <View style={modalStyles(colorScheme, colors).buttonsContainer}>
             <TouchableOpacity
               style={[
                 modalStyles(colorScheme, colors).button,
@@ -213,7 +214,7 @@ export default function TaskEditModal({
                 Guardar
               </ThemedText>
             </TouchableOpacity>
-          </ThemedView>
+          </View>
         </ThemedView>
       </ThemedView>
     </Modal>
