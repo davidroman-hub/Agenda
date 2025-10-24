@@ -7,7 +7,6 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 
 export default function SettingsPage() {
-
   console.log("Rendering SettingsPage");
   return (
     <ParallaxScrollView
@@ -26,6 +25,7 @@ export default function SettingsPage() {
         <ThemedText style={dynamicStyles.text}>
           Aquí puedes ajustar tus preferencias de la aplicación.
         </ThemedText>
+        <ThemedText style={dynamicStyles.text}>Version 1.0.0</ThemedText>
         <ChangeThemeButton />
         <LogoutButton />
       </ThemedView>
