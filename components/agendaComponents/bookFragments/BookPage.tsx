@@ -95,14 +95,14 @@ export default function BookPage({
     setModalVisible(true);
   };
 
-  const handleSaveTask = (text: string) => {
+  const handleSaveTask = (text: string, reminder?: string | null) => {
     if (editingLine !== null) {
       const existingTask = dayTasks[editingLine];
 
       if (existingTask) {
-        updateTask(dateKey, editingLine, { text });
+        updateTask(dateKey, editingLine, { text, reminder });
       } else {
-        addTask(dateKey, editingLine, text);
+        addTask(dateKey, editingLine, text, reminder);
       }
 
       setModalVisible(false);
@@ -285,6 +285,7 @@ export default function BookPage({
       <TaskEditModal
         visible={modalVisible}
         initialText={editingTask}
+        initialReminder={dayTasks[editingLine as number]?.reminder}
         onSave={handleSaveTask}
         toggleTaskCompletion={toggleTaskCompletion}
         date={dateKey}

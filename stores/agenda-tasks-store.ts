@@ -8,6 +8,7 @@ export interface AgendaTask {
   completed: boolean;
   createdAt: string;
   updatedAt: string;
+  reminder?: string | null; // ISO string for reminder date/time
 }
 
 export interface DayTasks {
@@ -19,7 +20,7 @@ export interface AgendaTasksState {
   tasksByDate: Record<string, DayTasks>;
   
   // Acciones
-  addTask: (date: string, lineNumber: number, text: string) => void;
+  addTask: (date: string, lineNumber: number, text: string, reminder?: string | null) => void;
   updateTask: (date: string, lineNumber: number, updates: Partial<AgendaTask>) => void;
   deleteTask: (date: string, lineNumber: number) => void;
   toggleTaskCompletion: (date: string, lineNumber: number) => void;
@@ -32,13 +33,14 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
     (set, get) => ({
       tasksByDate: {},
       
-      addTask: (date: string, lineNumber: number, text: string) => {
+      addTask: (date: string, lineNumber: number, text: string, reminder?: string | null) => {
         const newTask: AgendaTask = {
           id: `${date}-${lineNumber}-${Date.now()}`,
           text: text.trim(),
           completed: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          reminder: reminder || null,
         };
         
         set((state) => ({
