@@ -1,8 +1,8 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { notificationService } from '@/services/notifications/notification-service';
-
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { notificationService } from '@/services/notifications/notification-service';
+import useAgendaTasksStore from '@/stores/agenda-tasks-store';
 import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
@@ -16,12 +16,17 @@ interface ScheduledNotificationInfo {
 
 export default function NotificationSettings() {
   const [scheduledNotifications, setScheduledNotifications] = useState<ScheduledNotificationInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const tintColor = useThemeColor({}, 'tint');
   const textColor = useThemeColor({}, 'text');
   const backgroundColor = useThemeColor({}, 'background');
+  
+  // Suscribirse al store para detectar cambios en las tareas
+  const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
 
   const loadScheduledNotifications = async () => {
     try {
+      setIsLoading(true);
       const notifications = await notificationService.getScheduledNotifications();
       const taskNotifications: ScheduledNotificationInfo[] = notifications
         .filter(n => n.content.data?.type === 'task-reminder')
@@ -44,12 +49,23 @@ export default function NotificationSettings() {
       setScheduledNotifications(taskNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     loadScheduledNotifications();
   }, []);
+
+  // Recargar automáticamente cuando cambien las tareas
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadScheduledNotifications();
+    }, 500); // Debounce de 500ms para evitar recargas excesivas
+
+    return () => clearTimeout(timeoutId);
+  }, [tasksByDate]);
 
   const handleTestNotification = async () => {
     try {
@@ -152,10 +168,10 @@ export default function NotificationSettings() {
         </ThemedText>
         
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: tintColor }]}
+          style={[styles.actionButton, { backgroundColor: "#2196f3" }]}
           onPress={handleTestNotification}
         >
-          <ThemedText style={styles.actionButtonText}>
+          <ThemedText style={ styles.actionButtonText}>
             🧪 Enviar recordatorio de prueba
           </ThemedText>
         </TouchableOpacity>
@@ -170,25 +186,42 @@ export default function NotificationSettings() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: '#666' }]}
+          style={[
+            styles.actionButton, 
+            { 
+              backgroundColor: isLoading ? '#999' : '#666',
+              opacity: isLoading ? 0.7 : 1,
+            }
+          ]}
           onPress={loadScheduledNotifications}
+          disabled={isLoading}
         >
           <ThemedText style={styles.actionButtonText}>
-            🔄 Recargar lista de recordatorios
+            {isLoading ? '🔄 Recargando...' : '🔄 Recargar lista manualmente'}
           </ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
       <ThemedView style={styles.section}>
         <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Recordatorios programados ({scheduledNotifications.length})
+          Recordatorios programados ({scheduledNotifications.length}) 
+          {isLoading && <ThemedText style={{ color: tintColor }}> - Actualizando...</ThemedText>}
         </ThemedText>
         
-        {scheduledNotifications.length === 0 ? (
-          <ThemedText style={[styles.emptyText, { color: textColor }]}>
-            No hay recordatorios programados
+        {isLoading && (
+          <ThemedText style={[styles.loadingText, { color: tintColor }]}>
+            🔄 Cargando recordatorios...
           </ThemedText>
-        ) : (
+        )}
+        
+        {!isLoading && scheduledNotifications.length === 0 && (
+          <ThemedText style={[styles.emptyText, { color: textColor }]}>
+            No hay recordatorios programados.{'\n'}
+            Crea una tarea y activa el recordatorio para verlo aquí.
+          </ThemedText>
+        )}
+        
+        {!isLoading && scheduledNotifications.length > 0 && (
           <FlatList
             data={scheduledNotifications}
             renderItem={renderNotificationItem}
@@ -196,6 +229,20 @@ export default function NotificationSettings() {
             showsVerticalScrollIndicator={false}
           />
         )}
+      </ThemedView>
+
+      {/* Sección de información */}
+      <ThemedView style={styles.section}>
+        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+          Información
+        </ThemedText>
+        
+        <ThemedView style={[styles.infoBox, { backgroundColor: tintColor + '20', borderColor: tintColor }]}>
+          <ThemedText style={[styles.infoText, { color: textColor }]}>
+            💡 La lista de recordatorios se actualiza automáticamente cuando editas tareas.
+            {'\n'}📱 Los recordatorios aparecerán como notificaciones en tu dispositivo a la hora programada.
+          </ThemedText>
+        </ThemedView>
       </ThemedView>
     </ThemedView>
   );
@@ -269,5 +316,21 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.6,
     marginTop: 20,
+    lineHeight: 20,
+  },
+  loadingText: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 20,
+  },
+  infoBox: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
