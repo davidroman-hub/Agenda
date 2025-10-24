@@ -263,7 +263,7 @@ export default function BookPage({
                       </TouchableOpacity>
                       <ThemedText
                         style={[
-                          styles.taskText,
+                          viewMode === "expanded" ? dynamicStyles.expandedTaskText : dynamicStyles.taskText,
                           { flex: 1 },
                           task.completed && {
                             textDecorationLine: "line-through",
@@ -281,7 +281,7 @@ export default function BookPage({
                 return (
                   <ThemedText
                     style={[
-                      styles.taskText,
+                      viewMode === "expanded" ? dynamicStyles.expandedTaskText : dynamicStyles.taskText,
                       { opacity: 0.4, fontStyle: "italic" },
                     ]}
                   ></ThemedText>

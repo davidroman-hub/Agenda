@@ -1,4 +1,18 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+
+// Obtener dimensiones de la pantalla
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+// Determinar tipos de pantalla
+const isSmallScreen = screenWidth < 500 || screenHeight < 900; // Phones normales
+const isLargeScreen = screenWidth > 800; // Tablets, Fold abierto, etc.
+
+// Función para obtener el tamaño de fuente basado en pantalla y modo
+const getFontSize = (smallSize: number, normalSize: number, largeSize: number, isExpandedMode?: boolean) => {
+  if (isLargeScreen) return largeSize;
+  if (isSmallScreen && isExpandedMode) return smallSize;
+  return normalSize;
+};
 
 // Estilos base para el componente Book
 export const styles = StyleSheet.create({
@@ -8,34 +22,34 @@ export const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: isSmallScreen ? 2 : 20,
   },
   page: {
-    marginVertical: 10,
-    padding: 20,
-    borderRadius: 8,
+    marginVertical: isSmallScreen ? 2 : 10,
+    padding: isSmallScreen ? 6 : 20,
+    borderRadius: isSmallScreen ? 6 : 8,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: isSmallScreen ? 1 : 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: isSmallScreen ? 0.05 : 0.1,
+    shadowRadius: isSmallScreen ? 2 : 4,
+    elevation: isSmallScreen ? 2 : 3,
     // Simular el borde de las agendas
-    borderLeftWidth: 4,
+    borderLeftWidth: isSmallScreen ? 3 : 4,
   },
   pageHeader: {
-    borderBottomWidth: 2,
-    paddingBottom: 15,
-    marginBottom: 20,
+    borderBottomWidth: isSmallScreen ? 1 : 2,
+    paddingBottom: isSmallScreen ? 3 : 15,
+    marginBottom: isSmallScreen ? 6 : 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "transparent", /// <=== atras header pagina
   },
   dayName: {
-    fontSize: 24,
+    fontSize: isLargeScreen ? 28 : 24, // Vista normal: más grande
     fontWeight: "bold",
     textTransform: "capitalize",
   },
@@ -44,12 +58,12 @@ export const styles = StyleSheet.create({
     backgroundColor: "transparent", //<=== atras nummero fecha
   },
   dayNumber: {
-    fontSize: 32,
+    fontSize: isLargeScreen ? 36 : 32, // Vista normal: más grande
     fontWeight: "bold",
-    lineHeight: 32,
+    lineHeight: isLargeScreen ? 36 : 32,
   },
   monthYear: {
-    fontSize: 12,
+    fontSize: isLargeScreen ? 14 : 12, // Vista normal: más grande
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -60,16 +74,16 @@ export const styles = StyleSheet.create({
   line: {
     flexDirection: "row",
     alignItems: "flex-start",
-    minHeight: 40,
+    minHeight: isLargeScreen ? 45 : 40, // Vista normal: más alto
     borderBottomWidth: 1,
-    paddingVertical: 8,
+    paddingVertical: isLargeScreen ? 10 : 8,
     backgroundColor: "transparent", // Fondo transparente para todas las líneas
   },
   lineNumber: {
-    fontSize: 12,
-    width: 25,
+    fontSize: isLargeScreen ? 14 : 12, // Vista normal: más grande
+    width: isLargeScreen ? 30 : 25,
     textAlign: "right",
-    marginRight: 15,
+    marginRight: isLargeScreen ? 18 : 15,
     marginTop: 2,
     opacity: 0.6,
   
@@ -77,13 +91,13 @@ export const styles = StyleSheet.create({
   writingLine: {
     backgroundColor: "transparent", ///<=== atras lineas escritura
     flex: 1,
-    minHeight: 24,
+    minHeight: isLargeScreen ? 28 : 24, // Vista normal: más alto
     justifyContent: "center",
   },
   taskText: {
-    fontSize: 16,
+    fontSize: isLargeScreen ? 18 : 16, // Vista normal: más grande
     fontStyle: "italic",
-    lineHeight: 22,
+    lineHeight: isLargeScreen ? 24 : 22,
     backgroundColor: "transparent",
   },
   pageSeparator: {
@@ -93,8 +107,9 @@ export const styles = StyleSheet.create({
   // Estilos para vista expandida (como agenda real abierta)
   expandedContainer: {
     flexDirection: "row",
-    marginVertical: 10,
-    gap: 2,
+    marginVertical: isSmallScreen ? 2 : 10,
+    gap: isSmallScreen ? 1 : 2,
+    paddingHorizontal: isSmallScreen ? 1 : 0,
   },
   leftPage: {
     flex: 1,
@@ -105,82 +120,82 @@ export const styles = StyleSheet.create({
     marginLeft: 1,
   },
   centerBinding: {
-    width: 20,
-    borderRadius: 4,
+    width: isSmallScreen ? 8 : 20,
+    borderRadius: isSmallScreen ? 2 : 4,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: isSmallScreen ? 1 : 2,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
+    shadowOpacity: isSmallScreen ? 0.1 : 0.3,
+    shadowRadius: isSmallScreen ? 1 : 3,
+    elevation: isSmallScreen ? 1 : 5,
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: isSmallScreen ? 3 : 10,
   },
   // Elementos individuales del resorte
   spiralRing: {
-    width: 12,
-    height: 8,
-    borderWidth: 2,
-    borderColor: "#C0C0C0", // Color plateado metálico
-    borderRadius: 6,
-    backgroundColor: "#F0F0F0", // Fondo ligeramente gris para simular metal
+    width: isSmallScreen ? 4 : 12,
+    height: isSmallScreen ? 3 : 8,
+    borderWidth: isSmallScreen ? 0.5 : 2,
+    borderColor: isSmallScreen ? "#E0E0E0" : "#C0C0C0", // Color más sutil para pantallas pequeñas
+    borderRadius: isSmallScreen ? 2 : 6,
+    backgroundColor: isSmallScreen ? "#F8F8F8" : "#F0F0F0", // Fondo más sutil
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: isSmallScreen ? 0.5 : 1,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 1,
-    elevation: 2,
-    marginVertical: 1,
+    shadowOpacity: isSmallScreen ? 0.1 : 0.3,
+    shadowRadius: isSmallScreen ? 0.5 : 1,
+    elevation: isSmallScreen ? 0.5 : 2,
+    marginVertical: isSmallScreen ? 0.5 : 1,
   },
   // Variante alternativa para crear efecto de profundidad
   spiralRingAlt: {
-    width: 10,
-    height: 6,
-    borderWidth: 1.5,
-    borderColor: "#A8A8A8", // Color más oscuro para contraste
-    borderRadius: 5,
-    backgroundColor: "#E8E8E8",
+    width: isSmallScreen ? 3 : 10,
+    height: isSmallScreen ? 2 : 6,
+    borderWidth: isSmallScreen ? 0.3 : 1.5,
+    borderColor: isSmallScreen ? "#D0D0D0" : "#A8A8A8", // Color más sutil
+    borderRadius: isSmallScreen ? 1.5 : 5,
+    backgroundColor: isSmallScreen ? "#F5F5F5" : "#E8E8E8",
     shadowColor: "#000",
     shadowOffset: {
-      width: 1,
-      height: 1,
+      width: isSmallScreen ? 0.5 : 1,
+      height: isSmallScreen ? 0.5 : 1,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 1,
-    marginVertical: 1,
+    shadowOpacity: isSmallScreen ? 0.05 : 0.2,
+    shadowRadius: isSmallScreen ? 0.5 : 1,
+    elevation: isSmallScreen ? 0.3 : 1,
+    marginVertical: isSmallScreen ? 0.5 : 1,
   },
   // Estilos específicos para elementos en modo expandido
   expandedPageHeader: {
-    paddingBottom: 10,
-    marginBottom: 15,
+    paddingBottom: getFontSize(3, 10, 12, true),
+    marginBottom: getFontSize(6, 15, 18, true),
   },
   expandedDayName: {
-    fontSize: 18,
+    fontSize: getFontSize(12, 18, 22, true), // Pequeño para phones, grande para tablets
   },
   expandedDayNumber: {
-    fontSize: 24,
+    fontSize: getFontSize(16, 24, 28, true), // Pequeño para phones, grande para tablets
   },
   expandedMonthYear: {
-    fontSize: 10,
+    fontSize: getFontSize(7, 10, 12, true), // Pequeño para phones, grande para tablets
   },
   expandedLine: {
-    minHeight: 32,
-    paddingVertical: 6,
+    minHeight: getFontSize(20, 32, 36, true),
+    paddingVertical: getFontSize(2, 6, 8, true),
   },
   expandedLineNumber: {
-    fontSize: 10,
-    width: 20,
-    marginRight: 10,
+    fontSize: getFontSize(7, 10, 12, true),
+    width: getFontSize(14, 20, 24, true),
+    marginRight: getFontSize(5, 10, 12, true),
   },
   expandedTaskText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: getFontSize(9, 13, 16, true), // Pequeño para phones, grande para tablets
+    lineHeight: getFontSize(12, 18, 20, true),
   },
   // Estilos para controles de navegación
   navigationControls: {
@@ -228,10 +243,11 @@ export const styles = StyleSheet.create({
   },
 });
 
-// Función para crear estilos dinámicos basados en el tema
+// Función para crear estilos dinámicos basados en el tema y configuraciones de fuente
 export const createDynamicStyles = (
   colorScheme: "light" | "dark",
-  colors: any
+  colors: any,
+  fontMultiplier: number = 1
 ) => {
   return StyleSheet.create({
     container: {
@@ -275,6 +291,17 @@ export const createDynamicStyles = (
       bottom: 0,
       justifyContent: "center",
       alignItems: "center",
+    },
+    // Estilos de texto de tareas con multiplicador de fuente personalizable
+    taskText: {
+      ...styles.taskText,
+      fontSize: (isLargeScreen ? 18 : 16) * fontMultiplier,
+      lineHeight: (isLargeScreen ? 24 : 22) * fontMultiplier,
+    },
+    expandedTaskText: {
+      ...styles.expandedTaskText,
+      fontSize: getFontSize(9, 13, 16, true) * fontMultiplier,
+      lineHeight: getFontSize(12, 18, 20, true) * fontMultiplier,
     },
   });
 };

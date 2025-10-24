@@ -1,8 +1,8 @@
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import useBookSettingsStore from "@/stores/boook-settings";
+import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
@@ -17,9 +17,9 @@ import { createDynamicStyles } from "./bookStyles";
 
 export default function Book() {
   const { daysToShow, viewMode } = useBookSettingsStore();
+  const { taskFontSize } = useFontSettingsStore(); // Suscribirse al valor directamente para trigger re-render
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
-  const tintColor = useThemeColor({}, "tint");
 
   // Usar el hook personalizado para toda la lógica de páginas
   const {
@@ -36,8 +36,9 @@ export default function Book() {
   // Obtener las fechas según la página actual
   const days = calculateDays(currentPageIndex, daysToShow);
 
-  // Crear estilos dinámicos basados en el tema
-  const dynamicStyles = createDynamicStyles(colorScheme ?? "light", colors);
+  // Crear estilos dinámicos basados en el tema y configuración de fuente
+  const fontMultiplier = FONT_SIZES[taskFontSize].multiplier;
+  const dynamicStyles = createDynamicStyles(colorScheme ?? "light", colors, fontMultiplier);
 
   return (
     <View style={styles.container}>

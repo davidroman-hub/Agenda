@@ -1,8 +1,13 @@
 import { ThemedView } from "@/components/themed-view";
 import React from "react";
-import { ScrollView } from "react-native";
+import { Dimensions, ScrollView } from "react-native";
 import { styles } from "../bookStyles";
 import BookPage from "./BookPage";
+
+// Obtener dimensiones de la pantalla
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const isSmallScreen = screenWidth < 500 || screenHeight < 900;
+const isLargeScreen = screenWidth > 800;
 
 interface BookPagesContentProps {
   readonly days: Date[];
@@ -19,6 +24,14 @@ export default function BookPagesContent({
   colors, 
   dynamicStyles 
 }: BookPagesContentProps) {
+  
+  // Número de anillos del resorte según el tamaño de pantalla
+  let spiralRingsCount = 12; // default
+  if (isSmallScreen) {
+    spiralRingsCount = 8;
+  } else if (isLargeScreen) {
+    spiralRingsCount = 16;
+  }
   
   return (
     <ScrollView
@@ -50,8 +63,10 @@ export default function BookPagesContent({
                 
                 {/* Línea central (como el resorte de cuaderno) */}
                 <ThemedView style={dynamicStyles.centerBinding}>
-                  {/* Generar anillos del resorte con variación */}
-                  {Array.from({ length: 12 }, (_, index) => (
+                  {/* Generar anillos del resorte con variación - menos anillos en pantallas pequeñas, más en grandes */}
+                  {Array.from({ 
+                    length: spiralRingsCount 
+                  }, (_, index) => (
                     <ThemedView
                       key={`spiral-${index}`}
                       style={index % 2 === 0 ? styles.spiralRing : styles.spiralRingAlt}

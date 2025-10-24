@@ -1,6 +1,7 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
 import LogoutButton from "@/components/settings/logoutButton";
+import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -27,6 +28,7 @@ export default function SettingsPage() {
         </ThemedText>
         <ThemedText style={dynamicStyles.text}>Version 1.0.0</ThemedText>
         <ChangeThemeButton />
+        <TaskFontSizeButton />
         <LogoutButton />
       </ThemedView>
     </ParallaxScrollView>
