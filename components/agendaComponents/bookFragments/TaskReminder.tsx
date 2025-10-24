@@ -21,14 +21,26 @@ export default function TaskReminder({
   onToggleEnabled,
   taskDate,
 }: TaskReminderProps) {
+  // Inicializar tempDate con la fecha local para evitar problemas de timezone
+  const getInitialDate = () => {
+    if (reminderDate) return reminderDate;
+    const now = new Date();
+    // Crear una nueva fecha en zona horaria local
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes());
+  };
+  
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [tempDate, setTempDate] = useState(reminderDate || new Date());
+  const [tempDate, setTempDate] = useState(getInitialDate());
 
 const tintColor = useThemeColor({}, 'tint');
 const textColor = useThemeColor({}, 'text');
 const backgroundColor = useThemeColor({}, 'background');
-const taskDateTransform = new Date(taskDate);
+
+// Convertir taskDate a fecha local para evitar problemas de timezone
+const taskDateLocal = new Date(taskDate + 'T23:59:59'); // Asegurar que sea el final del día local
+const today = new Date();
+today.setHours(0, 0, 0, 0); // Inicio del día actual
 
 
 
@@ -36,18 +48,32 @@ const taskDateTransform = new Date(taskDate);
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
+      // Crear una nueva fecha manteniendo la zona horaria local del usuario
+      const localDate = new Date(selectedDate);
+      
+      // Si tenemos una fecha temporal existente, preservar la hora
       const newDate = new Date(tempDate);
-      newDate.setFullYear(selectedDate.getFullYear());
-      newDate.setMonth(selectedDate.getMonth());
-      newDate.setDate(selectedDate.getDate());
-      setTempDate(newDate);
+      newDate.setFullYear(localDate.getFullYear());
+      newDate.setMonth(localDate.getMonth());
+      newDate.setDate(localDate.getDate());
+      
+      // Asegurar que estamos trabajando con la fecha local del usuario
+      const localizedDate = new Date(
+        newDate.getFullYear(),
+        newDate.getMonth(),
+        newDate.getDate(),
+        newDate.getHours(),
+        newDate.getMinutes()
+      );
+      
+      setTempDate(localizedDate);
       
       if (Platform.OS === 'android') {
         // En Android, mostrar time picker después del date picker
         setShowTimePicker(true);
       } else {
         // En iOS, el picker maneja fecha y hora juntos
-        onReminderChange(newDate);
+        onReminderChange(localizedDate);
       }
     }
   };
@@ -55,11 +81,24 @@ const taskDateTransform = new Date(taskDate);
   const handleTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false);
     if (selectedTime) {
+      // Crear una nueva fecha preservando la fecha seleccionada pero con nueva hora
       const newDate = new Date(tempDate);
       newDate.setHours(selectedTime.getHours());
       newDate.setMinutes(selectedTime.getMinutes());
-      setTempDate(newDate);
-      onReminderChange(newDate);
+      newDate.setSeconds(0);
+      newDate.setMilliseconds(0);
+      
+      // Asegurar que mantenemos la zona horaria local
+      const localizedDate = new Date(
+        newDate.getFullYear(),
+        newDate.getMonth(),
+        newDate.getDate(),
+        newDate.getHours(),
+        newDate.getMinutes()
+      );
+      
+      setTempDate(localizedDate);
+      onReminderChange(localizedDate);
     }
   };
 
@@ -134,8 +173,8 @@ const taskDateTransform = new Date(taskDate);
               mode="datetime"
               display="compact"
               onChange={handleDateChange}
-              minimumDate={new Date()}
-              maximumDate={taskDateTransform}
+              minimumDate={today}
+              maximumDate={taskDateLocal}
               style={styles.iosDatePicker}
             />
           )}
@@ -147,8 +186,8 @@ const taskDateTransform = new Date(taskDate);
               mode="date"
               display="default"
               onChange={handleDateChange}
-              minimumDate={new Date()}
-              maximumDate={taskDateTransform}
+              minimumDate={today}
+              maximumDate={taskDateLocal}
             />
           )}
 
