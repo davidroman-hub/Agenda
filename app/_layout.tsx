@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNavigationBlock } from '@/hooks/use-navigation-block';
+import { useNotifications } from '@/hooks/use-notifications';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -15,6 +16,9 @@ export default function RootLayout() {
   
   // Activar bloqueo de navegación no deseada
   useNavigationBlock();
+  
+  // Inicializar notificaciones
+  useNotifications();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

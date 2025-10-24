@@ -95,14 +95,14 @@ export default function BookPage({
     setModalVisible(true);
   };
 
-  const handleSaveTask = (text: string, reminder?: string | null) => {
+  const handleSaveTask = async (text: string, reminder?: string | null) => {
     if (editingLine !== null) {
       const existingTask = dayTasks[editingLine];
 
       if (existingTask) {
-        updateTask(dateKey, editingLine, { text, reminder });
+        await updateTask(dateKey, editingLine, { text, reminder });
       } else {
-        addTask(dateKey, editingLine, text, reminder);
+        await addTask(dateKey, editingLine, text, reminder);
       }
 
       setModalVisible(false);
@@ -111,9 +111,9 @@ export default function BookPage({
     }
   };
 
-  const handleDeleteTask = () => {
+  const handleDeleteTask = async () => {
     if (editingLine !== null) {
-      deleteTask(dateKey, editingLine);
+      await deleteTask(dateKey, editingLine);
       setModalVisible(false);
       setEditingLine(null);
       setEditingTask("");

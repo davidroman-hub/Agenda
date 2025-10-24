@@ -5,6 +5,7 @@ import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+
 import useLoginStore from "@/stores/login-store";
 
 export default function TabLayout() {
@@ -18,8 +19,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         // Ocultar el tab bar cuando no está logueado (solo mostrar login)
-        tabBarStyle: isLoggedIn ? undefined : { display: 'none' },
-
+        tabBarStyle: isLoggedIn ? undefined : { display: "none" },
       }}
     >
       <Tabs.Screen
@@ -53,6 +53,17 @@ export default function TabLayout() {
           ),
           // Mostrar solo si está logueado
           href: isLoggedIn ? "/(tabs)/explore" : null,
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: "Recordatorios",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="bell" color={color} />
+          ),
+          // Mostrar solo si está logueado
+          href: isLoggedIn ? "/(tabs)/notifications" : null,
         }}
       />
       <Tabs.Screen

@@ -1,4 +1,5 @@
 import { mmkvStorage } from "@/lib/mmkv";
+import { notificationService } from "@/services/notifications/notification-service";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -9,6 +10,7 @@ export interface AgendaTask {
   createdAt: string;
   updatedAt: string;
   reminder?: string | null; // ISO string for reminder date/time
+  notificationId?: string | null; // ID de la notificación programada
 }
 
 export interface DayTasks {
@@ -20,9 +22,9 @@ export interface AgendaTasksState {
   tasksByDate: Record<string, DayTasks>;
   
   // Acciones
-  addTask: (date: string, lineNumber: number, text: string, reminder?: string | null) => void;
-  updateTask: (date: string, lineNumber: number, updates: Partial<AgendaTask>) => void;
-  deleteTask: (date: string, lineNumber: number) => void;
+  addTask: (date: string, lineNumber: number, text: string, reminder?: string | null) => Promise<void>;
+  updateTask: (date: string, lineNumber: number, updates: Partial<AgendaTask>) => Promise<void>;
+  deleteTask: (date: string, lineNumber: number) => Promise<void>;
   toggleTaskCompletion: (date: string, lineNumber: number) => void;
   getTasksForDate: (date: string) => DayTasks;
   getTaskForLine: (date: string, lineNumber: number) => AgendaTask | null;
@@ -33,7 +35,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
     (set, get) => ({
       tasksByDate: {},
       
-      addTask: (date: string, lineNumber: number, text: string, reminder?: string | null) => {
+      addTask: async (date: string, lineNumber: number, text: string, reminder?: string | null) => {
         const newTask: AgendaTask = {
           id: `${date}-${lineNumber}-${Date.now()}`,
           text: text.trim(),
@@ -41,7 +43,21 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           reminder: reminder || null,
+          notificationId: null,
         };
+
+        // Programar notificación si hay recordatorio
+        if (reminder) {
+          const reminderDate = new Date(reminder);
+          const notificationId = await notificationService.scheduleTaskReminder(
+            newTask.id,
+            newTask.text,
+            `Tarea programada para: ${date}`,
+            reminderDate,
+            date
+          );
+          newTask.notificationId = notificationId;
+        }
         
         set((state) => ({
           tasksByDate: {
@@ -54,11 +70,33 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
         }));
       },
       
-      updateTask: (date: string, lineNumber: number, updates: Partial<AgendaTask>) => {
+      updateTask: async (date: string, lineNumber: number, updates: Partial<AgendaTask>) => {
+        const existingTask = get().tasksByDate[date]?.[lineNumber];
+        if (!existingTask) return;
+
+        // Si se actualiza el recordatorio, manejar notificaciones
+        if ('reminder' in updates) {
+          // Cancelar notificación anterior si existe
+          if (existingTask.notificationId) {
+            await notificationService.cancelTaskReminder(existingTask.id);
+          }
+
+          // Si hay nuevo recordatorio, programar nueva notificación
+          let notificationId = null;
+          if (updates.reminder) {
+            const reminderDate = new Date(updates.reminder);
+            notificationId = await notificationService.scheduleTaskReminder(
+              existingTask.id,
+              updates.text || existingTask.text,
+              `Tarea programada para: ${date}`,
+              reminderDate,
+              date
+            );
+          }
+          updates.notificationId = notificationId;
+        }
+        
         set((state) => {
-          const existingTask = state.tasksByDate[date]?.[lineNumber];
-          if (!existingTask) return state;
-          
           const updatedTask: AgendaTask = {
             ...existingTask,
             ...updates,
@@ -77,7 +115,14 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
         });
       },
       
-      deleteTask: (date: string, lineNumber: number) => {
+      deleteTask: async (date: string, lineNumber: number) => {
+        const existingTask = get().tasksByDate[date]?.[lineNumber];
+        
+        // Cancelar notificación si existe
+        if (existingTask?.notificationId) {
+          await notificationService.cancelTaskReminder(existingTask.id);
+        }
+        
         set((state) => {
           const dateTasks = { ...state.tasksByDate[date] };
           delete dateTasks[lineNumber];

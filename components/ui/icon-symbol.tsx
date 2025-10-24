@@ -23,6 +23,7 @@ const MAPPING = {
   "chevron.right": "chevron-right",
   gear: "settings",
   "person.circle": "person",
+  bell: "notifications",
 } as IconMapping;
 
 /**
