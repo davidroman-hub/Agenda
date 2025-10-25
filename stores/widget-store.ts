@@ -70,18 +70,15 @@ class WidgetStore {
   // Crear datos estáticos de prueba
   static async createStaticTestData(): Promise<void> {
     const staticData: WidgetData = {
-      tasks: [
-        "lego",
-        "ddd", 
-        "fff",
-      ],
-      totalTasks: 3,
-      completedTasks: 0,
+      tasks: [], // Sin tareas pendientes (datos estáticos)
+      totalTasks: 0, // Sin tareas totales
+      completedTasks: 0, // Sin tareas completadas
       date: new Date().toISOString().split('T')[0], // Fecha actual
       timestamp: Date.now()
     };
 
-    console.log('📱 WIDGET STORE: Creando datos estáticos de prueba...');
+    console.log('📱 WIDGET STORE: Creando datos estáticos de prueba (sin tareas)...');
+    console.log('📊 Datos estáticos: ', staticData);
     await this.updateWidgetData(staticData);
   }
 

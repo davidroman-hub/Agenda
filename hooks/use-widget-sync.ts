@@ -38,7 +38,7 @@ export const useWidgetSync = () => {
       console.log('Tareas del día desde Zustand:', dayTasks);
       
       // Crear un array simple de las tareas del día
-      const tasksList = [];
+      const pendingTasksList = []; // Solo tareas NO completadas
       let totalTasks = 0;
       let completedTasks = 0;
       
@@ -47,16 +47,22 @@ export const useWidgetSync = () => {
           totalTasks++;
           if (task.completed) {
             completedTasks++;
-          } else if (tasksList.length < 3) {
-            // Solo agregar tareas no completadas al widget (máximo 3)
-            tasksList.push(task.text);
+          } else {
+            // Solo agregar tareas NO completadas al array
+            pendingTasksList.push(task.text);
           }
         }
       }
       
+      console.log('📊 Estadísticas de tareas:');
+      console.log('  Total de tareas:', totalTasks);
+      console.log('  Tareas completadas:', completedTasks);
+      console.log('  Tareas pendientes:', pendingTasksList.length);
+      console.log('  Lista de tareas pendientes:', pendingTasksList);
+      
       // Actualizar Widget Store con datos reales
       await WidgetStore.updateWidgetData({
-        tasks: tasksList,
+        tasks: pendingTasksList, // Array con solo las tareas pendientes
         totalTasks,
         completedTasks,
         date,
