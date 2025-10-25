@@ -5,12 +5,18 @@ import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Linking, StyleSheet, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
-import pjson from '../../app.json';
+import {
+  Linking,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  ViewStyle,
+} from "react-native";
+import pjson from "../../app.json";
 const versionJSON = pjson.expo.version;
 
 const handleDavidRomanPress = () => {
-  Linking.openURL('https://www.linkedin.com/in/jobdavidroman');
+  Linking.openURL("https://aulaconnect.davidroman-hub.deno.net/work-with-me");
 };
 
 export default function SettingsPage() {
@@ -32,19 +38,39 @@ export default function SettingsPage() {
         <ThemedText style={dynamicStyles.text}>
           Aquí puedes ajustar tus preferencias de la aplicación.
         </ThemedText>
-        <ThemedText style={dynamicStyles.text}>Versión {versionJSON}</ThemedText>
         <ThemedText style={dynamicStyles.text}>
-          Creado con ❤️‍🔥 desde 🇲🇽 por{' '}
-          <TouchableOpacity onPress={handleDavidRomanPress} style={dynamicStyles.linkContainer}>
-            <ThemedText style={[dynamicStyles.text, dynamicStyles.link]}>
-              David Roman
-            </ThemedText>
-          </TouchableOpacity>
+          Versión {versionJSON}
         </ThemedText>
+
         <ChangeThemeButton />
         <TaskFontSizeButton />
         <LogoutButton />
       </ThemedView>
+      <ThemedText style={dynamicStyles.text}>
+        Creado con ❤️‍🔥 desde 🇲🇽 por{" "}
+      </ThemedText>
+      <TouchableOpacity
+        style={{ justifyContent: "center", alignItems: "center", padding: 10 }}
+        onPress={handleDavidRomanPress}
+      >
+        <ThemedText style={dynamicStyles.link}>David Roman</ThemedText>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 10,
+        }}
+      >
+        <ThemedText
+          style={{
+            fontSize: 7,
+          }}
+        >
+         Powered by React Native
+        </ThemedText>
+      </TouchableOpacity>
     </ParallaxScrollView>
   );
 }
@@ -61,7 +87,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const dynamicStyles: { container: ViewStyle; text: TextStyle; linkContainer: ViewStyle; link: TextStyle } = {
+const dynamicStyles: {
+  container: ViewStyle;
+  text: TextStyle;
+  link: TextStyle;
+} = {
   container: {
     flex: 1,
     justifyContent: "center",
@@ -69,16 +99,15 @@ const dynamicStyles: { container: ViewStyle; text: TextStyle; linkContainer: Vie
     padding: 20,
   },
   text: {
-    marginTop: 10,
+    marginTop: 0,
     fontSize: 16,
     textAlign: "center",
   },
-  linkContainer: {
-    display: 'inline-flex' as any,
-  },
   link: {
-    color: '#007AFF',
-    textDecorationLine: 'underline',
-    fontWeight: 'bold',
+    color: "#007AFF",
+    textDecorationLine: "underline",
+    fontWeight: "bold",
+    fontSize: 16,
+    marginTop: 0,
   },
 };
