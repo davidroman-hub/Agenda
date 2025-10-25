@@ -92,8 +92,8 @@ export const useWidgetSync = () => {
   }, [createStaticWidgetData]);
 
   const syncTodayWidget = useCallback(async () => {
-    // FORZAR fecha 2025-10-25 para testing
-    const today = '2025-10-25';  // Hardcoded para debugging
+    // Usar fecha actual dinámica
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD formato actual
     console.log('🗓️ Sincronizando para FECHA FORZADA:', today);
     
     // Verificar si hay tareas para hoy en Zustand

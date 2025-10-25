@@ -1,8 +1,8 @@
-import { NativeModules } from 'react-native';
-import { useEffect, useCallback } from 'react';
-import useAgendaTasksStore from '@/stores/agenda-tasks-store';
 import { mmkvStorage } from '@/lib/mmkv';
+import useAgendaTasksStore from '@/stores/agenda-tasks-store';
 import WidgetStore from '@/stores/widget-store';
+import { useCallback, useEffect } from 'react';
+import { NativeModules } from 'react-native';
 
 console.log('🔍 Todos los NativeModules:', Object.keys(NativeModules));
 
@@ -89,8 +89,10 @@ export const useWidgetSync = () => {
   }, [createStaticWidgetData]);
 
   const syncTodayWidget = useCallback(async () => {
-    // FORZAR fecha 2025-10-25 para testing
-    const today = '2025-10-25';  // Hardcoded para debugging
+    console.log('🗓️ Sincronizando Widget para HOY:', new Date().toDateString());
+    
+    // Usar fecha actual dinámica
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD formato actual
     console.log('🗓️ Sincronizando para FECHA FORZADA:', today);
     
     // Verificar si hay tareas para hoy en Zustand
@@ -129,95 +131,4 @@ export const useWidgetSync = () => {
     createStaticWidgetData,
   };
 
-  const syncWidgetData = useCallback(async (date: string) => {
-    try {
-      console.log('=== SINCRONIZACIÓN SIMPLE DE WIDGET ===');
-      console.log('Fecha:', date);
-      
-      const dayTasks = tasksByDate[date] || {};
-      console.log('Tareas del día:', dayTasks);
-      
-      // Crear un array simple de las tareas del día
-      const tasksList = [];
-      let totalTasks = 0;
-      let completedTasks = 0;
-      
-      for (const [, task] of Object.entries(dayTasks)) {
-        if (task?.text) {
-          totalTasks++;
-          if (task.completed) {
-            completedTasks++;
-          } else if (tasksList.length < 3) {
-            // Solo agregar tareas no completadas al widget (máximo 3)
-            tasksList.push(task.text);
-          }
-        }
-      }
-      
-      // Crear datos simples para el widget
-      const simpleWidgetData = {
-        tasks: tasksList,
-        totalTasks,
-        completedTasks,
-        date
-      };
-      
-      console.log('� Datos simples para widget:', simpleWidgetData);
-      
-      // Guardar en múltiples formatos para asegurar que el widget lo encuentre
-      const dataString = JSON.stringify(simpleWidgetData);
-      
-      // Formato 1: Clave específica para widget
-      mmkvStorage.setItem(`widget_simple_${date}`, dataString);
-      
-      // Formato 2: Clave más general
-      mmkvStorage.setItem('widget_current', dataString);
-      
-      // Formato 3: Clave con fecha actual
-      mmkvStorage.setItem('widget_today', dataString);
-      
-      console.log('✅ Datos guardados en múltiples claves');
-      console.log('📄 Contenido:', dataString);
-      
-    } catch (error) {
-      console.error('❌ Error sincronizando widget:', error);
-    }
-  }, [tasksByDate]);
-
-  const syncTodayWidget = useCallback(() => {
-    // FORZAR fecha 2025-10-25 para testing
-    const today = '2025-10-25';  // Hardcoded para debugging
-    console.log('🗓️ Sincronizando para FECHA FORZADA:', today);
-    
-    // Verificar si hay tareas para hoy
-    const todayTasks = tasksByDate[today] || {};
-    console.log('📋 Tareas para fecha forzada encontradas:', Object.keys(todayTasks).length);
-    console.log('📋 Tareas completas para fecha forzada:', todayTasks);
-    
-    syncWidgetData(today);
-    
-    // TAMBIÉN sincronizar para el día anterior por si acaso
-    const yesterday = '2025-10-24';
-    console.log('🗓️ También sincronizando para AYER:', yesterday);
-    syncWidgetData(yesterday);
-  }, [syncWidgetData, tasksByDate]);
-
-  // Función para forzar sincronización manual (útil para debugging)
-  const forceSyncWidget = useCallback(() => {
-    console.log('🔄 Sincronización manual del widget activada');
-    syncTodayWidget();
-    forceWidgetUpdate();
-  }, [syncTodayWidget, forceWidgetUpdate]);
-
-  // Sincronizar automáticamente cuando cambien las tareas
-  useEffect(() => {
-    syncTodayWidget();
-  }, [tasksByDate, syncTodayWidget]);
-
-  return {
-    syncWidgetData,
-    syncTodayWidget,
-    forceSyncWidget,
-    forceWidgetUpdate,
-  };
 };

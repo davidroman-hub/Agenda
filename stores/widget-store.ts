@@ -77,7 +77,7 @@ class WidgetStore {
       ],
       totalTasks: 3,
       completedTasks: 0,
-      date: "2025-10-25",
+      date: new Date().toISOString().split('T')[0], // Fecha actual
       timestamp: Date.now()
     };
 

@@ -5,9 +5,13 @@ import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { StyleSheet, TextStyle, ViewStyle } from "react-native";
+import { Linking, StyleSheet, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import pjson from '../../app.json';
 const versionJSON = pjson.expo.version;
+
+const handleDavidRomanPress = () => {
+  Linking.openURL('https://www.linkedin.com/in/jobdavidroman');
+};
 
 export default function SettingsPage() {
   console.log("Rendering SettingsPage");
@@ -28,7 +32,15 @@ export default function SettingsPage() {
         <ThemedText style={dynamicStyles.text}>
           Aquí puedes ajustar tus preferencias de la aplicación.
         </ThemedText>
-        <ThemedText style={dynamicStyles.text}>Version {versionJSON}</ThemedText>
+        <ThemedText style={dynamicStyles.text}>Versión {versionJSON}</ThemedText>
+        <ThemedText style={dynamicStyles.text}>
+          Creado con ❤️‍🔥 desde 🇲🇽 por{' '}
+          <TouchableOpacity onPress={handleDavidRomanPress} style={dynamicStyles.linkContainer}>
+            <ThemedText style={[dynamicStyles.text, dynamicStyles.link]}>
+              David Roman
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedText>
         <ChangeThemeButton />
         <TaskFontSizeButton />
         <LogoutButton />
@@ -49,7 +61,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const dynamicStyles: { container: ViewStyle; text: TextStyle } = {
+const dynamicStyles: { container: ViewStyle; text: TextStyle; linkContainer: ViewStyle; link: TextStyle } = {
   container: {
     flex: 1,
     justifyContent: "center",
@@ -60,5 +72,13 @@ const dynamicStyles: { container: ViewStyle; text: TextStyle } = {
     marginTop: 10,
     fontSize: 16,
     textAlign: "center",
+  },
+  linkContainer: {
+    display: 'inline-flex' as any,
+  },
+  link: {
+    color: '#007AFF',
+    textDecorationLine: 'underline',
+    fontWeight: 'bold',
   },
 };

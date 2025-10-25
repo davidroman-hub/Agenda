@@ -1,4 +1,7 @@
 # Changelog
+**v1.3.0**
+- ADD widget
+
 **v1.1.0**
 
 - ADD font size change 
