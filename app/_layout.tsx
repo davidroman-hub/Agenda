@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNavigationBlock } from '@/hooks/use-navigation-block';
 import { useNotifications } from '@/hooks/use-notifications';
+import { useWidgetSync } from '@/hooks/use-widget-sync';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -19,6 +20,9 @@ export default function RootLayout() {
   
   // Inicializar notificaciones
   useNotifications();
+  
+  // Sincronizar datos del widget
+  useWidgetSync();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
