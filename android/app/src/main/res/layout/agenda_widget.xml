@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="4dp"
+    android:background="@drawable/widget_background">
+
+    <!-- Contenido con fondo blanco -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/widget_content_background">
+
+        <!-- Header con fecha -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/widget_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📅 Hoy"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#333333" />
+
+        </LinearLayout>
+
+        <!-- Progreso -->
+        <TextView
+            android:id="@+id/widget_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0 de 0 completadas"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Tareas -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Tarea 1 -->
+            <TextView
+                android:id="@+id/widget_task1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            
+            <!-- Línea simple tipo <br> -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="──────────────────────────────────────"
+                android:textSize="8sp"
+                android:textColor="#E0E0E0"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Tarea 2 -->
+            <TextView
+                android:id="@+id/widget_task2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            
+            <!-- Línea simple tipo <br> -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="──────────────────────────────────────"
+                android:textSize="8sp"
+                android:textColor="#E0E0E0"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Tarea 3 -->
+            <TextView
+                android:id="@+id/widget_task3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            
+            <!-- Línea simple tipo <br> -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="──────────────────────────────────────"
+                android:textSize="8sp"
+                android:textColor="#E0E0E0"
+                android:layout_marginBottom="4dp" />
+
+        </LinearLayout>
+
+        <!-- Footer -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Toca para abrir la app"
+            android:textSize="10sp"
+            android:textColor="#999999"
+            android:gravity="center"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

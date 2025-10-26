@@ -40,4 +40,12 @@ app-example
 
 # generated native folders
 /ios
-/android
+
+# Android - Solo archivos de build y temporales, NO código fuente
+android/app/build/
+android/build/
+android/.gradle/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/local.properties
