@@ -11,6 +11,10 @@ export interface AgendaTask {
   updatedAt: string;
   reminder?: string | null; // ISO string for reminder date/time
   notificationId?: string | null; // ID de la notificación programada
+  repeat?: string; // 'none' | 'daily' | 'weekly' | 'monthly'
+  isRepeatingTask?: boolean; // Flag para identificar tareas repetidas
+  repeatingTaskId?: string; // ID de la tarea repetida original
+  repeatingPatternId?: string; // ID del patrón de repetición
 }
 
 export interface DayTasks {
@@ -22,12 +26,13 @@ export interface AgendaTasksState {
   tasksByDate: Record<string, DayTasks>;
   
   // Acciones
-  addTask: (date: string, lineNumber: number, text: string, reminder?: string | null) => Promise<void>;
+  addTask: (date: string, lineNumber: number, text: string, reminder?: string | null, repeat?: string) => Promise<void>;
   updateTask: (date: string, lineNumber: number, updates: Partial<AgendaTask>) => Promise<void>;
   deleteTask: (date: string, lineNumber: number) => Promise<void>;
   toggleTaskCompletion: (date: string, lineNumber: number) => void;
   getTasksForDate: (date: string) => DayTasks;
   getTaskForLine: (date: string, lineNumber: number) => AgendaTask | null;
+  getAllTasks: () => Record<string, DayTasks>;
 }
 
 const useAgendaTasksStore = create<AgendaTasksState>()(
@@ -35,7 +40,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
     (set, get) => ({
       tasksByDate: {},
       
-      addTask: async (date: string, lineNumber: number, text: string, reminder?: string | null) => {
+      addTask: async (date: string, lineNumber: number, text: string, reminder?: string | null, repeat?: string) => {
         const newTask: AgendaTask = {
           id: `${date}-${lineNumber}-${Date.now()}`,
           text: text.trim(),
@@ -44,6 +49,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           updatedAt: new Date().toISOString(),
           reminder: reminder || null,
           notificationId: null,
+          repeat: repeat || 'none',
         };
 
         // Programar notificación si hay recordatorio
@@ -149,6 +155,10 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
       
       getTaskForLine: (date: string, lineNumber: number): AgendaTask | null => {
         return get().tasksByDate[date]?.[lineNumber] || null;
+      },
+      
+      getAllTasks: () => {
+        return get().tasksByDate;
       },
     }),
     {
