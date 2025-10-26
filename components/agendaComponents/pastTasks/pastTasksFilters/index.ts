@@ -1,6 +1,6 @@
 // Hooks
 export { usePastTasksFilters } from "./usePastTasksFilters";
-export type { FilteredTask, FilterStats } from "./usePastTasksFilters";
+export type { FilteredTask, FilterStats, TaskStatusFilter } from "./usePastTasksFilters";
 
 // Utilities
 export {

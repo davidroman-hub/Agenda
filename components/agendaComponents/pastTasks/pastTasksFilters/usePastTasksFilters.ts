@@ -1,6 +1,8 @@
 import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
 import { useCallback, useMemo, useState } from "react";
 
+export type TaskStatusFilter = 'all' | 'completed' | 'pending';
+
 export interface FilteredTask {
   date: string;
   tasks: { lineNumber: number; task: AgendaTask }[];
@@ -19,6 +21,7 @@ export const usePastTasksFilters = () => {
   // Estados para filtros
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<TaskStatusFilter>('all');
 
   // Obtener años disponibles de tareas pasadas
   const availableYears = useMemo(() => {
@@ -77,17 +80,25 @@ export const usePastTasksFilters = () => {
   const resetFilters = useCallback(() => {
     setSelectedYear(null);
     setSelectedMonth(null);
+    setStatusFilter('all');
+  }, []);
+
+  // Función para resetear solo el filtro de estado
+  const resetStatusFilter = useCallback(() => {
+    setStatusFilter('all');
   }, []);
 
   // Verificar si hay filtros activos
-  const hasActiveFilters = Boolean(selectedYear || selectedMonth !== null);
+  const hasActiveFilters = Boolean(selectedYear || selectedMonth !== null || statusFilter !== 'all');
 
   return {
     // Estados
     selectedYear,
     selectedMonth,
+    statusFilter,
     setSelectedYear,
     setSelectedMonth,
+    setStatusFilter,
     
     // Datos computados
     availableYears,
@@ -97,5 +108,6 @@ export const usePastTasksFilters = () => {
     // Funciones
     dateMatchesFilters,
     resetFilters,
+    resetStatusFilter,
   };
 };

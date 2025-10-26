@@ -1,5 +1,5 @@
 import { AgendaTask, DayTasks } from "@/stores/agenda-tasks-store";
-import { FilteredTask, FilterStats } from "./usePastTasksFilters";
+import { FilteredTask, FilterStats, TaskStatusFilter } from "./usePastTasksFilters";
 
 // Función auxiliar para procesar tareas de una fecha
 export const processTasksForDate = (dayTasks: DayTasks) => {
@@ -21,7 +21,8 @@ export const processTasksForDate = (dayTasks: DayTasks) => {
 // Función para obtener tareas pasadas filtradas
 export const getFilteredPastTasks = (
   tasksByDate: Record<string, DayTasks>,
-  dateMatchesFilters: (date: Date) => boolean
+  dateMatchesFilters: (date: Date) => boolean,
+  statusFilter: TaskStatusFilter = 'all'
 ): FilteredTask[] => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -34,12 +35,19 @@ export const getFilteredPastTasks = (
     
     // Solo incluir fechas anteriores a hoy que cumplan con los filtros
     if (taskDate < today && dateMatchesFilters(taskDate)) {
-      const tasksForDate = processTasksForDate(dayTasks);
+      const allTasksForDate = processTasksForDate(dayTasks);
       
-      if (tasksForDate.length > 0) {
+      // Filtrar por estado de la tarea
+      const filteredTasksForDate = allTasksForDate.filter(({ task }) => {
+        if (statusFilter === 'completed') return task.completed;
+        if (statusFilter === 'pending') return !task.completed;
+        return true; // 'all'
+      });
+      
+      if (filteredTasksForDate.length > 0) {
         pastTasksData.push({
           date,
-          tasks: tasksForDate,
+          tasks: filteredTasksForDate,
         });
       }
     }

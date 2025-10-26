@@ -19,13 +19,16 @@ export default function PastTasks() {
   const {
     selectedYear,
     selectedMonth,
+    statusFilter,
     setSelectedYear,
     setSelectedMonth,
+    setStatusFilter,
     availableYears,
     availableMonths,
     dateMatchesFilters,
     hasActiveFilters,
-    resetFilters
+    resetFilters,
+    resetStatusFilter
   } = usePastTasksFilters();
 
   // Manejadores de filtros
@@ -40,16 +43,22 @@ export default function PastTasks() {
     setSelectedMonth(month);
   };
 
-  // Obtener tareas pasadas filtradas usando la utilidad refactorizada
-  const filteredTasks = useMemo(() => 
-    getFilteredPastTasks(tasksByDate, dateMatchesFilters),
+  // Obtener tareas pasadas filtradas solo por fecha (sin filtro de estado para estadísticas)
+  const tasksFilteredByDate = useMemo(() => 
+    getFilteredPastTasks(tasksByDate, dateMatchesFilters, 'all'),
     [tasksByDate, dateMatchesFilters]
   );
 
-  // Calcular estadísticas usando las utilidades refactorizadas
+  // Obtener tareas pasadas filtradas con filtro de estado para la vista
+  const filteredTasks = useMemo(() => 
+    getFilteredPastTasks(tasksByDate, dateMatchesFilters, statusFilter),
+    [tasksByDate, dateMatchesFilters, statusFilter]
+  );
+
+  // Calcular estadísticas basándose en todas las tareas que coinciden con filtros de fecha
   const stats = useMemo(() => 
-    calculateFilterStats(filteredTasks),
-    [filteredTasks]
+    calculateFilterStats(tasksFilteredByDate),
+    [tasksFilteredByDate]
   );
 
   const totalTasksAllTime = useMemo(() => 
@@ -94,7 +103,7 @@ export default function PastTasks() {
         
         {hasActiveFilters && (
           <TouchableOpacity style={styles.clearFiltersButton} onPress={resetFilters}>
-            <ThemedText style={styles.clearFiltersText}>🗑️ Limpiar Filtros</ThemedText>
+            <ThemedText style={styles.clearFiltersText}>🗑️ Limpiar Todos los Filtros</ThemedText>
           </TouchableOpacity>
         )}
         
@@ -130,7 +139,7 @@ export default function PastTasks() {
       
       {hasActiveFilters && (
         <TouchableOpacity style={styles.clearFiltersButton} onPress={resetFilters}>
-          <ThemedText style={styles.clearFiltersText}>🗑️ Limpiar Filtros</ThemedText>
+          <ThemedText style={styles.clearFiltersText}>🗑️ Limpiar Todos los Filtros</ThemedText>
         </TouchableOpacity>
       )}
 
@@ -139,6 +148,9 @@ export default function PastTasks() {
         stats={stats}
         totalTasksAllTime={totalTasksAllTime}
         hasActiveFilters={hasActiveFilters}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        onResetStatusFilter={resetStatusFilter}
       />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
