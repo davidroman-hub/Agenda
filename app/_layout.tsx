@@ -6,8 +6,8 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNavigationBlock } from '@/hooks/use-navigation-block';
 import { useNotifications } from '@/hooks/use-notifications';
-import { useWidgetSync } from '@/hooks/use-widget-sync';
 import { useVersionNotification } from '@/hooks/use-version-notification';
+import { useWidgetSync } from '@/hooks/use-widget-sync';
 
 export const unstable_settings = {
   anchor: '(tabs)',

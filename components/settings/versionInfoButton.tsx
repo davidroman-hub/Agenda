@@ -1,9 +1,9 @@
-import React from 'react';
-import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { useVersionStore } from '@/stores/version-store';
 import { VersionNotificationService } from '@/services/version-notification-service';
+import { useVersionStore } from '@/stores/version-store';
+import React from 'react';
+import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function VersionInfoButton() {
   const { currentVersion, previousVersion, isFirstLaunch } = useVersionStore();
