@@ -1,11 +1,10 @@
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useWidgetSync } from '@/hooks/use-widget-sync';
 import useBookSettingsStore from "@/stores/boook-settings";
 import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import {
   BookPagesContent,
   calculateDays,
@@ -21,9 +20,6 @@ export default function Book() {
   const { taskFontSize } = useFontSettingsStore(); // Suscribirse al valor directamente para trigger re-render
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
-  
-  // Hook para sincronización del widget
-  const { forceSyncWidget } = useWidgetSync();
 
   // Usar el hook personalizado para toda la lógica de páginas
   const {
@@ -86,16 +82,6 @@ export default function Book() {
           goToNextPage={goToNextPage}
         />
         <BookActions />
-        
-        {/* Botón temporal de debug para sincronización del widget */}
-        <TouchableOpacity 
-          style={styles.debugButton}
-          onPress={() => {
-            forceSyncWidget();
-          }}
-        >
-          <Text style={styles.debugButtonText}>Sync Widget</Text>
-        </TouchableOpacity>
       </ThemedView>
     </View>
   );
@@ -146,26 +132,6 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     color: "#fff",
-    fontWeight: "bold",
-  },
-  debugButton: {
-    position: "absolute",
-    bottom: 160,
-    right: 20,
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    zIndex: 9999,
-  },
-  debugButtonText: {
-    color: "#fff",
-    fontSize: 12,
     fontWeight: "bold",
   },
 });

@@ -1,4 +1,10 @@
 # Changelog
+**v1.4.0**
+- ADD sistema de notificación de actualizaciones
+- FIX eliminado botón debug que causaba interferencias
+- ADD sistema de seguimiento de versiones
+- IMPROVE optimización del widget con datos dinámicos
+
 **v1.3.0**
 - ADD widget
 

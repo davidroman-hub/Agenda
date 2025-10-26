@@ -7,6 +7,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNavigationBlock } from '@/hooks/use-navigation-block';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useWidgetSync } from '@/hooks/use-widget-sync';
+import { useVersionNotification } from '@/hooks/use-version-notification';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -23,6 +24,9 @@ export default function RootLayout() {
   
   // Sincronizar datos del widget
   useWidgetSync();
+
+  // Inicializar sistema de notificaciones de versión
+  useVersionNotification();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
