@@ -1,8 +1,8 @@
-import React from 'react';
-import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { createSamplePastTasks, clearAllTasks } from '@/utils/sample-tasks';
+import { clearAllTasks, createSamplePastTasks } from '@/utils/sample-tasks';
+import React from 'react';
+import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function DevToolsButton() {
   const handleDevToolsPress = () => {
