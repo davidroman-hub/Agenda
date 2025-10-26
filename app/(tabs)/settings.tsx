@@ -1,5 +1,6 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
+import DevToolsButton from "@/components/settings/devToolsButton";
 import LogoutButton from "@/components/settings/logoutButton";
 import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import VersionInfoButton from "@/components/settings/versionInfoButton";
@@ -21,7 +22,6 @@ const handleDavidRomanPress = () => {
 };
 
 export default function SettingsPage() {
-  console.log("Rendering SettingsPage");
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
@@ -46,6 +46,7 @@ export default function SettingsPage() {
         <ChangeThemeButton />
         <TaskFontSizeButton />
         <VersionInfoButton />
+        <DevToolsButton />
         <LogoutButton />
       </ThemedView>
       <ThemedText style={dynamicStyles.text}>

@@ -39,10 +39,21 @@ export default function TabLayout() {
         options={{
           title: "Agenda",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+            <IconSymbol size={28} name="agenda" color={color} />
           ),
           // Mostrar solo si está logueado
           href: isLoggedIn ? "/(tabs)" : null,
+        }}
+      />
+      <Tabs.Screen
+        name="pastTasks"
+        options={{
+          title: "Tareas Pasadas",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="bell.fill" color={color} />
+          ),
+          // Mostrar solo si está logueado
+          href: isLoggedIn ? "/(tabs)/pastTasks" : null,
         }}
       />
       <Tabs.Screen
@@ -56,6 +67,7 @@ export default function TabLayout() {
           href: isLoggedIn ? "/(tabs)/notifications" : null,
         }}
       />
+
       <Tabs.Screen
         name="settings"
         options={{

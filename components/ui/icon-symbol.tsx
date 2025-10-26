@@ -24,7 +24,9 @@ const MAPPING = {
   gear: "settings",
   "person.circle": "person",
   bell: "notifications",
-} as IconMapping;
+  "bell.fill": "check-circle",
+  "agenda": "book",
+} as const;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
