@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import useAgendaTasksStore, { AgendaTask } from '../../stores/agenda-tasks-store';
+import useRepeatingTasksStore from '../../stores/repeating-tasks-store';
 
 export interface WidgetData {
   currentDate: string;
@@ -37,8 +38,53 @@ class WidgetService {
     const { tasksByDate } = useAgendaTasksStore.getState();
     const dayTasks = tasksByDate[dateString] || {};
     
+    // Get repeating tasks data
+    const { getAllRepeatingPatterns, shouldTaskRepeatOnDate, isRepeatingTaskCompleted } = useRepeatingTasksStore.getState();
+    const allPatterns = getAllRepeatingPatterns();
+    
     // Convert DayTasks object to array of tasks
-    const todayTasksArray: AgendaTask[] = Object.values(dayTasks).filter((task): task is AgendaTask => task !== null);
+    const normalTasks: AgendaTask[] = Object.values(dayTasks).filter((task): task is AgendaTask => task !== null);
+    
+    // Get all tasks from all dates to find original tasks for repeating patterns
+    const allExistingTasks = tasksByDate;
+    
+    // Create repeating tasks for today
+    const repeatingTasks: AgendaTask[] = [];
+    
+    // Filter normal tasks to exclude those with active patterns
+    const tasksWithActivePatterns = new Set(
+      allPatterns
+        .filter(pattern => pattern.isActive)
+        .map(pattern => pattern.originalTaskId)
+    );
+    
+    const filteredNormalTasks = normalTasks.filter(task => !tasksWithActivePatterns.has(task.id));
+    
+    // Generate repeating tasks for today
+    for (const pattern of allPatterns) {
+      if (!pattern.isActive) continue;
+      
+      if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateString)) {
+        // Find the original task
+        const originalTask = Object.values(allExistingTasks)
+          .flatMap(dayTasks => Object.values(dayTasks))
+          .find((task): task is AgendaTask => task !== null && task.id === pattern.originalTaskId);
+        
+        if (originalTask) {
+          repeatingTasks.push({
+            ...originalTask,
+            id: `${originalTask.id}-repeat-${dateString}`,
+            completed: isRepeatingTaskCompleted(originalTask.id, dateString),
+            isRepeatingTask: true,
+            repeatingTaskId: originalTask.id,
+            repeatingPatternId: pattern.id,
+          });
+        }
+      }
+    }
+    
+    // Combine normal and repeating tasks
+    const todayTasksArray = [...filteredNormalTasks, ...repeatingTasks];
     
     const completedTasks = todayTasksArray.filter((task: AgendaTask) => task.completed).length;
     const pendingTasks = todayTasksArray.length - completedTasks;

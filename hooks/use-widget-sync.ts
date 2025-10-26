@@ -1,5 +1,6 @@
 import { mmkvStorage } from '@/lib/mmkv';
 import useAgendaTasksStore from '@/stores/agenda-tasks-store';
+import useRepeatingTasksStore from '@/stores/repeating-tasks-store';
 import WidgetStore from '@/stores/widget-store';
 import { useCallback, useEffect } from 'react';
 import { NativeModules } from 'react-native';
@@ -16,6 +17,7 @@ console.log('🔍 widgetModule:', widgetModule);
 // Hook para sincronizar datos del widget
 export const useWidgetSync = () => {
   const { tasksByDate } = useAgendaTasksStore();
+  const { getAllRepeatingPatterns, shouldTaskRepeatOnDate, isRepeatingTaskCompleted } = useRepeatingTasksStore();
 
   // Función para crear datos estáticos de prueba
   const createStaticWidgetData = useCallback(async () => {
@@ -30,31 +32,79 @@ export const useWidgetSync = () => {
   // Función para sincronizar datos reales desde Zustand store
   const syncRealDataToWidget = useCallback(async (date: string) => {
     try {
-      console.log('=== SINCRONIZANDO DATOS REALES A WIDGET STORE ===');
+      console.log('=== SINCRONIZANDO DATOS REALES A WIDGET STORE (INCLUYENDO REPETIDAS) ===');
       console.log('Fecha:', date);
       console.log('Datos completos de tasksByDate:', tasksByDate);
       
       const dayTasks = tasksByDate[date] || {};
-      console.log('Tareas del día desde Zustand:', dayTasks);
+      console.log('Tareas normales del día desde Zustand:', dayTasks);
       
-      // Crear un array simple de las tareas del día
-      const pendingTasksList = []; // Solo tareas NO completadas
-      let totalTasks = 0;
-      let completedTasks = 0;
+      // Obtener tareas repetidas para esta fecha
+      const allPatterns = getAllRepeatingPatterns();
+      console.log('Patrones de repetición encontrados:', allPatterns.length);
       
+      // Filtrar tareas normales que tienen patrones activos (para evitar duplicar)
+      const tasksWithActivePatterns = new Set(
+        allPatterns
+          .filter(pattern => pattern.isActive)
+          .map(pattern => pattern.originalTaskId)
+      );
+      
+      // Crear array de tareas combinadas (normales + repetidas)
+      const allTasks = [];
+      
+      // Agregar tareas normales (excluyendo las que tienen patrones activos)
       for (const [, task] of Object.entries(dayTasks)) {
-        if (task?.text) {
-          totalTasks++;
-          if (task.completed) {
-            completedTasks++;
-          } else {
-            // Solo agregar tareas NO completadas al array
-            pendingTasksList.push(task.text);
+        if (task?.text && !tasksWithActivePatterns.has(task.id)) {
+          allTasks.push({
+            id: task.id,
+            text: task.text,
+            completed: task.completed,
+            isRepeating: false
+          });
+        }
+      }
+      
+      // Agregar tareas repetidas para esta fecha
+      for (const pattern of allPatterns) {
+        if (!pattern.isActive) continue;
+        
+        if (shouldTaskRepeatOnDate(pattern.originalTaskId, date)) {
+          // Buscar la tarea original
+          const originalTask = Object.values(tasksByDate)
+            .flatMap(dayTasks => Object.values(dayTasks))
+            .find(task => task !== null && task.id === pattern.originalTaskId);
+          
+          if (originalTask) {
+            const isCompleted = isRepeatingTaskCompleted(pattern.originalTaskId, date);
+            allTasks.push({
+              id: `${originalTask.id}-repeat-${date}`,
+              text: originalTask.text,
+              completed: isCompleted,
+              isRepeating: true
+            });
           }
         }
       }
       
-      console.log('📊 Estadísticas de tareas:');
+      console.log('📋 Tareas combinadas (normales + repetidas):', allTasks);
+      
+      // Crear un array simple de las tareas pendientes
+      const pendingTasksList = []; // Solo tareas NO completadas
+      let totalTasks = allTasks.length;
+      let completedTasks = 0;
+      
+      for (const task of allTasks) {
+        if (task.completed) {
+          completedTasks++;
+        } else {
+          // Solo agregar tareas NO completadas al array, con indicador de repetición
+          const taskText = task.isRepeating ? `🔄 ${task.text}` : task.text;
+          pendingTasksList.push(taskText);
+        }
+      }
+      
+      console.log('📊 Estadísticas de tareas (incluyendo repetidas):');
       console.log('  Total de tareas:', totalTasks);
       console.log('  Tareas completadas:', completedTasks);
       console.log('  Tareas pendientes:', pendingTasksList.length);
@@ -72,12 +122,12 @@ export const useWidgetSync = () => {
       // Debugging: listar todas las claves guardadas
       await WidgetStore.debugListAllKeys();
       
-      console.log('✅ Widget Store actualizada con datos reales');
+      console.log('✅ Widget Store actualizada con datos reales (incluyendo repetidas)');
       
     } catch (error) {
       console.error('❌ Error sincronizando datos reales:', error);
     }
-  }, [tasksByDate]);
+  }, [tasksByDate, getAllRepeatingPatterns, shouldTaskRepeatOnDate, isRepeatingTaskCompleted]);
 
   const forceWidgetUpdate = useCallback(async () => {
     try {
@@ -124,11 +174,15 @@ export const useWidgetSync = () => {
     await forceWidgetUpdate();
   }, [syncTodayWidget, forceWidgetUpdate]);
 
+  // Suscribirse a cambios en los stores de tareas repetidas para forzar actualizaciones
+  const repeatingPatterns = useRepeatingTasksStore((state) => state.repeatingPatterns);
+  const repeatingCompletions = useRepeatingTasksStore((state) => state.repeatingTaskCompletions);
+
   // Sincronizar automáticamente cuando cambien las tareas O al inicio
   useEffect(() => {
     console.log('📱 useWidgetSync: Iniciando sincronización automática...');
     syncTodayWidget();
-  }, [tasksByDate, syncTodayWidget]);
+  }, [tasksByDate, repeatingPatterns, repeatingCompletions, syncTodayWidget]);
 
   return {
     syncRealDataToWidget,

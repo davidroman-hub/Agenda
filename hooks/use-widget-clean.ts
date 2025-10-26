@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import WidgetService, { WidgetData } from '../services/widgets/widget-service';
 import useAgendaTasksStore from '../stores/agenda-tasks-store';
+import useRepeatingTasksStore from '../stores/repeating-tasks-store';
 
 interface UseWidgetReturn {
   widgetData: WidgetData | null;
@@ -17,6 +18,10 @@ export const useWidget = (): UseWidgetReturn => {
 
   // Subscribe to tasks store to update widget when tasks change
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
+  
+  // Subscribe to repeating tasks store to update widget when patterns or completions change
+  const repeatingPatterns = useRepeatingTasksStore((state) => state.repeatingPatterns);
+  const repeatingCompletions = useRepeatingTasksStore((state) => state.repeatingTaskCompletions);
 
   const updateWidgetData = useCallback(() => {
     try {
@@ -59,7 +64,7 @@ export const useWidget = (): UseWidgetReturn => {
   useEffect(() => {
     // Update widget data when tasks change
     updateWidgetData();
-  }, [tasksByDate, updateWidgetData]);
+  }, [tasksByDate, repeatingPatterns, repeatingCompletions, updateWidgetData]);
 
   useEffect(() => {
     // Update widget when app state changes
