@@ -85,4 +85,21 @@ export const notificationSettingsStyles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  statsContainer: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  statsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  statsText: {
+    fontSize: 14,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
 });

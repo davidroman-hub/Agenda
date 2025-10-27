@@ -2,6 +2,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { notificationService } from "@/services/notifications/notification-service";
+import { RepeatedTaskNotificationService } from "@/services/repeated-task-notification-service";
+import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useState } from "react";
@@ -20,9 +22,13 @@ export default function NotificationSettings() {
     ScheduledNotificationInfo[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [repeatedTaskStats, setRepeatedTaskStats] = useState<any>(null);
   const tintColor = useThemeColor({}, "tint");
   const textColor = useThemeColor({}, "text");
   const backgroundColor = useThemeColor({}, "background");
+
+  // Activar el sistema de notificaciones automáticas para tareas repetidas
+  useRepeatedTaskNotifications();
 
   // Suscribirse al store para detectar cambios en las tareas
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
@@ -101,6 +107,7 @@ export default function NotificationSettings() {
 
   useEffect(() => {
     loadScheduledNotifications();
+    loadRepeatedTaskStats();
   }, []);
 
   // Recargar automáticamente cuando cambien las tareas
@@ -144,6 +151,35 @@ export default function NotificationSettings() {
     } catch (error) {
       console.error("Error sending test notification:", error);
       Alert.alert("Error", "Error al programar la notificación de prueba");
+    }
+  };
+
+  const handleForceRepeatedTaskCheck = async () => {
+    try {
+      setIsLoading(true);
+      await RepeatedTaskNotificationService.forceNewCheck();
+      await loadRepeatedTaskStats();
+      Alert.alert(
+        "✅ Verificación Completada",
+        "Se ha ejecutado la verificación de tareas repetidas y se programaron las notificaciones correspondientes"
+      );
+      // Recargar notificaciones después de la verificación
+      setTimeout(() => loadScheduledNotifications(), 1000);
+    } catch (error) {
+      console.error('Error forcing repeated task check:', error);
+      Alert.alert("❌ Error", "No se pudo ejecutar la verificación");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadRepeatedTaskStats = async () => {
+    try {
+      const stats = await RepeatedTaskNotificationService.getNotificationStats();
+      setRepeatedTaskStats(stats);
+    } catch (error) {
+      console.error('Error loading repeated task stats:', error);
+      setRepeatedTaskStats(null);
     }
   };
 
@@ -213,6 +249,42 @@ export default function NotificationSettings() {
             🧪 Activa las notificaciones
           </ThemedText>
         </TouchableOpacity>
+      </ThemedView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+          Tareas Repetidas
+        </ThemedText>
+
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: "#4CAF50" }]}
+          onPress={handleForceRepeatedTaskCheck}
+          disabled={isLoading}
+        >
+          <ThemedText style={styles.actionButtonText}>
+            {isLoading ? "🔄 Verificando..." : "🔁 Verificar Tareas Repetidas"}
+          </ThemedText>
+        </TouchableOpacity>
+
+        {repeatedTaskStats && (
+          <ThemedView style={[styles.statsContainer, { borderColor: textColor + '20' }]}>
+            <ThemedText style={[styles.statsTitle, { color: textColor }]}>
+              📊 Estadísticas de Tareas Repetidas
+            </ThemedText>
+            <ThemedText style={[styles.statsText, { color: textColor }]}>
+              Última verificación: {repeatedTaskStats.lastCheck ? new Date(repeatedTaskStats.lastCheck).toLocaleString() : 'Nunca'}
+            </ThemedText>
+            <ThemedText style={[styles.statsText, { color: textColor }]}>
+              Patrones activos: {repeatedTaskStats.totalPatterns}
+            </ThemedText>
+            <ThemedText style={[styles.statsText, { color: textColor }]}>
+              Notificaciones hoy: {repeatedTaskStats.notificationsToday}
+            </ThemedText>
+            <ThemedText style={[styles.statsText, { color: textColor }]}>
+              Próxima verificación: {repeatedTaskStats.nextCheck ? new Date(repeatedTaskStats.nextCheck).toLocaleString() : 'No programada'}
+            </ThemedText>
+          </ThemedView>
+        )}
       </ThemedView>
 
       <ThemedView style={styles.section}>

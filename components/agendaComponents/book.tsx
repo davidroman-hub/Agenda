@@ -1,6 +1,7 @@
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
 import React from "react";
@@ -20,6 +21,9 @@ export default function Book() {
   const { taskFontSize } = useFontSettingsStore(); // Suscribirse al valor directamente para trigger re-render
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+
+  // Activar el sistema de notificaciones automáticas para tareas repetidas
+  useRepeatedTaskNotifications();
 
   // Usar el hook personalizado para toda la lógica de páginas
   const {
