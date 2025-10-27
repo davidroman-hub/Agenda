@@ -78,44 +78,10 @@ export default function BookPage({
     (state) => state.repeatingTaskCompletions
   );
 
-  // Función auxiliar para organizar tareas por prioridad (sin reminder primero, con reminder ordenado por hora al final)
-  const organizeTasks = (tasks: AgendaTask[]) => {
-    const tasksWithReminder = tasks.filter(task => task.reminder);
-    const tasksWithoutReminder = tasks.filter(task => !task.reminder);
 
-    // Ordenar tareas con reminder por hora
-    tasksWithReminder.sort((a, b) => {
-      const timeA = new Date(a.reminder!).getTime();
-      const timeB = new Date(b.reminder!).getTime();
-      return timeA - timeB;
-    });
-
-    // Reorganizar en el objeto final: sin reminder primero, luego con reminder ordenado
-    const organized: { [key: number]: AgendaTask } = {};
-    let currentLine = 1;
-    
-    // Primero tareas sin reminder
-    for (const task of tasksWithoutReminder) {
-      if (currentLine <= linesPerPage) {
-        organized[currentLine] = task;
-        currentLine++;
-      }
-    }
-
-    // Luego tareas con reminder ordenadas por hora
-    for (const task of tasksWithReminder) {
-      if (currentLine <= linesPerPage) {
-        organized[currentLine] = task;
-        currentLine++;
-      }
-    }
-
-    return organized;
-  };
 
   // Combinar tareas normales con tareas repetidas usando el nuevo sistema ID-based
   const allTasks = React.useMemo(() => {
-    const combined = { ...dayTasks };
     const allExistingTasks = getAllTasks();
     const allPatterns = getAllRepeatingPatterns();
 
@@ -126,9 +92,15 @@ export default function BookPage({
         .map((pattern) => pattern.originalTaskId)
     );
 
-    // Obtener tareas del día (excluyendo las que tienen patrones de repetición)
-    const filteredDayTasks = Object.values(combined)
-      .filter((task): task is AgendaTask => task !== null && !tasksWithActivePatterns.has(task.id));
+    // Comenzar con las tareas del día, excluyendo las que tienen patrones de repetición
+    const combined = { ...dayTasks };
+    
+    // Filtrar tareas que tienen patrones de repetición activos
+    for (const [line, task] of Object.entries(combined)) {
+      if (task && tasksWithActivePatterns.has(task.id)) {
+        delete combined[Number.parseInt(line, 10)];
+      }
+    }
 
     // Obtener tareas repetidas para hoy
     const repeatedTasks: AgendaTask[] = [];
@@ -156,9 +128,18 @@ export default function BookPage({
       }
     }
 
-    // Combinar todas las tareas y organizarlas
-    const allTasksList: AgendaTask[] = [...filteredDayTasks, ...repeatedTasks];
-    return organizeTasks(allTasksList);
+    // Agregar las tareas repetidas a las líneas disponibles
+    for (const repeatedTask of repeatedTasks) {
+      // Buscar la primera línea disponible para la tarea repetida
+      for (let line = 1; line <= linesPerPage; line++) {
+        if (!combined[line]) {
+          combined[line] = repeatedTask;
+          break;
+        }
+      }
+    }
+    
+    return combined;
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -183,24 +164,9 @@ export default function BookPage({
     if (task?.isRepeatingTask) {
       // Es una tarea repetida, usar el store de tareas repetidas
       toggleRepeatingTaskCompletion(task.repeatingTaskId!, date);
-    } else if (task) {
-      // Es una tarea normal, encontrar su línea original en el store
-      const allExistingTasks = getAllTasks();
-      const dayTasks = allExistingTasks[date] || {};
-      
-      // Buscar la línea original de la tarea por su ID
-      let originalLineNumber: number | null = null;
-      for (const [line, originalTask] of Object.entries(dayTasks)) {
-        if (originalTask && originalTask.id === task.id) {
-          originalLineNumber = Number.parseInt(line, 10);
-          break;
-        }
-      }
-      
-      if (originalLineNumber !== null) {
-        // Usar la línea original para el toggle
-        originalToggleTaskCompletion(date, originalLineNumber);
-      }
+    } else {
+      // Es una tarea normal, usar el store de tareas normales directamente
+      originalToggleTaskCompletion(date, lineNumber);
     }
   };
   const formatDate = (date: Date) => {
@@ -313,8 +279,22 @@ export default function BookPage({
           // 2. Actualizar la tarea para incluir la info de repetición
           await updateTask(dateKey, editingLine, { text, reminder, repeat });
         } else {
-          // Actualizar tarea normal
-          await updateTask(dateKey, editingLine, { text, reminder, repeat });
+          // Actualizar tarea normal usando la línea directamente
+          const allExistingTasks = getAllTasks();
+          const dayTasks = allExistingTasks[dateKey] || {};
+          
+          // Buscar la línea original de la tarea por su ID
+          let originalLineNumber: number | null = null;
+          for (const [line, originalTask] of Object.entries(dayTasks)) {
+            if (originalTask && originalTask.id === existingTask.id) {
+              originalLineNumber = Number.parseInt(line, 10);
+              break;
+            }
+          }
+          
+          if (originalLineNumber !== null) {
+            await updateTask(dateKey, originalLineNumber, { text, reminder, repeat });
+          }
         }
       } else if (repeat && repeat !== "none") {
         // Nueva tarea repetida
@@ -374,9 +354,23 @@ export default function BookPage({
         removeRepeatingPattern(existingTask.repeatingTaskId!);
         // Forzar actualización inmediata
         setLastUpdateTime(Date.now());
-      } else {
-        // Eliminar tarea normal
-        await deleteTask(dateKey, editingLine);
+      } else if (existingTask) {
+        // Eliminar tarea normal - buscar su línea original
+        const allExistingTasks = getAllTasks();
+        const dayTasks = allExistingTasks[dateKey] || {};
+        
+        // Buscar la línea original de la tarea por su ID
+        let originalLineNumber: number | null = null;
+        for (const [line, originalTask] of Object.entries(dayTasks)) {
+          if (originalTask && originalTask.id === existingTask.id) {
+            originalLineNumber = Number.parseInt(line, 10);
+            break;
+          }
+        }
+        
+        if (originalLineNumber !== null) {
+          await deleteTask(dateKey, originalLineNumber);
+        }
       }
 
       setModalVisible(false);
