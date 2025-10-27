@@ -90,6 +90,22 @@ export default function TaskReminder({
     }
   };
 
+  const addHoursSameTime = (date: Date) => {
+    // Crear una nueva fecha para evitar mutaciones
+    const newDate = new Date(date);
+    // Establecer la hora al final del día (23:59:59.999) en la zona horaria local
+    newDate.setHours(23, 59, 59, 999);
+    return newDate;
+  };
+
+  const setZeroHrs = (date: Date) => {
+    // Crear una nueva fecha para evitar mutaciones
+    const newDate = new Date(date);
+    // Establecer la hora a 00:00:00.000 en la zona horaria local
+    newDate.setHours(0, 0, 0, 0);
+    return newDate;
+  };
+
   const handleTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false);
     if (selectedTime) {
@@ -116,14 +132,35 @@ export default function TaskReminder({
 
   const openDateTimePicker = () => {
     try {
-      // Usar directamente taskDate como fecha máxima
-      const maxDate = new Date(taskDate);
+      // Convertir taskDate a fecha local sin problemas de timezone
+      let maxDate: Date;
+      
+      if (taskDate.includes('T')) {
+        // Si es un ISO string, parsearlo correctamente en timezone local
+        const dateParts = taskDate.split('T')[0].split('-');
+        maxDate = new Date(
+          Number.parseInt(dateParts[0]), // year
+          Number.parseInt(dateParts[1]) - 1, // month (0-indexed)
+          Number.parseInt(dateParts[2]) // day
+        );
+      } else {
+        // Si es una fecha simple YYYY-MM-DD
+        const dateParts = taskDate.split('-');
+        maxDate = new Date(
+          Number.parseInt(dateParts[0]), // year
+          Number.parseInt(dateParts[1]) - 1, // month (0-indexed)
+          Number.parseInt(dateParts[2]) // day
+        );
+      }
+      
+      // Establecer al final del día en timezone local
       maxDate.setHours(23, 59, 59, 999);
       setTaskDateLocal(maxDate);
-      
-      console.log('TaskDate recibido:', taskDate);
-      console.log('Fecha máxima establecida:', maxDate);
-      
+
+      console.log("TaskDate recibido:", taskDate);
+      console.log("Fecha máxima establecida:", maxDate);
+      console.log("Timezone offset:", maxDate.getTimezoneOffset());
+
       setShowDatePicker(true);
     } catch (error) {
       console.error("Error opening date picker:", error);
@@ -200,8 +237,12 @@ export default function TaskReminder({
               mode="datetime"
               display="compact"
               onChange={handleDateChange}
-              minimumDate={today}
-              maximumDate={taskDateLocal || undefined}
+          
+
+              minimumDate={setZeroHrs(today)}
+              maximumDate={addHoursSameTime(
+                setZeroHrs(taskDateLocal || new Date())
+              )}
               style={styles.iosDatePicker}
             />
           )}
@@ -213,8 +254,8 @@ export default function TaskReminder({
               mode="date"
               display="default"
               onChange={handleDateChange}
-              minimumDate={today}
-              maximumDate={taskDateLocal || undefined}
+              minimumDate={setZeroHrs(taskDateLocal as any)}
+              maximumDate={setZeroHrs(taskDateLocal || new Date())}
             />
           )}
 
