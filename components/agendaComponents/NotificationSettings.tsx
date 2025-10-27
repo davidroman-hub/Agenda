@@ -1,9 +1,9 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { notificationService } from "@/services/notifications/notification-service";
 import { RepeatedTaskNotificationService } from "@/services/repeated-task-notification-service";
-import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useState } from "react";

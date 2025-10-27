@@ -7,11 +7,11 @@ import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
-  BookPagesContent,
-  calculateDays,
-  NavigationControls,
-  PageFoldEffect,
-  useBookPageLogic,
+    BookPagesContent,
+    calculateDays,
+    NavigationControls,
+    PageFoldEffect,
+    useBookPageLogic,
 } from "./bookFragments";
 import BookActions from "./bookSettings";
 import { createDynamicStyles } from "./bookStyles";

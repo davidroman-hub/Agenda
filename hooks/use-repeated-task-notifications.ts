@@ -1,6 +1,6 @@
+import { RepeatedTaskNotificationService } from '@/services/repeated-task-notification-service';
 import { useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { RepeatedTaskNotificationService } from '@/services/repeated-task-notification-service';
 
 /**
  * Hook que maneja la verificación automática de notificaciones para tareas repetidas
