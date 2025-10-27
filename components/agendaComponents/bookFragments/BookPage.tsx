@@ -183,9 +183,24 @@ export default function BookPage({
     if (task?.isRepeatingTask) {
       // Es una tarea repetida, usar el store de tareas repetidas
       toggleRepeatingTaskCompletion(task.repeatingTaskId!, date);
-    } else {
-      // Es una tarea normal, usar el store de tareas normales
-      originalToggleTaskCompletion(date, lineNumber);
+    } else if (task) {
+      // Es una tarea normal, encontrar su línea original en el store
+      const allExistingTasks = getAllTasks();
+      const dayTasks = allExistingTasks[date] || {};
+      
+      // Buscar la línea original de la tarea por su ID
+      let originalLineNumber: number | null = null;
+      for (const [line, originalTask] of Object.entries(dayTasks)) {
+        if (originalTask && originalTask.id === task.id) {
+          originalLineNumber = Number.parseInt(line, 10);
+          break;
+        }
+      }
+      
+      if (originalLineNumber !== null) {
+        // Usar la línea original para el toggle
+        originalToggleTaskCompletion(date, originalLineNumber);
+      }
     }
   };
   const formatDate = (date: Date) => {
