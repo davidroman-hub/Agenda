@@ -48,6 +48,11 @@ class WidgetStore {
       
       console.log('✅ WIDGET STORE: Datos guardados exitosamente');
       
+      // IMPORTANTE: Forzar actualización inmediata del widget después de guardar
+      setTimeout(async () => {
+        await this.forceWidgetUpdate();
+      }, 500); // Pequeño delay para asegurar que los datos se hayan guardado
+      
     } catch (error) {
       console.error('❌ WIDGET STORE: Error guardando datos:', error);
     }
@@ -96,16 +101,26 @@ class WidgetStore {
     }
   }
 
-  // Forzar actualización del widget
+    // Forzar actualización del widget
   static async forceWidgetUpdate(): Promise<void> {
     try {
-      if (WidgetDataManager) {
-        console.log('🔄 WIDGET STORE: Forzando actualización del widget...');
+      console.log('🔄 WIDGET STORE: Forzando actualización del widget...');
+      
+      // Método 1: Usar el módulo nativo si está disponible
+      if (WidgetDataManager && WidgetDataManager.forceWidgetUpdate) {
+        console.log('� WIDGET STORE: Usando módulo nativo para forzar actualización...');
         await WidgetDataManager.forceWidgetUpdate();
-        console.log('✅ WIDGET STORE: Widget actualizado exitosamente');
+        console.log('✅ WIDGET STORE: Actualización forzada exitosamente');
       } else {
-        console.log('⚠️ WIDGET STORE: Módulo nativo no disponible para forzar actualización');
+        console.log('❌ WIDGET STORE: Módulo nativo no disponible');
       }
+      
+      // Método 2: Guardar timestamp especial para activar actualizaciones
+      await AsyncStorage.setItem('widget_last_update', Date.now().toString());
+      await AsyncStorage.setItem('widget_force_refresh', 'true');
+      
+      console.log('✅ WIDGET STORE: Timestamp de actualización guardado');
+      
     } catch (error) {
       console.error('❌ WIDGET STORE: Error forzando actualización:', error);
     }

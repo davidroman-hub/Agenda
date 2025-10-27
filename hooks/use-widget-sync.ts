@@ -3,7 +3,7 @@ import useAgendaTasksStore from '@/stores/agenda-tasks-store';
 import useRepeatingTasksStore from '@/stores/repeating-tasks-store';
 import WidgetStore from '@/stores/widget-store';
 import { useCallback, useEffect } from 'react';
-import { NativeModules } from 'react-native';
+import { AppState, AppStateStatus, NativeModules } from 'react-native';
 
 console.log('🔍 Todos los NativeModules:', Object.keys(NativeModules));
 
@@ -182,7 +182,28 @@ export const useWidgetSync = () => {
   useEffect(() => {
     console.log('📱 useWidgetSync: Iniciando sincronización automática...');
     syncTodayWidget();
+    
+    // También configurar un interval para sincronizar cada 30 segundos cuando la app esté activa
+    const interval = setInterval(() => {
+      console.log('🕰️ useWidgetSync: Sincronización automática por interval...');
+      syncTodayWidget();
+    }, 30000); // 30 segundos
+    
+    return () => clearInterval(interval);
   }, [tasksByDate, repeatingPatterns, repeatingCompletions, syncTodayWidget]);
+
+  // Detectar cuando la app va al background y forzar actualización del widget
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        console.log('📱 useWidgetSync: App va al background, forzando actualización del widget...');
+        forceSyncWidget();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [forceSyncWidget]);
 
   return {
     syncRealDataToWidget,

@@ -15,7 +15,7 @@ export default function ExpandoButton() {
     { id: 1, label: daysToShow === 6 ? "3 dias" : "6 dias" },
     { id: 2, label: "•  •\n•  •\n•  •" },
     { id: 3, label: "•" },
-    { id: 4, label: `📝\n${linesPerPage}` },
+  
   ];
 
   const manageOptions = (optionId: number) => {
@@ -32,7 +32,7 @@ export default function ExpandoButton() {
       setViewMode("single");
     } else if (optionId === 4) {
       // Ciclar entre diferentes números de líneas
-      const lineOptions = [6, 8, 10, 12, 15];
+      const lineOptions = [12];
       const currentIndex = lineOptions.indexOf(linesPerPage);
       const nextIndex = (currentIndex + 1) % lineOptions.length;
       setLinesPerPage(lineOptions[nextIndex]);

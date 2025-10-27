@@ -90,14 +90,23 @@ public class WidgetDataManagerModule extends ReactContextBaseJavaModule {
             android.util.Log.d("WidgetDataManager", "Encontrados " + appWidgetIds.length + " widgets para actualizar");
             
             if (appWidgetIds.length > 0) {
+                // Método 1: Broadcast directo
                 android.content.Intent intent = new android.content.Intent(getReactApplicationContext(), 
                     com.david_roman_a.david_roman_aapp.widget.AgendaWidgetProvider.class);
                 intent.setAction(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE);
                 intent.putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
                 getReactApplicationContext().sendBroadcast(intent);
                 
-                android.util.Log.d("WidgetDataManager", "✅ Broadcast enviado para actualizar widgets");
-                promise.resolve("Widget actualizado exitosamente");
+                // Método 2: Llamada directa al provider (más confiable)
+                com.david_roman_a.david_roman_aapp.widget.AgendaWidgetProvider provider = 
+                    new com.david_roman_a.david_roman_aapp.widget.AgendaWidgetProvider();
+                provider.onUpdate(getReactApplicationContext(), appWidgetManager, appWidgetIds);
+                
+                // Método 3: Notificar cambio en los datos
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, android.R.id.list);
+                
+                android.util.Log.d("WidgetDataManager", "✅ Widget actualizado usando múltiples métodos");
+                promise.resolve("Widget actualizado exitosamente usando múltiples métodos");
             } else {
                 android.util.Log.d("WidgetDataManager", "❌ No se encontraron widgets para actualizar");
                 promise.resolve("No hay widgets para actualizar");

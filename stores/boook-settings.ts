@@ -18,7 +18,7 @@ const useBookSettingsStore = create<BookSettingsState>()(
     (set) => ({
       daysToShow: 3,
       viewMode: 'normal' as const,
-      linesPerPage: 8,
+      linesPerPage: 12,
       setDaysToShow: (days: number) => set({ daysToShow: days }),
       setViewMode: (mode: ViewMode) => set({ viewMode: mode }),
       setLinesPerPage: (lines: number) => set({ linesPerPage: lines }),
