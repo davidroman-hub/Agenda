@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
+import useBookSettingsStore from "@/stores/boook-settings";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
@@ -39,6 +40,9 @@ export default function BookPage({
   const [editingLine, setEditingLine] = useState<number | null>(null);
   const [editingTask, setEditingTask] = useState<string>("");
   const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
+
+  // Obtener configuración de líneas por página
+  const { linesPerPage } = useBookSettingsStore();
 
   // Suscribirse directamente a las tareas de esta fecha específica
   const dayTasks = useAgendaTasksStore(
@@ -92,7 +96,7 @@ export default function BookPage({
     
     // Primero tareas sin reminder
     for (const task of tasksWithoutReminder) {
-      if (currentLine <= 8) {
+      if (currentLine <= linesPerPage) {
         organized[currentLine] = task;
         currentLine++;
       }
@@ -100,7 +104,7 @@ export default function BookPage({
 
     // Luego tareas con reminder ordenadas por hora
     for (const task of tasksWithReminder) {
-      if (currentLine <= 8) {
+      if (currentLine <= linesPerPage) {
         organized[currentLine] = task;
         currentLine++;
       }
@@ -221,7 +225,7 @@ export default function BookPage({
   // Generar líneas para escritura (como en agenda real)
   const generateLines = () => {
     const lines = [];
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= linesPerPage; i++) {
       lines.push(i);
     }
     return lines;

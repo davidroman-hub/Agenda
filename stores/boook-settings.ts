@@ -7,8 +7,10 @@ type ViewMode = 'normal' | 'expanded' | 'single';
 interface BookSettingsState {
   daysToShow: number;
   viewMode: ViewMode;
+  linesPerPage: number;
   setDaysToShow: (days: number) => void;
   setViewMode: (mode: ViewMode) => void;
+  setLinesPerPage: (lines: number) => void;
 }
 
 const useBookSettingsStore = create<BookSettingsState>()(
@@ -16,8 +18,10 @@ const useBookSettingsStore = create<BookSettingsState>()(
     (set) => ({
       daysToShow: 3,
       viewMode: 'normal' as const,
+      linesPerPage: 8,
       setDaysToShow: (days: number) => set({ daysToShow: days }),
       setViewMode: (mode: ViewMode) => set({ viewMode: mode }),
+      setLinesPerPage: (lines: number) => set({ linesPerPage: lines }),
     }),
     {
       name: "book-settings-storage",
