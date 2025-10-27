@@ -1,10 +1,19 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { formatDateLocalized, formatTimeLocalized } from '@/utils/locale-config';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useState } from 'react';
-import { Platform, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import {
+  formatDateLocalized,
+  formatTimeLocalized,
+} from "@/utils/locale-config";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import React, { useState } from "react";
+import {
+  Platform,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface TaskReminderProps {
   readonly reminderDate?: Date | null;
@@ -26,37 +35,40 @@ export default function TaskReminder({
     if (reminderDate) return reminderDate;
     const now = new Date();
     // Crear una nueva fecha en zona horaria local
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes());
+    return new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      now.getHours(),
+      now.getMinutes()
+    );
   };
-  
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempDate, setTempDate] = useState(getInitialDate());
+  const [taskDateLocal, setTaskDateLocal] = useState<Date | null>(null);
 
-const tintColor = useThemeColor({}, 'tint');
-const textColor = useThemeColor({}, 'text');
-const backgroundColor = useThemeColor({}, 'background');
+  const tintColor = useThemeColor({}, "tint");
+  const textColor = useThemeColor({}, "text");
+  const backgroundColor = useThemeColor({}, "background");
 
-// Convertir taskDate a fecha local para evitar problemas de timezone
-const taskDateLocal = new Date(taskDate + 'T23:59:59'); // Asegurar que sea el final del día local
-const today = new Date();
-today.setHours(0, 0, 0, 0); // Inicio del día actual
-
-
-
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Inicio del día actual
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
+      console.log("Fecha seleccionada (bruta):", selectedDate);
       // Crear una nueva fecha manteniendo la zona horaria local del usuario
       const localDate = new Date(selectedDate);
-      
+
       // Si tenemos una fecha temporal existente, preservar la hora
       const newDate = new Date(tempDate);
       newDate.setFullYear(localDate.getFullYear());
       newDate.setMonth(localDate.getMonth());
       newDate.setDate(localDate.getDate());
-      
+
       // Asegurar que estamos trabajando con la fecha local del usuario
       const localizedDate = new Date(
         newDate.getFullYear(),
@@ -65,10 +77,10 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
         newDate.getHours(),
         newDate.getMinutes()
       );
-      
+
       setTempDate(localizedDate);
-      
-      if (Platform.OS === 'android') {
+
+      if (Platform.OS === "android") {
         // En Android, mostrar time picker después del date picker
         setShowTimePicker(true);
       } else {
@@ -87,7 +99,7 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
       newDate.setMinutes(selectedTime.getMinutes());
       newDate.setSeconds(0);
       newDate.setMilliseconds(0);
-      
+
       // Asegurar que mantenemos la zona horaria local
       const localizedDate = new Date(
         newDate.getFullYear(),
@@ -96,7 +108,7 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
         newDate.getHours(),
         newDate.getMinutes()
       );
-      
+
       setTempDate(localizedDate);
       onReminderChange(localizedDate);
     }
@@ -104,9 +116,17 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
 
   const openDateTimePicker = () => {
     try {
+      // Capturar la hora actual cuando el usuario hace click
+      const now = new Date();
+      const horaCapturada = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      
+      // Crear taskDateLocal con la hora capturada
+      const taskDateLocalCalculated = new Date(horaCapturada + "T23:59:59");
+      setTaskDateLocal(taskDateLocalCalculated);
+      
       setShowDatePicker(true);
     } catch (error) {
-      console.error('Error opening date picker:', error);
+      console.error("Error opening date picker:", error);
     }
   };
 
@@ -122,8 +142,8 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
         <Switch
           value={isEnabled}
           onValueChange={onToggleEnabled}
-          trackColor={{ false: '#767577', true: tintColor + '50' }}
-          thumbColor={isEnabled ? tintColor : '#f4f3f4'}
+          trackColor={{ false: "#767577", true: tintColor + "50" }}
+          thumbColor={isEnabled ? tintColor : "#f4f3f4"}
         />
       </View>
 
@@ -133,12 +153,14 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
           <TouchableOpacity
             style={[
               styles.setReminderButton,
-              { backgroundColor: backgroundColor, borderColor: tintColor }
+              { backgroundColor: backgroundColor, borderColor: tintColor },
             ]}
             onPress={openDateTimePicker}
           >
             <ThemedText style={[styles.setReminderText, { color: tintColor }]}>
-              {reminderDate ? 'Cambiar recordatorio' : 'Establecer recordatorio'}
+              {reminderDate
+                ? "Cambiar recordatorio"
+                : "Establecer recordatorio"}
             </ThemedText>
           </TouchableOpacity>
 
@@ -153,13 +175,13 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
                   🕐 {formatTimeLocalized(currentReminderDate)}
                 </ThemedText>
               </View>
-              
+
               {/* Botón para quitar recordatorio */}
               <TouchableOpacity
                 style={styles.removeButton}
                 onPress={() => onReminderChange(null)}
               >
-                <ThemedText style={[styles.removeText, { color: '#ff4444' }]}>
+                <ThemedText style={[styles.removeText, { color: "#ff4444" }]}>
                   Quitar recordatorio
                 </ThemedText>
               </TouchableOpacity>
@@ -167,32 +189,32 @@ today.setHours(0, 0, 0, 0); // Inicio del día actual
           )}
 
           {/* Date Picker - iOS muestra fecha y hora juntos */}
-          {showDatePicker && Platform.OS === 'ios' && (
+          {showDatePicker && Platform.OS === "ios" && (
             <DateTimePicker
               value={tempDate}
               mode="datetime"
               display="compact"
               onChange={handleDateChange}
               minimumDate={today}
-              maximumDate={taskDateLocal}
+              maximumDate={taskDateLocal || undefined}
               style={styles.iosDatePicker}
             />
           )}
 
           {/* Date Picker - Android separado */}
-          {showDatePicker && Platform.OS === 'android' && (
+          {showDatePicker && Platform.OS === "android" && (
             <DateTimePicker
               value={tempDate}
               mode="date"
               display="default"
               onChange={handleDateChange}
               minimumDate={today}
-              maximumDate={taskDateLocal}
+              maximumDate={taskDateLocal || undefined}
             />
           )}
 
           {/* Time Picker - Solo para Android */}
-          {showTimePicker && Platform.OS === 'android' && (
+          {showTimePicker && Platform.OS === "android" && (
             <DateTimePicker
               value={tempDate}
               mode="time"
@@ -210,17 +232,17 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     marginVertical: 8,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   pickerContainer: {
     marginTop: 8,
@@ -230,43 +252,43 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 12,
   },
   setReminderText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   selectedDateTime: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: "rgba(0,0,0,0.05)",
   },
   dateTimeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   dateLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   timeLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   removeButton: {
-    alignSelf: 'center',
+    alignSelf: "center",
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   removeText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   iosDatePicker: {
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 8,
   },
 });

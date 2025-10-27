@@ -118,12 +118,15 @@ export default function NotificationSettings() {
       const testDate = new Date();
       testDate.setSeconds(testDate.getSeconds() + 5);
 
+      const today = new Date();
+      const todayDateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
       const notificationId = await notificationService.scheduleTaskReminder(
         "test-task-id",
-        "Notificación de Prueba",
+        "Activar notificaciones  📲",
         "Esta es una notificación de prueba del sistema de recordatorios",
         testDate,
-        new Date().toISOString().split("T")[0]
+        todayDateKey
       );
 
       if (notificationId) {
@@ -159,38 +162,6 @@ export default function NotificationSettings() {
       console.error("Error canceling notification:", error);
       Alert.alert("Error", "No se pudo cancelar la notificación");
     }
-  };
-
-  const handleCancelAllNotifications = async () => {
-    Alert.alert(
-      "Cancelar todas las notificaciones",
-      "¿Estás seguro de que quieres cancelar todas las notificaciones programadas?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Sí, cancelar todas",
-          style: "destructive",
-          onPress: () => {
-            (async () => {
-              try {
-                await notificationService.cancelAllTaskReminders();
-                Alert.alert(
-                  "Completado",
-                  "Todas las notificaciones han sido canceladas"
-                );
-                setScheduledNotifications([]);
-              } catch (error) {
-                console.error("Error canceling all notifications:", error);
-                Alert.alert(
-                  "Error",
-                  "No se pudieron cancelar las notificaciones"
-                );
-              }
-            })();
-          },
-        },
-      ]
-    );
   };
 
   const renderNotificationItem = ({
@@ -239,32 +210,7 @@ export default function NotificationSettings() {
           onPress={handleTestNotification}
         >
           <ThemedText style={styles.actionButtonText}>
-            🧪 Enviar recordatorio de prueba
-          </ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#ff4444" }]}
-          onPress={handleCancelAllNotifications}
-        >
-          <ThemedText style={styles.actionButtonText}>
-            🗑️ Cancelar todos los recordatorios
-          </ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.actionButton,
-            {
-              backgroundColor: isLoading ? "#999" : "#666",
-              opacity: isLoading ? 0.7 : 1,
-            },
-          ]}
-          onPress={loadScheduledNotifications}
-          disabled={isLoading}
-        >
-          <ThemedText style={styles.actionButtonText}>
-            {isLoading ? "🔄 Recargando..." : "🔄 Recargar lista manualmente"}
+            🧪 Activa las notificaciones
           </ThemedText>
         </TouchableOpacity>
       </ThemedView>
