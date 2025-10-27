@@ -116,17 +116,22 @@ export default function TaskReminder({
 
   const openDateTimePicker = () => {
     try {
-      // Capturar la hora actual cuando el usuario hace click
-      const now = new Date();
-      const horaCapturada = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      // Usar directamente taskDate como fecha máxima
+      const maxDate = new Date(taskDate);
+      maxDate.setHours(23, 59, 59, 999);
+      setTaskDateLocal(maxDate);
       
-      // Crear taskDateLocal con la hora capturada
-      const taskDateLocalCalculated = new Date(horaCapturada + "T23:59:59");
-      setTaskDateLocal(taskDateLocalCalculated);
+      console.log('TaskDate recibido:', taskDate);
+      console.log('Fecha máxima establecida:', maxDate);
       
       setShowDatePicker(true);
     } catch (error) {
       console.error("Error opening date picker:", error);
+      // Fallback
+      const fallback = new Date();
+      fallback.setDate(fallback.getDate() + 7); // 7 días desde hoy
+      setTaskDateLocal(fallback);
+      setShowDatePicker(true);
     }
   };
 
