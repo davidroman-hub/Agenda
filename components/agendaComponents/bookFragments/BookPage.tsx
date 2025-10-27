@@ -44,83 +44,135 @@ export default function BookPage({
   const dayTasks = useAgendaTasksStore(
     (state) => state.tasksByDate[dateKey] || EMPTY_TASKS
   );
-  
+
   // Obtener funciones del store de patrones de repetición
-  const getAllRepeatingPatterns = useRepeatingTasksStore((state) => state.getAllRepeatingPatterns);
-  const shouldTaskRepeatOnDate = useRepeatingTasksStore((state) => state.shouldTaskRepeatOnDate);
-  const addRepeatingPattern = useRepeatingTasksStore((state) => state.addRepeatingPattern);
-  const removeRepeatingPattern = useRepeatingTasksStore((state) => state.removeRepeatingPattern);
-  const toggleRepeatingTaskCompletion = useRepeatingTasksStore((state) => state.toggleRepeatingTaskCompletion);
-  const isRepeatingTaskCompleted = useRepeatingTasksStore((state) => state.isRepeatingTaskCompleted);
-  
+  const getAllRepeatingPatterns = useRepeatingTasksStore(
+    (state) => state.getAllRepeatingPatterns
+  );
+  const shouldTaskRepeatOnDate = useRepeatingTasksStore(
+    (state) => state.shouldTaskRepeatOnDate
+  );
+  const addRepeatingPattern = useRepeatingTasksStore(
+    (state) => state.addRepeatingPattern
+  );
+  const removeRepeatingPattern = useRepeatingTasksStore(
+    (state) => state.removeRepeatingPattern
+  );
+  const toggleRepeatingTaskCompletion = useRepeatingTasksStore(
+    (state) => state.toggleRepeatingTaskCompletion
+  );
+  const isRepeatingTaskCompleted = useRepeatingTasksStore(
+    (state) => state.isRepeatingTaskCompleted
+  );
+
   // Store de tareas para acceder a todas las tareas por su ID
   const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
   const getTaskForLine = useAgendaTasksStore((state) => state.getTaskForLine);
-  
+
   // Suscribirse al estado de completado para forzar re-renders
-  const repeatingCompletions = useRepeatingTasksStore((state) => state.repeatingTaskCompletions);
-  
+  const repeatingCompletions = useRepeatingTasksStore(
+    (state) => state.repeatingTaskCompletions
+  );
+
+  // Función auxiliar para organizar tareas por prioridad (sin reminder primero, con reminder ordenado por hora al final)
+  const organizeTasks = (tasks: AgendaTask[]) => {
+    const tasksWithReminder = tasks.filter(task => task.reminder);
+    const tasksWithoutReminder = tasks.filter(task => !task.reminder);
+
+    // Ordenar tareas con reminder por hora
+    tasksWithReminder.sort((a, b) => {
+      const timeA = new Date(a.reminder!).getTime();
+      const timeB = new Date(b.reminder!).getTime();
+      return timeA - timeB;
+    });
+
+    // Reorganizar en el objeto final: sin reminder primero, luego con reminder ordenado
+    const organized: { [key: number]: AgendaTask } = {};
+    let currentLine = 1;
+    
+    // Primero tareas sin reminder
+    for (const task of tasksWithoutReminder) {
+      if (currentLine <= 8) {
+        organized[currentLine] = task;
+        currentLine++;
+      }
+    }
+
+    // Luego tareas con reminder ordenadas por hora
+    for (const task of tasksWithReminder) {
+      if (currentLine <= 8) {
+        organized[currentLine] = task;
+        currentLine++;
+      }
+    }
+
+    return organized;
+  };
+
   // Combinar tareas normales con tareas repetidas usando el nuevo sistema ID-based
   const allTasks = React.useMemo(() => {
     const combined = { ...dayTasks };
     const allExistingTasks = getAllTasks();
     const allPatterns = getAllRepeatingPatterns();
-    
+
     // Crear un Set de IDs de tareas que tienen patrones de repetición activos
     const tasksWithActivePatterns = new Set(
       allPatterns
-        .filter(pattern => pattern.isActive)
-        .map(pattern => pattern.originalTaskId)
+        .filter((pattern) => pattern.isActive)
+        .map((pattern) => pattern.originalTaskId)
     );
-    
-    // Filtrar las tareas del día para excluir aquellas que tienen patrones de repetición
-    // Solo mantenemos las tareas originales si NO tienen un patrón de repetición
-    const filteredDayTasks: typeof combined = {};
-    for (const [lineNumber, task] of Object.entries(combined)) {
-      if (task && !tasksWithActivePatterns.has(task.id)) {
-        filteredDayTasks[Number.parseInt(lineNumber, 10)] = task;
-      }
-    }
-    
-    // Ahora usar las tareas filtradas como base
-    const finalCombined = { ...filteredDayTasks };
-    
-    // Para cada patrón de repetición activo
+
+    // Obtener tareas del día (excluyendo las que tienen patrones de repetición)
+    const filteredDayTasks = Object.values(combined)
+      .filter((task): task is AgendaTask => task !== null && !tasksWithActivePatterns.has(task.id));
+
+    // Obtener tareas repetidas para hoy
+    const repeatedTasks: AgendaTask[] = [];
     for (const pattern of allPatterns) {
       if (!pattern.isActive) continue;
-      
-      // Verificar si la tarea debe aparecer en esta fecha
+
       if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateKey)) {
-        // Buscar la tarea original por su ID
         const originalTask = Object.values(allExistingTasks)
-          .flatMap(dayTasks => Object.values(dayTasks))
-          .find((task): task is AgendaTask => task !== null && task.id === pattern.originalTaskId);
-        
+          .flatMap((dayTasks) => Object.values(dayTasks))
+          .find(
+            (task): task is AgendaTask =>
+              task !== null && task.id === pattern.originalTaskId
+          );
+
         if (originalTask) {
-          // Buscar la primera línea vacía para colocar la tarea repetida
-          for (let line = 1; line <= 20; line++) {
-            if (!finalCombined[line]) {
-              finalCombined[line] = {
-                ...originalTask,
-                id: `${originalTask.id}-repeat-${dateKey}`, // ID único para esta instancia
-                completed: isRepeatingTaskCompleted(originalTask.id, dateKey), // Usar el estado de completado específico
-                isRepeatingTask: true,
-                repeatingTaskId: originalTask.id, // Referencia al ID original
-                repeatingPatternId: pattern.id, // Referencia al patrón de repetición
-              };
-              break;
-            }
-          }
+          repeatedTasks.push({
+            ...originalTask,
+            id: `${originalTask.id}-repeat-${dateKey}`,
+            completed: isRepeatingTaskCompleted(originalTask.id, dateKey),
+            isRepeatingTask: true,
+            repeatingTaskId: originalTask.id,
+            repeatingPatternId: pattern.id,
+          });
         }
       }
     }
+
+    // Combinar todas las tareas y organizarlas
+    const allTasksList: AgendaTask[] = [...filteredDayTasks, ...repeatedTasks];
+    return organizeTasks(allTasksList);
     
-    return finalCombined;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dayTasks, dateKey, getAllTasks, getAllRepeatingPatterns, shouldTaskRepeatOnDate, lastUpdateTime, repeatingCompletions]);
-  const { addTask, updateTask, deleteTask, toggleTaskCompletion: originalToggleTaskCompletion } =
-    useAgendaTasksStore();
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    dayTasks,
+    dateKey,
+    getAllTasks,
+    getAllRepeatingPatterns,
+    shouldTaskRepeatOnDate,
+    lastUpdateTime,
+    repeatingCompletions,
+  ]);
+  const {
+    addTask,
+    updateTask,
+    deleteTask,
+    toggleTaskCompletion: originalToggleTaskCompletion,
+  } = useAgendaTasksStore();
+
   // Función personalizada para manejar el toggle de tareas normales y repetidas
   const handleToggleTaskCompletion = (date: string, lineNumber: number) => {
     const task = allTasks[lineNumber];
@@ -186,8 +238,8 @@ export default function BookPage({
   };
 
   const handleSaveTask = async (
-    text: string, 
-    reminder?: string | null, 
+    text: string,
+    reminder?: string | null,
     repeat?: RepeatOption
   ) => {
     if (editingLine !== null) {
@@ -196,20 +248,27 @@ export default function BookPage({
       if (existingTask) {
         if (existingTask.isRepeatingTask) {
           // Editando una tarea repetida
-          if (repeat && repeat !== 'none') {
+          if (repeat && repeat !== "none") {
             // Mantener como tarea repetida - actualizar la tarea original
             // Encontrar la tarea original y actualizarla
             const allExistingTasks = getAllTasks();
             const originalTask = Object.values(allExistingTasks)
-              .flatMap(dayTasks => Object.values(dayTasks))
-              .find((task): task is AgendaTask => task !== null && task.id === existingTask.repeatingTaskId);
-            
+              .flatMap((dayTasks) => Object.values(dayTasks))
+              .find(
+                (task): task is AgendaTask =>
+                  task !== null && task.id === existingTask.repeatingTaskId
+              );
+
             if (originalTask) {
               // Encontrar en qué fecha y línea está la tarea original
               for (const [date, tasks] of Object.entries(allExistingTasks)) {
                 for (const [line, task] of Object.entries(tasks)) {
                   if (task && task.id === existingTask.repeatingTaskId) {
-                    await updateTask(date, Number.parseInt(line, 10), { text, reminder, repeat });
+                    await updateTask(date, Number.parseInt(line, 10), {
+                      text,
+                      reminder,
+                      repeat,
+                    });
                     break;
                   }
                 }
@@ -220,11 +279,11 @@ export default function BookPage({
             // 1. Eliminar el patrón de repetición
             removeRepeatingPattern(existingTask.repeatingTaskId!);
             // 2. Crear una tarea normal en esta fecha específica
-            await addTask(dateKey, editingLine, text, reminder, 'none');
+            await addTask(dateKey, editingLine, text, reminder, "none");
             // 3. Forzar actualización inmediata para evitar duplicaciones
             setLastUpdateTime(Date.now());
           }
-        } else if (repeat && repeat !== 'none') {
+        } else if (repeat && repeat !== "none") {
           // Convertir tarea normal a tarea repetida
           // 1. Crear un patrón de repetición usando el ID de la tarea existente
           addRepeatingPattern({
@@ -238,11 +297,11 @@ export default function BookPage({
           // Actualizar tarea normal
           await updateTask(dateKey, editingLine, { text, reminder, repeat });
         }
-      } else if (repeat && repeat !== 'none') {
+      } else if (repeat && repeat !== "none") {
         // Nueva tarea repetida
         // 1. Crear la tarea normal primero
         await addTask(dateKey, editingLine, text, reminder, repeat);
-        
+
         // 2. Obtener la tarea recién creada usando el store directamente
         // Usar un pequeño delay para asegurar que el store se actualice
         const newTask = getTaskForLine(dateKey, editingLine);
@@ -275,10 +334,10 @@ export default function BookPage({
       setModalVisible(false);
       setEditingLine(null);
       setEditingTask("");
-      
+
       // Forzar actualización del useMemo
       setLastUpdateTime(Date.now());
-      
+
       // Esperar un frame adicional para asegurar que todos los stores se actualicen
       setTimeout(() => {
         // Este setTimeout fuerza un re-render después de que los stores se actualicen
@@ -290,7 +349,7 @@ export default function BookPage({
   const handleDeleteTask = async () => {
     if (editingLine !== null) {
       const existingTask = allTasks[editingLine];
-      
+
       if (existingTask?.isRepeatingTask) {
         // Eliminar patrón de repetición del store
         removeRepeatingPattern(existingTask.repeatingTaskId!);
@@ -300,7 +359,7 @@ export default function BookPage({
         // Eliminar tarea normal
         await deleteTask(dateKey, editingLine);
       }
-      
+
       setModalVisible(false);
       setEditingLine(null);
       setEditingTask("");
@@ -368,116 +427,183 @@ export default function BookPage({
       <ThemedView style={styles.linesContainer}>
         {generateLines().map((lineNumber) => {
           const hasTask = allTasks[lineNumber];
-          
+
           let lineStyle;
           if (hasTask) {
-            lineStyle = viewMode === "expanded" 
-              ? [dynamicStyles.lineWithTask, styles.expandedLine] 
-              : dynamicStyles.lineWithTask;
+            lineStyle =
+              viewMode === "expanded"
+                ? [dynamicStyles.lineWithTask, styles.expandedLine]
+                : dynamicStyles.lineWithTask;
           } else {
-            lineStyle = viewMode === "expanded" 
-              ? [dynamicStyles.line, styles.expandedLine] 
-              : dynamicStyles.line;
+            lineStyle =
+              viewMode === "expanded"
+                ? [dynamicStyles.line, styles.expandedLine]
+                : dynamicStyles.line;
           }
-          
+
           return (
             <TouchableOpacity
               key={`${dayIndex}-line-${lineNumber}`}
               style={lineStyle}
               onPress={() => handleLinePress(lineNumber)}
             >
-            <ThemedText
-              style={[
-                styles.lineNumber,
-                viewMode === "expanded" ? styles.expandedLineNumber : null,
-              ]}
-            >
-              {lineNumber}
-            </ThemedText>
-            <ThemedView style={[styles.writingLine, { backgroundColor: "transparent" }]}>
-              {(() => {
-                const task = allTasks[lineNumber];
-                if (task) {
-                  return (
-                    <ThemedView
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        flex: 1,
-                        backgroundColor: "transparent", // Fondo transparente explícito
-                      }}
-                    >
-                      <TouchableOpacity
-                        style={(() => {
-                          let borderColor;
-                          if (task.completed) {
-                            borderColor = "#4CAF50";
-                          } else if (colorScheme === "dark") {
-                            borderColor = "#888";
-                          } else {
-                            borderColor = "#666";
-                          }
+              <ThemedView
+                style={[
+                  styles.lineNumber,
+                  viewMode === "expanded" ? styles.expandedLineNumber : null,
+                  { alignItems: "center", justifyContent: "center" },
+                ]}
+              >
+                {(() => {
+                  const task = allTasks[lineNumber];
+                  if (task?.reminder) {
+                    // Si hay tarea con reminder, mostrar la hora arriba y minutos abajo
+                    const reminderDate = new Date(task.reminder);
 
-                          return {
-                            marginRight: 8,
-                            width: 20,
-                            height: 25,
-                            borderWidth: 2,
-                            borderColor,
-                            backgroundColor: task.completed
-                              ? "#4CAF50"
-                              : "transparent",
-                            borderRadius: 3,
-                            justifyContent: "center",
-                            alignItems: "center",
-                          };
-                        })()}
-                        onPress={() =>
-                          handleToggleTaskCompletion(dateKey, lineNumber)
-                        }
-                      >
-                        {task.completed && (
-                          <ThemedText
-                            style={{
-                              fontSize: 16,
-                              color: "white",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            ✓
-                          </ThemedText>
-                        )}
-                      </TouchableOpacity>
-                      <ThemedText
-                        style={[
-                          viewMode === "expanded" ? dynamicStyles.expandedTaskText : dynamicStyles.taskText,
-                          { flex: 1 },
-                          task.completed && {
-                            textDecorationLine: "line-through",
-                            opacity: 0.6,
-                          },
-                        ]}
-                      >
-                        {task.repeat && task.repeat !== 'none' && '🔄 '}
-                        {task.reminder && '⏰ '}
-                        {task.text.length > 30
-                          ? `${task.text.slice(0, 25)}...`
-                          : task.text}
+                    // Debug: verificar la fecha del reminder
+                    console.log("Task reminder raw:", task.reminder);
+                    console.log(
+                      "Parsed reminder date:",
+                      reminderDate.toString()
+                    );
+                    console.log(
+                      "Local time string:",
+                      reminderDate.toLocaleString()
+                    );
+
+                    const hours = reminderDate
+                      .getHours()
+                      .toString()
+                      .padStart(2, "0");
+                    const minutes = reminderDate
+                      .getMinutes()
+                      .toString()
+                      .padStart(2, "0");
+
+                    console.log("Display hours:", hours, "minutes:", minutes);
+
+                    return (
+                      <>
+                        <ThemedText
+                          style={{
+                            fontSize: 9,
+                            lineHeight: 12,
+                            textAlign: "center",
+                          }}
+                        >
+                          {hours}
+                        </ThemedText>
+                        <ThemedText
+                          style={{
+                            fontSize: 9,
+                            lineHeight: 12,
+                            textAlign: "center",
+                          }}
+                        >
+                          {minutes}
+                        </ThemedText>
+                      </>
+                    );
+                  } else {
+                    // Si no hay tarea o no tiene reminder, mostrar viñeta
+                    return (
+                      <ThemedText style={{ fontSize: 16, textAlign: "center" }}>
+                        •
                       </ThemedText>
-                    </ThemedView>
+                    );
+                  }
+                })()}
+              </ThemedView>
+              <ThemedView
+                style={[styles.writingLine, { backgroundColor: "transparent" }]}
+              >
+                {(() => {
+                  const task = allTasks[lineNumber];
+                  if (task) {
+                    return (
+                      <ThemedView
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          flex: 1,
+                          backgroundColor: "transparent", // Fondo transparente explícito
+                        }}
+                      >
+                        <TouchableOpacity
+                          style={(() => {
+                            let borderColor;
+                            if (task.completed) {
+                              borderColor = "#4CAF50";
+                            } else if (colorScheme === "dark") {
+                              borderColor = "#888";
+                            } else {
+                              borderColor = "#666";
+                            }
+
+                            return {
+                              marginRight: 8,
+                              width: 20,
+                              height: 25,
+                              borderWidth: 2,
+                              borderColor,
+                              backgroundColor: task.completed
+                                ? "#4CAF50"
+                                : "transparent",
+                              borderRadius: 3,
+                              justifyContent: "center",
+                              alignItems: "center",
+                            };
+                          })()}
+                          onPress={() =>
+                            handleToggleTaskCompletion(dateKey, lineNumber)
+                          }
+                        >
+                          {task.completed && (
+                            <ThemedText
+                              style={{
+                                fontSize: 16,
+                                color: "white",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              ✓
+                            </ThemedText>
+                          )}
+                        </TouchableOpacity>
+                        <ThemedText
+                          style={[
+                            viewMode === "expanded"
+                              ? dynamicStyles.expandedTaskText
+                              : dynamicStyles.taskText,
+                            { flex: 1 },
+                            task.completed && {
+                              textDecorationLine: "line-through",
+                              opacity: 0.6,
+                            },
+                          ]}
+                        >
+                          {task.repeat && task.repeat !== "none" && "🔄 "}
+                          {task.reminder && "⏰ "}
+                          {task.text.length > 30
+                            ? `${task.text.slice(0, 25)}...`
+                            : task.text}
+                        </ThemedText>
+                      </ThemedView>
+                    );
+                  }
+                  return (
+                    <ThemedText
+                      style={[
+                        viewMode === "expanded"
+                          ? dynamicStyles.expandedTaskText
+                          : dynamicStyles.taskText,
+                        { opacity: 0.4, fontStyle: "italic" },
+                      ]}
+                    ></ThemedText>
                   );
-                }
-                return (
-                  <ThemedText
-                    style={[
-                      viewMode === "expanded" ? dynamicStyles.expandedTaskText : dynamicStyles.taskText,
-                      { opacity: 0.4, fontStyle: "italic" },
-                    ]}
-                  ></ThemedText>
-                );
-              })()}
-            </ThemedView>
-          </TouchableOpacity>
+                })()}
+              </ThemedView>
+            </TouchableOpacity>
           );
         })}
       </ThemedView>
@@ -487,7 +613,9 @@ export default function BookPage({
         visible={modalVisible}
         initialText={editingTask}
         initialReminder={allTasks[editingLine as number]?.reminder}
-        initialRepeat={(allTasks[editingLine as number]?.repeat as RepeatOption) || 'none'}
+        initialRepeat={
+          (allTasks[editingLine as number]?.repeat as RepeatOption) || "none"
+        }
         onSave={handleSaveTask}
         toggleTaskCompletion={handleToggleTaskCompletion}
         date={dateKey}
