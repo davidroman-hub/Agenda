@@ -59,7 +59,7 @@ export default function TaskReminder({
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      console.log("Fecha seleccionada (bruta):", selectedDate);
+
       // Crear una nueva fecha manteniendo la zona horaria local del usuario
       const localDate = new Date(selectedDate);
 
@@ -157,13 +157,10 @@ export default function TaskReminder({
       maxDate.setHours(23, 59, 59, 999);
       setTaskDateLocal(maxDate);
 
-      console.log("TaskDate recibido:", taskDate);
-      console.log("Fecha máxima establecida:", maxDate);
-      console.log("Timezone offset:", maxDate.getTimezoneOffset());
 
       setShowDatePicker(true);
     } catch (error) {
-      console.error("Error opening date picker:", error);
+    
       // Fallback
       const fallback = new Date();
       fallback.setDate(fallback.getDate() + 7); // 7 días desde hoy

@@ -4,7 +4,7 @@ import {
   migrateDateKey,
   needsDateMigration,
   normalizeISOStringToLocal,
-  normalizeToLocalMidnight
+  normalizeToLocalMidnight,
 } from "@/utils/date-utils";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -30,10 +30,20 @@ export interface DayTasks {
 export interface AgendaTasksState {
   // Almacena tareas por fecha en formato YYYY-MM-DD
   tasksByDate: Record<string, DayTasks>;
-  
+
   // Acciones
-  addTask: (date: string, lineNumber: number, text: string, reminder?: string | null, repeat?: string) => Promise<void>;
-  updateTask: (date: string, lineNumber: number, updates: Partial<AgendaTask>) => Promise<void>;
+  addTask: (
+    date: string,
+    lineNumber: number,
+    text: string,
+    reminder?: string | null,
+    repeat?: string
+  ) => Promise<void>;
+  updateTask: (
+    date: string,
+    lineNumber: number,
+    updates: Partial<AgendaTask>
+  ) => Promise<void>;
   deleteTask: (date: string, lineNumber: number) => Promise<void>;
   toggleTaskCompletion: (date: string, lineNumber: number) => void;
   getTasksForDate: (date: string) => DayTasks;
@@ -47,11 +57,19 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
   persist(
     (set, get) => ({
       tasksByDate: {},
-      
-      addTask: async (date: string, lineNumber: number, text: string, reminder?: string | null, repeat?: string) => {
+
+      addTask: async (
+        date: string,
+        lineNumber: number,
+        text: string,
+        reminder?: string | null,
+        repeat?: string
+      ) => {
         // Normalizar fechas para evitar problemas de zona horaria
-        const normalizedDate = normalizeToLocalMidnight(new Date()).toISOString();
-        
+        const normalizedDate = normalizeToLocalMidnight(
+          new Date()
+        ).toISOString();
+
         const newTask: AgendaTask = {
           id: `${date}-${lineNumber}-${Date.now()}`,
           text: text.trim(),
@@ -60,7 +78,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           updatedAt: normalizedDate,
           reminder: reminder || null,
           notificationId: null,
-          repeat: repeat || 'none',
+          repeat: repeat || "none",
         };
 
         // Programar notificación si hay recordatorio
@@ -75,7 +93,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           );
           newTask.notificationId = notificationId;
         }
-        
+
         set((state) => ({
           tasksByDate: {
             ...state.tasksByDate,
@@ -86,13 +104,17 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           },
         }));
       },
-      
-      updateTask: async (date: string, lineNumber: number, updates: Partial<AgendaTask>) => {
+
+      updateTask: async (
+        date: string,
+        lineNumber: number,
+        updates: Partial<AgendaTask>
+      ) => {
         const existingTask = get().tasksByDate[date]?.[lineNumber];
         if (!existingTask) return;
 
         // Si se actualiza el recordatorio, manejar notificaciones
-        if ('reminder' in updates) {
+        if ("reminder" in updates) {
           // Cancelar notificación anterior si existe
           if (existingTask.notificationId) {
             await notificationService.cancelTaskReminder(existingTask.id);
@@ -112,14 +134,14 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           }
           updates.notificationId = notificationId;
         }
-        
+
         set((state) => {
           const updatedTask: AgendaTask = {
             ...existingTask,
             ...updates,
             updatedAt: normalizeToLocalMidnight(new Date()).toISOString(),
           };
-          
+
           return {
             tasksByDate: {
               ...state.tasksByDate,
@@ -131,19 +153,19 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           };
         });
       },
-      
+
       deleteTask: async (date: string, lineNumber: number) => {
         const existingTask = get().tasksByDate[date]?.[lineNumber];
-        
+
         // Cancelar notificación si existe
         if (existingTask?.notificationId) {
           await notificationService.cancelTaskReminder(existingTask.id);
         }
-        
+
         set((state) => {
           const dateTasks = { ...state.tasksByDate[date] };
           delete dateTasks[lineNumber];
-          
+
           return {
             tasksByDate: {
               ...state.tasksByDate,
@@ -152,79 +174,77 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           };
         });
       },
-      
+
       toggleTaskCompletion: (date: string, lineNumber: number) => {
         const task = get().getTaskForLine(date, lineNumber);
         if (task) {
           get().updateTask(date, lineNumber, { completed: !task.completed });
         }
       },
-      
+
       getTasksForDate: (date: string): DayTasks => {
         return get().tasksByDate[date] || {};
       },
-      
+
       getTaskForLine: (date: string, lineNumber: number): AgendaTask | null => {
         return get().tasksByDate[date]?.[lineNumber] || null;
       },
-      
+
       getAllTasks: () => {
         return get().tasksByDate;
       },
 
       // Función para migrar tareas existentes a formato de fecha normalizado
       migrateTaskDates: () => {
-        console.log('🔄 Iniciando migración de fechas de tareas...');
-        
         set((state) => {
           const migratedTasksByDate: Record<string, DayTasks> = {};
           let migratedCount = 0;
           let totalTasks = 0;
-          
+
           // Iterar sobre todas las fechas y tareas
           for (const [dateKey, dayTasks] of Object.entries(state.tasksByDate)) {
             // Migrar la clave de fecha si es necesario
             const newDateKey = migrateDateKey(dateKey);
-            
+
             if (!migratedTasksByDate[newDateKey]) {
               migratedTasksByDate[newDateKey] = {};
             }
-            
+
             // Migrar cada tarea en el día
             for (const [lineNumber, task] of Object.entries(dayTasks)) {
               if (task) {
                 totalTasks++;
                 let needsMigration = false;
                 const migratedTask = { ...task };
-                
+
                 // Migrar createdAt si necesita normalización
                 if (needsDateMigration(task.createdAt)) {
-                  migratedTask.createdAt = normalizeISOStringToLocal(task.createdAt);
+                  migratedTask.createdAt = normalizeISOStringToLocal(
+                    task.createdAt
+                  );
                   needsMigration = true;
                 }
-                
+
                 // Migrar updatedAt si necesita normalización
                 if (needsDateMigration(task.updatedAt)) {
-                  migratedTask.updatedAt = normalizeISOStringToLocal(task.updatedAt);
+                  migratedTask.updatedAt = normalizeISOStringToLocal(
+                    task.updatedAt
+                  );
                   needsMigration = true;
                 }
-                
+
                 if (needsMigration) {
                   migratedCount++;
-                  console.log(`📝 Migrando tarea: ${task.text} (${dateKey} → ${newDateKey})`);
                 }
-                
+
                 const lineNum = Number(lineNumber);
                 migratedTasksByDate[newDateKey][lineNum] = migratedTask;
               }
             }
           }
-          
-          console.log(`✅ Migración completada: ${migratedCount}/${totalTasks} tareas migradas`);
-          console.log(`📅 Fechas en el nuevo formato:`, Object.keys(migratedTasksByDate));
-          
+
           return {
-            tasksByDate: migratedTasksByDate
+            tasksByDate: migratedTasksByDate,
           };
         });
       },

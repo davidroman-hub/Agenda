@@ -8,6 +8,8 @@ import { dateToLocalDateString } from "@/utils/date-utils";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
 
+import useCalendarSettingsStore from "@/stores/Calendar-store";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { styles } from "../bookStyles";
 import TaskEditModal from "./TaskEditModal";
 import { RepeatOption } from "./TaskRepeat";
@@ -51,6 +53,8 @@ export default function BookPage({
     (state) => state.tasksByDate[dateKey] || EMPTY_TASKS
   );
 
+  const { setCalendarIsOpen, calendarIsopen } = useCalendarSettingsStore();
+
   // Obtener funciones del store de patrones de repetición
   const getAllRepeatingPatterns = useRepeatingTasksStore(
     (state) => state.getAllRepeatingPatterns
@@ -80,8 +84,6 @@ export default function BookPage({
     (state) => state.repeatingTaskCompletions
   );
 
-
-
   // Combinar tareas normales con tareas repetidas usando el nuevo sistema ID-based
   const allTasks = React.useMemo(() => {
     const allExistingTasks = getAllTasks();
@@ -96,7 +98,7 @@ export default function BookPage({
 
     // Comenzar con las tareas del día, excluyendo las que tienen patrones de repetición
     const combined = { ...dayTasks };
-    
+
     // Filtrar tareas que tienen patrones de repetición activos
     for (const [line, task] of Object.entries(combined)) {
       if (task && tasksWithActivePatterns.has(task.id)) {
@@ -140,9 +142,9 @@ export default function BookPage({
         }
       }
     }
-    
+
     return combined;
-    
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     dayTasks,
@@ -284,7 +286,7 @@ export default function BookPage({
           // Actualizar tarea normal usando la línea directamente
           const allExistingTasks = getAllTasks();
           const dayTasks = allExistingTasks[dateKey] || {};
-          
+
           // Buscar la línea original de la tarea por su ID
           let originalLineNumber: number | null = null;
           for (const [line, originalTask] of Object.entries(dayTasks)) {
@@ -293,9 +295,13 @@ export default function BookPage({
               break;
             }
           }
-          
+
           if (originalLineNumber !== null) {
-            await updateTask(dateKey, originalLineNumber, { text, reminder, repeat });
+            await updateTask(dateKey, originalLineNumber, {
+              text,
+              reminder,
+              repeat,
+            });
           }
         }
       } else if (repeat && repeat !== "none") {
@@ -360,7 +366,7 @@ export default function BookPage({
         // Eliminar tarea normal - buscar su línea original
         const allExistingTasks = getAllTasks();
         const dayTasks = allExistingTasks[dateKey] || {};
-        
+
         // Buscar la línea original de la tarea por su ID
         let originalLineNumber: number | null = null;
         for (const [line, originalTask] of Object.entries(dayTasks)) {
@@ -369,7 +375,7 @@ export default function BookPage({
             break;
           }
         }
-        
+
         if (originalLineNumber !== null) {
           await deleteTask(dateKey, originalLineNumber);
         }
@@ -418,15 +424,36 @@ export default function BookPage({
           {dateInfo.dayName}
         </ThemedText>
         <ThemedView style={styles.dateContainer}>
-          <ThemedText
-            style={[
-              styles.dayNumber,
-              dynamicStyles.dayNumber,
-              viewMode === "expanded" ? styles.expandedDayNumber : null,
-            ]}
-          >
-            {dateInfo.dayNumber}
-          </ThemedText>
+          <ThemedView style={styles.dayNumberContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                setCalendarIsOpen(!calendarIsopen);
+              }}
+            >
+              <ThemedText
+                style={[
+                  styles.dayNumber,
+                  dynamicStyles.dayNumber,
+                  viewMode === "expanded" ? styles.expandedDayNumber : null,
+                ]}
+              >
+                {dateInfo.dayNumber}
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.externalLinkButton}
+              onPress={() => {
+                setCalendarIsOpen(!calendarIsopen);
+              }}
+            >
+              <Icon
+                name="external-link"
+                size={12}
+                color={colorScheme === "dark" ? "#fff" : "#000"}
+              />
+            </TouchableOpacity>
+          </ThemedView>
+
           <ThemedText
             style={[
               styles.monthYear,
@@ -466,7 +493,11 @@ export default function BookPage({
                 style={[
                   styles.lineNumber,
                   viewMode === "expanded" ? styles.expandedLineNumber : null,
-                  { alignItems: "center", justifyContent: "center" , backgroundColor: "transparent"},
+                  {
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "transparent",
+                  },
                 ]}
               >
                 {(() => {
@@ -476,15 +507,6 @@ export default function BookPage({
                     const reminderDate = new Date(task.reminder);
 
                     // Debug: verificar la fecha del reminder
-                    console.log("Task reminder raw:", task.reminder);
-                    console.log(
-                      "Parsed reminder date:",
-                      reminderDate.toString()
-                    );
-                    console.log(
-                      "Local time string:",
-                      reminderDate.toLocaleString()
-                    );
 
                     const hours = reminderDate
                       .getHours()
@@ -494,8 +516,6 @@ export default function BookPage({
                       .getMinutes()
                       .toString()
                       .padStart(2, "0");
-
-                    console.log("Display hours:", hours, "minutes:", minutes);
 
                     return (
                       <>
@@ -522,7 +542,13 @@ export default function BookPage({
                   } else {
                     // Si no hay tarea o no tiene reminder, mostrar viñeta
                     return (
-                      <ThemedText style={{ fontSize: 16, backgroundColor: "transparent", textAlign: "center" }}>
+                      <ThemedText
+                        style={{
+                          fontSize: 16,
+                          backgroundColor: "transparent",
+                          textAlign: "center",
+                        }}
+                      >
                         •
                       </ThemedText>
                     );
@@ -597,13 +623,22 @@ export default function BookPage({
                             }),
                           }}
                           linkStyle={{
-                            color: colorScheme === "dark" ? "#64B5F6" : "#1976D2",
+                            color:
+                              colorScheme === "dark" ? "#64B5F6" : "#1976D2",
                             textDecorationLine: "underline",
                           }}
-                          numberOfLines={viewMode === "expanded" ? undefined : 2}
+                          numberOfLines={
+                            viewMode === "expanded" ? undefined : 2
+                          }
                           ellipsizeMode="tail"
                         >
-                          {`${task.repeat && task.repeat !== "none" ? "🔄 " : ""}${task.reminder ? "⏰ " : ""}${task.text.length > 80 && viewMode !== "expanded" ? task.text.slice(0, 75) + "..." : task.text}`}
+                          {`${
+                            task.repeat && task.repeat !== "none" ? "🔄 " : ""
+                          }${task.reminder ? "⏰ " : ""}${
+                            task.text.length > 80 && viewMode !== "expanded"
+                              ? task.text.slice(0, 75) + "..."
+                              : task.text
+                          }`}
                         </LinkableText>
                       </ThemedView>
                     );

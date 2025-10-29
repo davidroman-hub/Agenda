@@ -1,9 +1,11 @@
-import { notificationService } from '@/services/notifications/notification-service';
-import * as Notifications from 'expo-notifications';
-import { useEffect, useRef } from 'react';
+import { notificationService } from "@/services/notifications/notification-service";
+import * as Notifications from "expo-notifications";
+import { useEffect, useRef } from "react";
 
 export function useNotifications() {
-  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const notificationListener = useRef<Notifications.EventSubscription | null>(
+    null
+  );
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
@@ -11,26 +13,23 @@ export function useNotifications() {
     notificationService.initialize();
 
     // Listener para notificaciones recibidas mientras la app está abierta
-    notificationListener.current = notificationService.addNotificationReceivedListener(
-      (notification) => {
-        console.log('Notificación recibida:', notification);
+    notificationListener.current =
+      notificationService.addNotificationReceivedListener((notification) => {
+        console.log("Notificación recibida:", notification);
         // Aquí puedes agregar lógica adicional como mostrar un toast
-      }
-    );
+      });
 
     // Listener para cuando el usuario toca una notificación
-    responseListener.current = notificationService.addNotificationResponseListener(
-      (response) => {
-        console.log('Notificación tocada:', response);
+    responseListener.current =
+      notificationService.addNotificationResponseListener((response) => {
+        console.log("Notificación tocada:", response);
         const data = response.notification.request.content.data;
-        
+
         // Aquí puedes agregar navegación o acciones específicas
-        if (data?.type === 'task-reminder') {
-          console.log('Navegando a tarea:', data);
+        if (data?.type === "task-reminder") {
           // Ejemplo: navigation.navigate('TaskDetail', { taskId: data.taskId });
         }
-      }
-    );
+      });
 
     return () => {
       // Limpiar listeners al desmontar
@@ -45,8 +44,11 @@ export function useNotifications() {
 
   return {
     // Funciones auxiliares que puedes usar en componentes
-    scheduleTaskReminder: notificationService.scheduleTaskReminder.bind(notificationService),
-    cancelTaskReminder: notificationService.cancelTaskReminder.bind(notificationService),
-    getScheduledNotifications: notificationService.getScheduledNotifications.bind(notificationService),
+    scheduleTaskReminder:
+      notificationService.scheduleTaskReminder.bind(notificationService),
+    cancelTaskReminder:
+      notificationService.cancelTaskReminder.bind(notificationService),
+    getScheduledNotifications:
+      notificationService.getScheduledNotifications.bind(notificationService),
   };
 }

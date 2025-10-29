@@ -1,6 +1,6 @@
-import { RepeatedTaskNotificationService } from '@/services/repeated-task-notification-service';
-import { useEffect } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { RepeatedTaskNotificationService } from "@/services/repeated-task-notification-service";
+import { useEffect } from "react";
+import { AppState, AppStateStatus } from "react-native";
 
 /**
  * Hook que maneja la verificación automática de notificaciones para tareas repetidas
@@ -16,13 +16,16 @@ export const useRepeatedTaskNotifications = () => {
 
     // Listener para cambios de estado de la app
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active') {
+      if (nextAppState === "active") {
         // La app está activa (foreground)
         performDailyCheckIfNeeded();
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
 
     // Cleanup
     return () => {
@@ -32,29 +35,26 @@ export const useRepeatedTaskNotifications = () => {
 
   const performInitialCheck = async () => {
     try {
-      console.log('🔔 Iniciando verificación de notificaciones para tareas repetidas...');
       await RepeatedTaskNotificationService.performDailyNotificationCheck();
     } catch (error) {
-      console.error('Error en verificación inicial de notificaciones:', error);
+      console.error("Error en verificación inicial de notificaciones:", error);
     }
   };
 
   const performDailyCheckIfNeeded = async () => {
     try {
-      console.log('🔔 App en foreground - verificando notificaciones...');
       await RepeatedTaskNotificationService.performDailyNotificationCheck();
     } catch (error) {
-      console.error('Error en verificación diaria de notificaciones:', error);
+      console.error("Error en verificación diaria de notificaciones:", error);
     }
   };
 
   // Función manual para forzar verificación (útil para debugging)
   const forceCheck = async () => {
     try {
-      console.log('🔔 Forzando verificación de notificaciones...');
       await RepeatedTaskNotificationService.forceNewCheck();
     } catch (error) {
-      console.error('Error en verificación forzada:', error);
+      console.error("Error en verificación forzada:", error);
     }
   };
 
@@ -63,13 +63,13 @@ export const useRepeatedTaskNotifications = () => {
     try {
       return await RepeatedTaskNotificationService.getNotificationStats();
     } catch (error) {
-      console.error('Error obteniendo estadísticas:', error);
+      console.error("Error obteniendo estadísticas:", error);
       return null;
     }
   };
 
   return {
     forceCheck,
-    getStats
+    getStats,
   };
 };

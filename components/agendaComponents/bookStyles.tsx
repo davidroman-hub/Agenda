@@ -1,14 +1,19 @@
 import { Dimensions, StyleSheet } from "react-native";
 
 // Obtener dimensiones de la pantalla
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 // Determinar tipos de pantalla
 const isSmallScreen = screenWidth < 500 || screenHeight < 900; // Phones normales
 const isLargeScreen = screenWidth > 800; // Tablets, Fold abierto, etc.
 
 // Función para obtener el tamaño de fuente basado en pantalla y modo
-const getFontSize = (smallSize: number, normalSize: number, largeSize: number, isExpandedMode?: boolean) => {
+const getFontSize = (
+  smallSize: number,
+  normalSize: number,
+  largeSize: number,
+  isExpandedMode?: boolean
+) => {
   if (isLargeScreen) return largeSize;
   if (isSmallScreen && isExpandedMode) return smallSize;
   return normalSize;
@@ -19,6 +24,9 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 50,
+  },
+  button: {
+    padding: 10,
   },
   scrollContainer: {
     flex: 1,
@@ -57,6 +65,25 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "transparent", //<=== atras nummero fecha
   },
+  dayNumberContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    backgroundColor: "transparent",
+  },
+  externalLinkButton: {
+    position: "absolute",
+    right: -20,
+    top: "50%",
+    
+    transform: [{ translateY: -6 }],
+    padding: 3,
+    marginBottom: 2,
+    
+    borderRadius: 3,
+    backgroundColor: "transparent",
+  },
   dayNumber: {
     fontSize: isLargeScreen ? 36 : 32, // Vista normal: más grande
     fontWeight: "bold",
@@ -86,7 +113,6 @@ export const styles = StyleSheet.create({
     marginRight: isLargeScreen ? 18 : 15,
     marginTop: 2,
     opacity: 0.6,
-  
   },
   writingLine: {
     backgroundColor: "transparent", ///<=== atras lineas escritura
@@ -130,8 +156,8 @@ export const styles = StyleSheet.create({
     shadowOpacity: isSmallScreen ? 0.1 : 0.3,
     shadowRadius: isSmallScreen ? 1 : 3,
     elevation: isSmallScreen ? 1 : 5,
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
+    justifyContent: "space-evenly",
+    alignItems: "center",
     paddingVertical: isSmallScreen ? 3 : 10,
   },
   // Elementos individuales del resorte
@@ -199,38 +225,38 @@ export const styles = StyleSheet.create({
   },
   // Estilos para controles de navegación
   navigationControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
   },
   navButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     borderRadius: 8,
     minWidth: 80,
-    alignItems: 'center',
+    alignItems: "center",
   },
   navButtonDisabled: {
-    backgroundColor: '#cccccc',
+    backgroundColor: "#cccccc",
     opacity: 0.6,
   },
   navButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   pageIndicator: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     opacity: 0.7,
   },
   pageIndicatorContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   modeIndicator: {
     fontSize: 12,
@@ -273,7 +299,10 @@ export const createDynamicStyles = (
     lineWithTask: {
       ...styles.line,
       borderBottomColor: colorScheme === "dark" ? "#404040" : "#e9ecef",
-      backgroundColor: colorScheme === "dark" ? "rgba(100,100,100,0.1)" : "rgba(200,200,200,0.1)", // Fondo gris muy claro para líneas con tareas
+      backgroundColor:
+        colorScheme === "dark"
+          ? "rgba(100,100,100,0.1)"
+          : "rgba(200,200,200,0.1)", // Fondo gris muy claro para líneas con tareas
     },
     centerBinding: {
       ...styles.centerBinding,

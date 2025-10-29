@@ -1,8 +1,12 @@
-import useAgendaTasksStore from '@/stores/agenda-tasks-store';
-import useRepeatingTasksStore from '@/stores/repeating-tasks-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { cancelScheduledNotificationAsync, SchedulableTriggerInputTypes, scheduleNotificationAsync } from 'expo-notifications';
-import { Platform } from 'react-native';
+import useAgendaTasksStore from "@/stores/agenda-tasks-store";
+import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  cancelScheduledNotificationAsync,
+  SchedulableTriggerInputTypes,
+  scheduleNotificationAsync,
+} from "expo-notifications";
+import { Platform } from "react-native";
 
 export interface DailyNotificationCheck {
   lastCheckDate: string;
@@ -13,7 +17,7 @@ export interface DailyNotificationCheck {
   }[];
 }
 
-const DAILY_CHECK_KEY = 'DAILY_NOTIFICATION_CHECK';
+const DAILY_CHECK_KEY = "DAILY_NOTIFICATION_CHECK";
 
 export class RepeatedTaskNotificationService {
   /**
@@ -22,36 +26,32 @@ export class RepeatedTaskNotificationService {
   static async performDailyNotificationCheck(): Promise<void> {
     try {
       const today = new Date();
-      const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
-      
+      const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+
       // Verificar si ya se hizo el check hoy
       const lastCheck = await this.getLastDailyCheck();
       if (lastCheck.lastCheckDate === todayStr) {
-        console.log('Daily notification check already performed today');
         return;
       }
 
-      console.log('Performing daily notification check for:', todayStr);
-      
       // Limpiar notificaciones del día anterior
       await this.cancelPreviousDayNotifications(lastCheck);
-      
+
       // Buscar tareas repetidas para hoy
       const todayRepeatedTasks = await this.findRepeatedTasksForToday(today);
-      
+
       // Programar notificaciones para tareas repetidas de hoy que tengan reminder
-      const scheduledNotifications = await this.scheduleNotificationsForToday(todayRepeatedTasks);
-      
+      const scheduledNotifications = await this.scheduleNotificationsForToday(
+        todayRepeatedTasks
+      );
+
       // Guardar estado del check diario
       await this.saveDailyCheck({
         lastCheckDate: todayStr,
-        scheduledNotifications
+        scheduledNotifications,
       });
-      
-      console.log(`Daily check completed. Scheduled ${scheduledNotifications.length} notifications`);
-      
     } catch (error) {
-      console.error('Error in daily notification check:', error);
+      console.error("Error in daily notification check:", error);
     }
   }
 
@@ -59,7 +59,8 @@ export class RepeatedTaskNotificationService {
    * Busca tareas repetidas que deberían ejecutarse hoy
    */
   private static async findRepeatedTasksForToday(today: Date) {
-    const repeatingPatterns = useRepeatingTasksStore.getState().repeatingPatterns;
+    const repeatingPatterns =
+      useRepeatingTasksStore.getState().repeatingPatterns;
     const todayRepeatedTasks = [];
 
     for (const pattern of repeatingPatterns) {
@@ -68,7 +69,6 @@ export class RepeatedTaskNotificationService {
       }
     }
 
-    console.log(`Found ${todayRepeatedTasks.length} repeated tasks for today`);
     return todayRepeatedTasks;
   }
 
@@ -77,19 +77,21 @@ export class RepeatedTaskNotificationService {
    */
   private static shouldTaskRepeatToday(pattern: any, today: Date): boolean {
     const startDate = new Date(pattern.startDate);
-    const daysDiff = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.floor(
+      (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     // Solo repetir si la fecha de inicio ya pasó
     if (daysDiff < 0) return false;
 
     switch (pattern.repeatOption) {
-      case 'daily':
+      case "daily":
         return true; // Todos los días desde la fecha inicial
 
-      case 'weekly':
+      case "weekly":
         return daysDiff % 7 === 0; // Cada 7 días
 
-      case 'monthly':
+      case "monthly":
         // Mismo día del mes
         return today.getDate() === startDate.getDate();
 
@@ -101,15 +103,23 @@ export class RepeatedTaskNotificationService {
   /**
    * Programa notificaciones para las tareas repetidas de hoy que tengan reminder
    */
-  private static async scheduleNotificationsForToday(todayRepeatedPatterns: any[]) {
+  private static async scheduleNotificationsForToday(
+    todayRepeatedPatterns: any[]
+  ) {
     const scheduledNotifications = [];
     const allTasks = useAgendaTasksStore.getState().getAllTasks();
 
     for (const pattern of todayRepeatedPatterns) {
-      const originalTask = this.findOriginalTask(allTasks, pattern.originalTaskId);
-      
+      const originalTask = this.findOriginalTask(
+        allTasks,
+        pattern.originalTaskId
+      );
+
       if (originalTask?.reminder) {
-        const notification = await this.createNotificationForTask(originalTask, pattern);
+        const notification = await this.createNotificationForTask(
+          originalTask,
+          pattern
+        );
         if (notification) {
           scheduledNotifications.push(notification);
         }
@@ -136,7 +146,10 @@ export class RepeatedTaskNotificationService {
   /**
    * Crea una notificación para una tarea específica
    */
-  private static async createNotificationForTask(originalTask: any, pattern: any) {
+  private static async createNotificationForTask(
+    originalTask: any,
+    pattern: any
+  ) {
     try {
       // Crear fecha de notificación para hoy con la hora del reminder original
       const reminderDate = new Date(originalTask.reminder);
@@ -154,7 +167,7 @@ export class RepeatedTaskNotificationService {
       const notificationId = await scheduleNotificationAsync({
         content: {
           title: `📅 Tarea Repetida: ${originalTask.text}`,
-          body: 'Tienes una tarea repetida pendiente',
+          body: "Tienes una tarea repetida pendiente",
           data: {
             taskId: originalTask.id,
             isRepeatedTask: true,
@@ -165,14 +178,9 @@ export class RepeatedTaskNotificationService {
         trigger: {
           type: SchedulableTriggerInputTypes.DATE,
           date: todayReminder,
-          channelId: Platform.OS === 'android' ? 'task-reminders' : undefined,
+          channelId: Platform.OS === "android" ? "task-reminders" : undefined,
         },
       });
-
-      console.log(`Scheduled repeated task notification for: ${originalTask.text}`);
-      console.log(`  - Original task date: ${new Date(originalTask.reminder).toLocaleDateString()}`);
-      console.log(`  - Original reminder time: ${reminderDate.toLocaleTimeString()}`);
-      console.log(`  - Notification scheduled for TODAY: ${todayReminder.toLocaleDateString()} at ${todayReminder.toLocaleTimeString()}`);
 
       return {
         notificationId,
@@ -180,7 +188,10 @@ export class RepeatedTaskNotificationService {
         date: todayReminder.toISOString(),
       };
     } catch (error) {
-      console.error(`Error scheduling notification for repeated task ${pattern.originalTaskId}:`, error);
+      console.error(
+        `Error scheduling notification for repeated task ${pattern.originalTaskId}:`,
+        error
+      );
       return null;
     }
   }
@@ -188,13 +199,17 @@ export class RepeatedTaskNotificationService {
   /**
    * Cancela las notificaciones del día anterior
    */
-  private static async cancelPreviousDayNotifications(lastCheck: DailyNotificationCheck) {
+  private static async cancelPreviousDayNotifications(
+    lastCheck: DailyNotificationCheck
+  ) {
     for (const notification of lastCheck.scheduledNotifications) {
       try {
         await cancelScheduledNotificationAsync(notification.notificationId);
-        console.log(`Cancelled previous notification: ${notification.notificationId}`);
       } catch (error) {
-        console.error(`Error cancelling notification ${notification.notificationId}:`, error);
+        console.error(
+          `Error cancelling notification ${notification.notificationId}:`,
+          error
+        );
       }
     }
   }
@@ -209,12 +224,12 @@ export class RepeatedTaskNotificationService {
         return JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Error getting last daily check:', error);
+      console.error("Error getting last daily check:", error);
     }
 
     return {
-      lastCheckDate: '',
-      scheduledNotifications: []
+      lastCheckDate: "",
+      scheduledNotifications: [],
     };
   }
 
@@ -225,7 +240,7 @@ export class RepeatedTaskNotificationService {
     try {
       await AsyncStorage.setItem(DAILY_CHECK_KEY, JSON.stringify(checkData));
     } catch (error) {
-      console.error('Error saving daily check:', error);
+      console.error("Error saving daily check:", error);
     }
   }
 
@@ -245,7 +260,7 @@ export class RepeatedTaskNotificationService {
     return {
       lastCheckDate: lastCheck.lastCheckDate,
       activeNotifications: lastCheck.scheduledNotifications.length,
-      notifications: lastCheck.scheduledNotifications
+      notifications: lastCheck.scheduledNotifications,
     };
   }
 }

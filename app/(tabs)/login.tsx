@@ -16,11 +16,10 @@ export default function LoginScreen() {
   }, []);
 
   useEffect(() => {
-    console.log("isLoggedIn changed:", isLoggedIn);
     if (isMounted && isLoggedIn) {
       router.replace("/(tabs)");
     }
-  }, [isLoggedIn, router,isMounted]);
+  }, [isLoggedIn, router, isMounted]);
 
   const handleLogin = () => {
     const trimmedUsername = userValues?.username?.trim() || "";
@@ -32,75 +31,79 @@ export default function LoginScreen() {
   return (
     <PublicRoute>
       <ThemedView style={styles.container}>
-      {/* Header con logo o título */}
-      <ThemedView style={styles.headerContainer}>
-        <ThemedText type="title" style={styles.title}>
-          Mi Agenda
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Organiza tu día, todos los días
-        </ThemedText>
-      </ThemedView>
-
-      {/* Formulario de login */}
-      <ThemedView style={styles.formContainer}>
-        <ThemedView style={styles.inputContainer}>
-          <ThemedText style={styles.label}>Usuario</ThemedText>
-          <TextInput
-            onChange={(e) =>
-              setUserValues(e.nativeEvent.text, userValues?.password || "")
-            }
-            style={styles.input}
-            value={userValues?.username || ""}
-            placeholder="Ingresa tu usuario"
-            placeholderTextColor="#999"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+        {/* Header con logo o título */}
+        <ThemedView style={styles.headerContainer}>
+          <ThemedText type="title" style={styles.title}>
+            Mi Agenda
+          </ThemedText>
+          <ThemedText style={styles.subtitle}>
+            Organiza tu día, todos los días
+          </ThemedText>
         </ThemedView>
 
-        <ThemedView style={styles.inputContainer}>
-          <ThemedText style={styles.label}>Contraseña</ThemedText>
-          <TextInput
-            style={styles.input}
-            value={userValues?.password || ""}
-            onChange={(e) =>
-              setUserValues(userValues?.username || "", e.nativeEvent.text)
-            }
-            placeholder="Ingresa tu contraseña"
-            placeholderTextColor="#999"
-            secureTextEntry={true}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </ThemedView>
+        {/* Formulario de login */}
+        <ThemedView style={styles.formContainer}>
+          <ThemedView style={styles.inputContainer}>
+            <ThemedText style={styles.label}>Usuario</ThemedText>
+            <TextInput
+              onChange={(e) =>
+                setUserValues(e.nativeEvent.text, userValues?.password || "")
+              }
+              style={styles.input}
+              value={userValues?.username || ""}
+              placeholder="Ingresa tu usuario"
+              placeholderTextColor="#999"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </ThemedView>
 
-        {/* Botón de login */}
-        <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
-          <ThemedText style={styles.loginButtonText}>Iniciar Sesión</ThemedText>
-        </TouchableOpacity>
+          <ThemedView style={styles.inputContainer}>
+            <ThemedText style={styles.label}>Contraseña</ThemedText>
+            <TextInput
+              style={styles.input}
+              value={userValues?.password || ""}
+              onChange={(e) =>
+                setUserValues(userValues?.username || "", e.nativeEvent.text)
+              }
+              placeholder="Ingresa tu contraseña"
+              placeholderTextColor="#999"
+              secureTextEntry={true}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </ThemedView>
 
-        {/* Enlaces adicionales */}
-        <ThemedView style={styles.linksContainer}>
-          <TouchableOpacity>
-            <ThemedText style={styles.linkText}>
-              ¿Olvidaste tu contraseña?
+          {/* Botón de login */}
+          <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
+            <ThemedText style={styles.loginButtonText}>
+              Iniciar Sesión
             </ThemedText>
           </TouchableOpacity>
 
-          <TouchableOpacity>
-            <ThemedText style={styles.linkText}>Crear cuenta nueva</ThemedText>
-          </TouchableOpacity>
+          {/* Enlaces adicionales */}
+          <ThemedView style={styles.linksContainer}>
+            <TouchableOpacity>
+              <ThemedText style={styles.linkText}>
+                ¿Olvidaste tu contraseña?
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity>
+              <ThemedText style={styles.linkText}>
+                Crear cuenta nueva
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        </ThemedView>
+
+        {/* Footer */}
+        <ThemedView style={styles.footer}>
+          <ThemedText style={styles.footerText}>
+            Tu agenda personal para el éxito diario
+          </ThemedText>
         </ThemedView>
       </ThemedView>
-
-      {/* Footer */}
-      <ThemedView style={styles.footer}>
-        <ThemedText style={styles.footerText}>
-          Tu agenda personal para el éxito diario
-        </ThemedText>
-      </ThemedView>
-    </ThemedView>
     </PublicRoute>
   );
 }

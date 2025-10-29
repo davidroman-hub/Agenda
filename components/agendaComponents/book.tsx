@@ -47,7 +47,6 @@ export default function Book() {
         debugCurrentDateIssues,
         forceMigration,
       };
-      console.log('🧪 Funciones de debugging de fechas disponibles en globalThis.debugDateUtils');
     }
   }, [forceMigration]);
 

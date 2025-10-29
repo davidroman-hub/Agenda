@@ -39,15 +39,6 @@ export default function NotificationSettings() {
       const notifications =
         await notificationService.getScheduledNotifications();
 
-      console.log(
-        "Raw notifications:",
-        notifications.map((n) => ({
-          id: n.identifier,
-          trigger: n.trigger,
-          data: n.content.data,
-        }))
-      );
-
       const taskNotifications: ScheduledNotificationInfo[] = notifications
         .filter((n) => n.content.data?.type === "task-reminder")
         .map((n) => {
@@ -84,7 +75,6 @@ export default function NotificationSettings() {
               const minute = components.minute || 0;
               scheduledDate = new Date(year, month, day, hour, minute);
             } else {
-              console.log("Unknown trigger type:", n.trigger);
             }
           }
 
@@ -208,32 +198,28 @@ export default function NotificationSettings() {
   }: {
     item: ScheduledNotificationInfo;
   }) => (
-
-      <ThemedView style={[styles.notificationItem, { borderColor: tintColor }]}>
-        <ThemedView style={styles.notificationContent}>
-          <ThemedText style={[styles.notificationTitle, { color: textColor }]}>
-            {item.taskTitle}
-          </ThemedText>
-          <ThemedText style={[styles.notificationDate, { color: textColor }]}>
-            📅 {item.scheduledDate.toLocaleDateString("es-ES")} a las{" "}
-            {item.scheduledDate.toLocaleTimeString("es-ES", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </ThemedText>
-        </ThemedView>
-
-        <TouchableOpacity
-          style={[styles.cancelButton, { backgroundColor: "#ff4444" }]}
-          onPress={() => handleCancelNotification(item.id, item.taskId)}
-        >
-          <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
-        </TouchableOpacity>
+    <ThemedView style={[styles.notificationItem, { borderColor: tintColor }]}>
+      <ThemedView style={styles.notificationContent}>
+        <ThemedText style={[styles.notificationTitle, { color: textColor }]}>
+          {item.taskTitle}
+        </ThemedText>
+        <ThemedText style={[styles.notificationDate, { color: textColor }]}>
+          📅 {item.scheduledDate.toLocaleDateString("es-ES")} a las{" "}
+          {item.scheduledDate.toLocaleTimeString("es-ES", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </ThemedText>
       </ThemedView>
- 
-  );
 
-  console.log(scheduledNotifications);
+      <TouchableOpacity
+        style={[styles.cancelButton, { backgroundColor: "#ff4444" }]}
+        onPress={() => handleCancelNotification(item.id, item.taskId)}
+      >
+        <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
+      </TouchableOpacity>
+    </ThemedView>
+  );
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
