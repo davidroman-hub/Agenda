@@ -8,6 +8,7 @@ import { dateToLocalDateString } from "@/utils/date-utils";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
 
+import AnotherCalendarModal from "@/components/calendar/anotherCalendarModal";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { styles } from "../bookStyles";
@@ -36,6 +37,8 @@ export default function BookPage({
   colors,
   dynamicStyles,
 }: BookPageProps) {
+  //console.log("📋 BookPage renderizado para:", day.toString(), "ISO:", day.toISOString());
+
   // Formatear fecha para el store usando utilidad que evita problemas de timezone
   const dateKey = dateToLocalDateString(day);
 
@@ -53,7 +56,8 @@ export default function BookPage({
     (state) => state.tasksByDate[dateKey] || EMPTY_TASKS
   );
 
-  const { setCalendarIsOpen, calendarIsopen } = useCalendarSettingsStore();
+  const { setCalendarIsOpen, calendarIsopen, selectDate, dateSelected } =
+    useCalendarSettingsStore();
 
   // Obtener funciones del store de patrones de repetición
   const getAllRepeatingPatterns = useRepeatingTasksStore(
@@ -428,6 +432,7 @@ export default function BookPage({
             <TouchableOpacity
               onPress={() => {
                 setCalendarIsOpen(!calendarIsopen);
+                selectDate(day.toISOString().split("T")[0]);
               }}
             >
               <ThemedText
@@ -444,10 +449,11 @@ export default function BookPage({
               style={styles.externalLinkButton}
               onPress={() => {
                 setCalendarIsOpen(!calendarIsopen);
+                selectDate(day.toISOString().split("T")[0]);
               }}
             >
               <Icon
-                name="external-link"
+                name="calendar"
                 size={12}
                 color={colorScheme === "dark" ? "#fff" : "#000"}
               />
@@ -659,6 +665,19 @@ export default function BookPage({
           );
         })}
       </ThemedView>
+
+      {/* Modal del calendario */}
+      <AnotherCalendarModal
+        visible={calendarIsopen}
+        onClose={() => setCalendarIsOpen(false)}
+        selectedDate={day.toISOString().split("T")[0]}
+        // onDateSelect={(date: Date) => {
+        //   // Aquí necesitaremos una prop para navegar a la fecha
+        //   console.log('Navegar a fecha:', date);
+        //   setCalendarIsOpen(false);
+        // }}
+        // currentDate={day}
+      />
 
       {/* Modal para editar tareas */}
       <TaskEditModal
