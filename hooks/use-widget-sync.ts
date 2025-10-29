@@ -2,6 +2,7 @@ import { mmkvStorage } from '@/lib/mmkv';
 import useAgendaTasksStore from '@/stores/agenda-tasks-store';
 import useRepeatingTasksStore from '@/stores/repeating-tasks-store';
 import WidgetStore from '@/stores/widget-store';
+import { getCurrentLocalDateString } from '@/utils/date-utils';
 import { useCallback, useEffect } from 'react';
 import { AppState, AppStateStatus, NativeModules } from 'react-native';
 
@@ -148,9 +149,9 @@ export const useWidgetSync = () => {
   }, [createStaticWidgetData]);
 
   const syncTodayWidget = useCallback(async () => {
-    // Usar fecha actual dinámica
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD formato actual
-    console.log('🗓️ Sincronizando para FECHA FORZADA:', today);
+    // Usar fecha actual local sin problemas de timezone
+    const today = getCurrentLocalDateString();
+    console.log('🗓️ Sincronizando para FECHA LOCAL:', today);
     
     // Verificar si hay tareas para hoy en Zustand
     const todayTasks = tasksByDate[today] || {};

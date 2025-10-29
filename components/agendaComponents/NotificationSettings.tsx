@@ -7,7 +7,7 @@ import { RepeatedTaskNotificationService } from "@/services/repeated-task-notifi
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useState } from "react";
-import { Alert, FlatList, TouchableOpacity } from "react-native";
+import { Alert, FlatList, ScrollView, TouchableOpacity } from "react-native";
 import { notificationSettingsStyles as styles } from "./notificationSettingsStyles";
 
 interface ScheduledNotificationInfo {
@@ -126,8 +126,10 @@ export default function NotificationSettings() {
       testDate.setSeconds(testDate.getSeconds() + 5);
 
       const today = new Date();
-      const todayDateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      
+      const todayDateKey = `${today.getFullYear()}-${String(
+        today.getMonth() + 1
+      ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
       const notificationId = await notificationService.scheduleTaskReminder(
         "test-task-id",
         "Activar notificaciones  📲",
@@ -166,7 +168,7 @@ export default function NotificationSettings() {
       // Recargar notificaciones después de la verificación
       setTimeout(() => loadScheduledNotifications(), 1000);
     } catch (error) {
-      console.error('Error forcing repeated task check:', error);
+      console.error("Error forcing repeated task check:", error);
       Alert.alert("❌ Error", "No se pudo ejecutar la verificación");
     } finally {
       setIsLoading(false);
@@ -175,10 +177,11 @@ export default function NotificationSettings() {
 
   const loadRepeatedTaskStats = async () => {
     try {
-      const stats = await RepeatedTaskNotificationService.getNotificationStats();
+      const stats =
+        await RepeatedTaskNotificationService.getNotificationStats();
       setRepeatedTaskStats(stats);
     } catch (error) {
-      console.error('Error loading repeated task stats:', error);
+      console.error("Error loading repeated task stats:", error);
       setRepeatedTaskStats(null);
     }
   };
@@ -205,27 +208,29 @@ export default function NotificationSettings() {
   }: {
     item: ScheduledNotificationInfo;
   }) => (
-    <ThemedView style={[styles.notificationItem, { borderColor: tintColor }]}>
-      <ThemedView style={styles.notificationContent}>
-        <ThemedText style={[styles.notificationTitle, { color: textColor }]}>
-          {item.taskTitle}
-        </ThemedText>
-        <ThemedText style={[styles.notificationDate, { color: textColor }]}>
-          📅 {item.scheduledDate.toLocaleDateString("es-ES")} a las{" "}
-          {item.scheduledDate.toLocaleTimeString("es-ES", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </ThemedText>
-      </ThemedView>
 
-      <TouchableOpacity
-        style={[styles.cancelButton, { backgroundColor: "#ff4444" }]}
-        onPress={() => handleCancelNotification(item.id, item.taskId)}
-      >
-        <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
-      </TouchableOpacity>
-    </ThemedView>
+      <ThemedView style={[styles.notificationItem, { borderColor: tintColor }]}>
+        <ThemedView style={styles.notificationContent}>
+          <ThemedText style={[styles.notificationTitle, { color: textColor }]}>
+            {item.taskTitle}
+          </ThemedText>
+          <ThemedText style={[styles.notificationDate, { color: textColor }]}>
+            📅 {item.scheduledDate.toLocaleDateString("es-ES")} a las{" "}
+            {item.scheduledDate.toLocaleTimeString("es-ES", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </ThemedText>
+        </ThemedView>
+
+        <TouchableOpacity
+          style={[styles.cancelButton, { backgroundColor: "#ff4444" }]}
+          onPress={() => handleCancelNotification(item.id, item.taskId)}
+        >
+          <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+ 
   );
 
   console.log(scheduledNotifications);
@@ -267,12 +272,17 @@ export default function NotificationSettings() {
         </TouchableOpacity>
 
         {repeatedTaskStats && (
-          <ThemedView style={[styles.statsContainer, { borderColor: textColor + '20' }]}>
+          <ThemedView
+            style={[styles.statsContainer, { borderColor: textColor + "20" }]}
+          >
             <ThemedText style={[styles.statsTitle, { color: textColor }]}>
               📊 Estadísticas de Tareas Repetidas
             </ThemedText>
             <ThemedText style={[styles.statsText, { color: textColor }]}>
-              Última verificación: {repeatedTaskStats.lastCheck ? new Date(repeatedTaskStats.lastCheck).toLocaleString() : 'Nunca'}
+              Última verificación:{" "}
+              {repeatedTaskStats.lastCheck
+                ? new Date(repeatedTaskStats.lastCheck).toLocaleString()
+                : "Nunca"}
             </ThemedText>
             <ThemedText style={[styles.statsText, { color: textColor }]}>
               Patrones activos: {repeatedTaskStats.totalPatterns}
@@ -281,7 +291,10 @@ export default function NotificationSettings() {
               Notificaciones hoy: {repeatedTaskStats.notificationsToday}
             </ThemedText>
             <ThemedText style={[styles.statsText, { color: textColor }]}>
-              Próxima verificación: {repeatedTaskStats.nextCheck ? new Date(repeatedTaskStats.nextCheck).toLocaleString() : 'No programada'}
+              Próxima verificación:{" "}
+              {repeatedTaskStats.nextCheck
+                ? new Date(repeatedTaskStats.nextCheck).toLocaleString()
+                : "No programada"}
             </ThemedText>
           </ThemedView>
         )}
@@ -312,12 +325,18 @@ export default function NotificationSettings() {
         )}
 
         {!isLoading && scheduledNotifications.length > 0 && (
-          <FlatList
-            data={scheduledNotifications}
-            renderItem={renderNotificationItem}
-            keyExtractor={(item) => item.id}
+          <ScrollView
             showsVerticalScrollIndicator={false}
-          />
+            style={{ maxHeight: 300 }}
+          >
+            <FlatList
+              data={scheduledNotifications}
+              renderItem={renderNotificationItem}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+            />
+          </ScrollView>
         )}
       </ThemedView>
 

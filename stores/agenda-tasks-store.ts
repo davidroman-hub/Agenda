@@ -1,5 +1,11 @@
 import { mmkvStorage } from "@/lib/mmkv";
 import { notificationService } from "@/services/notifications/notification-service";
+import {
+  migrateDateKey,
+  needsDateMigration,
+  normalizeISOStringToLocal,
+  normalizeToLocalMidnight
+} from "@/utils/date-utils";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -33,6 +39,8 @@ export interface AgendaTasksState {
   getTasksForDate: (date: string) => DayTasks;
   getTaskForLine: (date: string, lineNumber: number) => AgendaTask | null;
   getAllTasks: () => Record<string, DayTasks>;
+  // Nueva función para migrar datos existentes
+  migrateTaskDates: () => void;
 }
 
 const useAgendaTasksStore = create<AgendaTasksState>()(
@@ -41,12 +49,15 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
       tasksByDate: {},
       
       addTask: async (date: string, lineNumber: number, text: string, reminder?: string | null, repeat?: string) => {
+        // Normalizar fechas para evitar problemas de zona horaria
+        const normalizedDate = normalizeToLocalMidnight(new Date()).toISOString();
+        
         const newTask: AgendaTask = {
           id: `${date}-${lineNumber}-${Date.now()}`,
           text: text.trim(),
           completed: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: normalizedDate,
+          updatedAt: normalizedDate,
           reminder: reminder || null,
           notificationId: null,
           repeat: repeat || 'none',
@@ -106,7 +117,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           const updatedTask: AgendaTask = {
             ...existingTask,
             ...updates,
-            updatedAt: new Date().toISOString(),
+            updatedAt: normalizeToLocalMidnight(new Date()).toISOString(),
           };
           
           return {
@@ -159,6 +170,63 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
       
       getAllTasks: () => {
         return get().tasksByDate;
+      },
+
+      // Función para migrar tareas existentes a formato de fecha normalizado
+      migrateTaskDates: () => {
+        console.log('🔄 Iniciando migración de fechas de tareas...');
+        
+        set((state) => {
+          const migratedTasksByDate: Record<string, DayTasks> = {};
+          let migratedCount = 0;
+          let totalTasks = 0;
+          
+          // Iterar sobre todas las fechas y tareas
+          for (const [dateKey, dayTasks] of Object.entries(state.tasksByDate)) {
+            // Migrar la clave de fecha si es necesario
+            const newDateKey = migrateDateKey(dateKey);
+            
+            if (!migratedTasksByDate[newDateKey]) {
+              migratedTasksByDate[newDateKey] = {};
+            }
+            
+            // Migrar cada tarea en el día
+            for (const [lineNumber, task] of Object.entries(dayTasks)) {
+              if (task) {
+                totalTasks++;
+                let needsMigration = false;
+                const migratedTask = { ...task };
+                
+                // Migrar createdAt si necesita normalización
+                if (needsDateMigration(task.createdAt)) {
+                  migratedTask.createdAt = normalizeISOStringToLocal(task.createdAt);
+                  needsMigration = true;
+                }
+                
+                // Migrar updatedAt si necesita normalización
+                if (needsDateMigration(task.updatedAt)) {
+                  migratedTask.updatedAt = normalizeISOStringToLocal(task.updatedAt);
+                  needsMigration = true;
+                }
+                
+                if (needsMigration) {
+                  migratedCount++;
+                  console.log(`📝 Migrando tarea: ${task.text} (${dateKey} → ${newDateKey})`);
+                }
+                
+                const lineNum = Number(lineNumber);
+                migratedTasksByDate[newDateKey][lineNum] = migratedTask;
+              }
+            }
+          }
+          
+          console.log(`✅ Migración completada: ${migratedCount}/${totalTasks} tareas migradas`);
+          console.log(`📅 Fechas en el nuevo formato:`, Object.keys(migratedTasksByDate));
+          
+          return {
+            tasksByDate: migratedTasksByDate
+          };
+        });
       },
     }),
     {

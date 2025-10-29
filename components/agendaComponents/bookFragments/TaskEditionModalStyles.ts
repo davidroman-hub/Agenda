@@ -37,7 +37,7 @@ export const modalStyles = (colorScheme: "light" | "dark", colors: any) => ({
     color: colorScheme === "dark" ? "#ffffff" : "#000000",
     backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#f8f9fa",
     minHeight: 80,
-    maxHeight: 120,
+    maxHeight: 200,
     textAlignVertical: "top" as const,
     marginBottom: 20,
   },

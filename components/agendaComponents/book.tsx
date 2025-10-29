@@ -1,18 +1,20 @@
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useDateMigration, useForceDateMigration } from "@/hooks/use-date-migration";
 import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import { useWidgetSync } from "@/hooks/use-widget-sync";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
+import { debugCurrentDateIssues, testDateUtils, testMidnightTransition } from "@/utils/date-testing";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
-    BookPagesContent,
-    calculateDays,
-    NavigationControls,
-    PageFoldEffect,
-    useBookPageLogic,
+  BookPagesContent,
+  calculateDays,
+  NavigationControls,
+  PageFoldEffect,
+  useBookPageLogic,
 } from "./bookFragments";
 import BookActions from "./bookSettings";
 import { createDynamicStyles } from "./bookStyles";
@@ -28,6 +30,26 @@ export default function Book() {
 
   // Activar sincronización de widget (sin funciones agresivas)
   useWidgetSync();
+
+  // CRÍTICO: Ejecutar migración de fechas automáticamente al cargar
+  useDateMigration();
+
+  // Funciones de debugging disponibles globalmente para testing
+  const { forceMigration } = useForceDateMigration();
+
+  // Exponer funciones de debugging al objeto global (solo en desarrollo)
+  React.useEffect(() => {
+    if (__DEV__) {
+      // @ts-expect-error - Debugging functions
+      globalThis.debugDateUtils = {
+        testDateUtils,
+        testMidnightTransition,
+        debugCurrentDateIssues,
+        forceMigration,
+      };
+      console.log('🧪 Funciones de debugging de fechas disponibles en globalThis.debugDateUtils');
+    }
+  }, [forceMigration]);
 
   // Usar el hook personalizado para toda la lógica de páginas
   const {

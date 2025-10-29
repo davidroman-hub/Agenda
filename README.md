@@ -2,6 +2,36 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Características principales
+
+### 📝 Gestión de Tareas
+- Crear, editar y eliminar tareas
+- Recordatorios con notificaciones
+- Tareas repetitivas (diarias, semanales, mensuales)
+- Soporte para texto largo (hasta 500 caracteres)
+
+### 🔗 Enlaces Clickeables
+- **Nueva funcionalidad**: Los enlaces en las tareas son automáticamente detectados y convertidos en hipervínculos
+- Formatos soportados:
+  - `https://example.com`
+  - `http://example.com`
+  - `www.example.com`
+  - `example.com`
+- Los enlaces se pueden tocar para abrir en el navegador
+- Estilos diferenciados para enlaces (azul con subrayado)
+
+### 🗓️ Gestión de Fechas
+- Compatibilidad global con zonas horarias
+- Migración automática de fechas
+- Widget de Android integrado
+
+### Ejemplos de tareas con enlaces:
+```
+Revisar documentación en https://docs.expo.dev
+Visitar mi sitio web: www.example.com
+Checa github.com/user/repo para el código
+```
+
 ## Get started
 
 1. Install dependencies

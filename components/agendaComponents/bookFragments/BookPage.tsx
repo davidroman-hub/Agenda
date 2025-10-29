@@ -1,8 +1,10 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import LinkableText from "@/components/ui/linkable-text";
 import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import { dateToLocalDateString } from "@/utils/date-utils";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
 
@@ -32,8 +34,8 @@ export default function BookPage({
   colors,
   dynamicStyles,
 }: BookPageProps) {
-  // Formatear fecha para el store (YYYY-MM-DD)
-  const dateKey = day.toISOString().split("T")[0];
+  // Formatear fecha para el store usando utilidad que evita problemas de timezone
+  const dateKey = dateToLocalDateString(day);
 
   // Estados locales
   const [modalVisible, setModalVisible] = useState(false);
@@ -583,24 +585,26 @@ export default function BookPage({
                             </ThemedText>
                           )}
                         </TouchableOpacity>
-                        <ThemedText
-                          style={[
-                            viewMode === "expanded"
+                        <LinkableText
+                          style={{
+                            ...(viewMode === "expanded"
                               ? dynamicStyles.expandedTaskText
-                              : dynamicStyles.taskText,
-                            { flex: 1 },
-                            task.completed && {
+                              : dynamicStyles.taskText),
+                            flex: 1,
+                            ...(task.completed && {
                               textDecorationLine: "line-through",
                               opacity: 0.6,
-                            },
-                          ]}
+                            }),
+                          }}
+                          linkStyle={{
+                            color: colorScheme === "dark" ? "#64B5F6" : "#1976D2",
+                            textDecorationLine: "underline",
+                          }}
+                          numberOfLines={viewMode === "expanded" ? undefined : 2}
+                          ellipsizeMode="tail"
                         >
-                          {task.repeat && task.repeat !== "none" && "🔄 "}
-                          {task.reminder && "⏰ "}
-                          {task.text.length > 30
-                            ? `${task.text.slice(0, 25)}...`
-                            : task.text}
-                        </ThemedText>
+                          {`${task.repeat && task.repeat !== "none" ? "🔄 " : ""}${task.reminder ? "⏰ " : ""}${task.text.length > 80 && viewMode !== "expanded" ? task.text.slice(0, 75) + "..." : task.text}`}
+                        </LinkableText>
                       </ThemedView>
                     );
                   }

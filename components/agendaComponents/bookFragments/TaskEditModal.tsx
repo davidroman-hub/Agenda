@@ -146,7 +146,7 @@ export default function TaskEditModal({
               colorScheme === "dark" ? "#888888" : "#666666"
             }
             multiline
-            maxLength={100}
+            maxLength={320}
             autoFocus
           />
           <TaskRepeat
