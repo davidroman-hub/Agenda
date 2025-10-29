@@ -181,13 +181,17 @@ export const useWidgetSync = () => {
   // Sincronizar automáticamente cuando cambien las tareas O al inicio
   useEffect(() => {
     console.log('📱 useWidgetSync: Iniciando sincronización automática...');
-    syncTodayWidget();
     
-    // También configurar un interval para sincronizar cada 30 segundos cuando la app esté activa
+    // Sincronización inmediata al cargar (con delay para evitar interferencias)
+    setTimeout(() => {
+      syncTodayWidget();
+    }, 1000);
+    
+    // Configurar un interval más conservador para sincronizar cada 30 segundos
     const interval = setInterval(() => {
       console.log('🕰️ useWidgetSync: Sincronización automática por interval...');
       syncTodayWidget();
-    }, 30000); // 30 segundos
+    }, 30000); // 30 segundos (menos agresivo)
     
     return () => clearInterval(interval);
   }, [tasksByDate, repeatingPatterns, repeatingCompletions, syncTodayWidget]);
@@ -195,15 +199,26 @@ export const useWidgetSync = () => {
   // Detectar cuando la app va al background y forzar actualización del widget
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      console.log('📱 useWidgetSync: Estado de app cambió a:', nextAppState);
+      
       if (nextAppState === 'background' || nextAppState === 'inactive') {
-        console.log('📱 useWidgetSync: App va al background, forzando actualización del widget...');
-        forceSyncWidget();
+        console.log('📱 useWidgetSync: App va al background, sincronizando widget...');
+        // Solo sincronizar cuando va al background, sin forzar actualizaciones
+        syncTodayWidget();
+      } else if (nextAppState === 'active') {
+        console.log('📱 useWidgetSync: App se vuelve activa - NO HACIENDO NADA ESPECIAL');
+        // NO hacer nada especial cuando la app se activa desde el widget
+        // Los datos ya están en los stores, solo esperar un poco y sincronizar normalmente
+        setTimeout(() => {
+          console.log('📱 Sincronización suave después de activar app...');
+          syncTodayWidget();
+        }, 2000); // Esperar 2 segundos para que los stores se estabilicen
       }
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => subscription?.remove();
-  }, [forceSyncWidget]);
+  }, [syncTodayWidget]); // Removido forceSyncWidget y handleStoreReload
 
   return {
     syncRealDataToWidget,
@@ -211,5 +226,12 @@ export const useWidgetSync = () => {
     forceSyncWidget,
     forceWidgetUpdate,
     createStaticWidgetData,
+    // Función de emergencia simplificada para debugging
+    emergencyWidgetSync: async () => {
+      console.log('🚨 SINCRONIZACIÓN DE EMERGENCIA DEL WIDGET');
+      await syncTodayWidget();
+      await forceWidgetUpdate();
+      console.log('🚨 Sincronización de emergencia completada');
+    }
   };
 };

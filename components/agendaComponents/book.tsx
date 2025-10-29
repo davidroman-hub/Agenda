@@ -2,6 +2,7 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
+import { useWidgetSync } from "@/hooks/use-widget-sync";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
 import React from "react";
@@ -24,6 +25,9 @@ export default function Book() {
 
   // Activar el sistema de notificaciones automáticas para tareas repetidas
   useRepeatedTaskNotifications();
+
+  // Activar sincronización de widget (sin funciones agresivas)
+  useWidgetSync();
 
   // Usar el hook personalizado para toda la lógica de páginas
   const {

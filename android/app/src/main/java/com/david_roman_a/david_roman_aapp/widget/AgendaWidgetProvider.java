@@ -59,7 +59,7 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+    public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         android.util.Log.d("AgendaWidget", "=== INICIANDO ACTUALIZACIÓN DE WIDGET " + appWidgetId + " ===");
         
         // Crear RemoteViews para el layout del widget

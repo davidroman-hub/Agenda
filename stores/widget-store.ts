@@ -26,7 +26,7 @@ class WidgetStore {
     try {
       const dataString = JSON.stringify(data);
       
-      console.log('📱 WIDGET STORE: Guardando datos estáticos:', dataString);
+      console.log('📱 WIDGET STORE: Guardando datos:', dataString);
       
       // Guardar en múltiples claves para que el widget las encuentre
       await AsyncStorage.setItem(this.WIDGET_KEY, dataString);
@@ -37,11 +37,15 @@ class WidgetStore {
       // NUEVO: También guardar usando el módulo nativo que escribe directamente en SharedPreferences
       if (WidgetDataManager) {
         console.log('📱 WIDGET STORE: Usando módulo nativo para guardar datos...');
-        await WidgetDataManager.saveWidgetData(this.WIDGET_KEY, dataString);
-        await WidgetDataManager.saveWidgetData(this.WIDGET_KEY_ALT, dataString);
-        await WidgetDataManager.saveWidgetData('widget-data', dataString);
-        await WidgetDataManager.saveWidgetData('widget_current_tasks', dataString);
-        console.log('✅ WIDGET STORE: Datos guardados via módulo nativo');
+        try {
+          await WidgetDataManager.saveWidgetData(this.WIDGET_KEY, dataString);
+          await WidgetDataManager.saveWidgetData(this.WIDGET_KEY_ALT, dataString);
+          await WidgetDataManager.saveWidgetData('widget-data', dataString);
+          await WidgetDataManager.saveWidgetData('widget_current_tasks', dataString);
+          console.log('✅ WIDGET STORE: Datos guardados via módulo nativo');
+        } catch (nativeError) {
+          console.error('❌ WIDGET STORE: Error con módulo nativo:', nativeError);
+        }
       } else {
         console.log('⚠️ WIDGET STORE: Módulo nativo no disponible, usando solo AsyncStorage');
       }
@@ -51,7 +55,7 @@ class WidgetStore {
       // IMPORTANTE: Forzar actualización inmediata del widget después de guardar
       setTimeout(async () => {
         await this.forceWidgetUpdate();
-      }, 500); // Pequeño delay para asegurar que los datos se hayan guardado
+      }, 200); // Delay más corto para respuesta más rápida
       
     } catch (error) {
       console.error('❌ WIDGET STORE: Error guardando datos:', error);
@@ -107,8 +111,8 @@ class WidgetStore {
       console.log('🔄 WIDGET STORE: Forzando actualización del widget...');
       
       // Método 1: Usar el módulo nativo si está disponible
-      if (WidgetDataManager && WidgetDataManager.forceWidgetUpdate) {
-        console.log('� WIDGET STORE: Usando módulo nativo para forzar actualización...');
+      if (WidgetDataManager?.forceWidgetUpdate) {
+        console.log('🔄 WIDGET STORE: Usando módulo nativo para forzar actualización...');
         await WidgetDataManager.forceWidgetUpdate();
         console.log('✅ WIDGET STORE: Actualización forzada exitosamente');
       } else {

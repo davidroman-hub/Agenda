@@ -105,8 +105,13 @@ public class WidgetDataManagerModule extends ReactContextBaseJavaModule {
                 // Método 3: Notificar cambio en los datos
                 appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, android.R.id.list);
                 
-                android.util.Log.d("WidgetDataManager", "✅ Widget actualizado usando múltiples métodos");
-                promise.resolve("Widget actualizado exitosamente usando múltiples métodos");
+                // Método 4: Actualización individual para cada widget
+                for (int appWidgetId : appWidgetIds) {
+                    provider.updateAppWidget(getReactApplicationContext(), appWidgetManager, appWidgetId);
+                }
+                
+                android.util.Log.d("WidgetDataManager", "✅ Widget actualizado usando TODOS los métodos disponibles");
+                promise.resolve("Widget actualizado exitosamente usando TODOS los métodos");
             } else {
                 android.util.Log.d("WidgetDataManager", "❌ No se encontraron widgets para actualizar");
                 promise.resolve("No hay widgets para actualizar");
