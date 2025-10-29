@@ -466,7 +466,7 @@ export default function BookPage({
                 style={[
                   styles.lineNumber,
                   viewMode === "expanded" ? styles.expandedLineNumber : null,
-                  { alignItems: "center", justifyContent: "center" },
+                  { alignItems: "center", justifyContent: "center" , backgroundColor: "transparent"},
                 ]}
               >
                 {(() => {
@@ -522,7 +522,7 @@ export default function BookPage({
                   } else {
                     // Si no hay tarea o no tiene reminder, mostrar viñeta
                     return (
-                      <ThemedText style={{ fontSize: 16, textAlign: "center" }}>
+                      <ThemedText style={{ fontSize: 16, backgroundColor: "transparent", textAlign: "center" }}>
                         •
                       </ThemedText>
                     );

@@ -1,3 +1,4 @@
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { openUrl, parseTextWithUrls } from '@/utils/url-utils';
 import React from 'react';
 import { Alert, Text, TextStyle } from 'react-native';
@@ -9,6 +10,8 @@ interface LinkableTextProps {
   readonly onLinkPress?: (url: string) => void;
   readonly numberOfLines?: number;
   readonly ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
+  readonly lightColor?: string; // Color del texto en modo claro
+  readonly darkColor?: string; // Color del texto en modo oscuro
 }
 
 /**
@@ -22,7 +25,11 @@ export default function LinkableText({
   onLinkPress,
   numberOfLines,
   ellipsizeMode,
+  lightColor,
+  darkColor,
 }: Readonly<LinkableTextProps>) {
+  // Obtener el color apropiado para el tema actual
+  const textColor = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
   const handleLinkPress = async (url: string) => {
     if (onLinkPress) {
       onLinkPress(url);
@@ -68,7 +75,13 @@ export default function LinkableText({
         );
       } else {
         return (
-          <Text key={key} style={style}>
+          <Text 
+            key={key} 
+            style={[
+              style,
+              { color: textColor }
+            ]}
+          >
             {part.text}
           </Text>
         );
@@ -78,7 +91,7 @@ export default function LinkableText({
 
   return (
     <Text
-      style={style}
+      style={[{ color: textColor }, style]}
       numberOfLines={numberOfLines}
       ellipsizeMode={ellipsizeMode}
     >
