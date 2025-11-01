@@ -670,7 +670,7 @@ export default function BookPage({
       <AnotherCalendarModal
         visible={calendarIsopen}
         onClose={() => setCalendarIsOpen(false)}
-        selectedDate={day.toISOString().split("T")[0]}
+        //selectedDate={day.toISOString().split("T")[0]}
         // onDateSelect={(date: Date) => {
         //   // Aquí necesitaremos una prop para navegar a la fecha
         //   console.log('Navegar a fecha:', date);

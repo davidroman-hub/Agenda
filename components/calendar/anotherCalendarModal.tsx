@@ -2,25 +2,56 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
-import React, { useMemo, useState } from "react";
-import { Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useMemo, useState, useEffect } from "react";
+import { Modal, ScrollView, StyleSheet, TouchableOpacity, AppState } from "react-native";
 import { Calendar } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { ThemedText } from "../themed-text";
 import { ThemedView } from "../themed-view";
+import DayDetailModal from "./DayDetailModal";
 
 interface CalendarModalProps {
   readonly visible: boolean;
   readonly onClose: () => void;
-  readonly selectedDate: string;
+  readonly onNavigateToDate?: (date: string) => void;
 }
 
 export default function AnotherCalendarModal({
   visible,
   onClose,
+  onNavigateToDate,
 }: //   onDateSelect,
 //   currentDate,
 CalendarModalProps) {
+  // Estados para el modal de día
+  const [showDayDetail, setShowDayDetail] = useState(false);
+  
+  // Función para resetear todos los estados del calendario
+  const resetCalendarStates = () => {
+    setShowDayDetail(false);
+  };
+
+  // Resetear estados cuando el modal principal se cierre
+  useEffect(() => {
+    if (!visible) {
+      resetCalendarStates();
+    }
+  }, [visible]);
+
+  // Detectar cuando la app vuelve del background y resetear estados
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        // Cuando la app vuelve a estar activa, resetear estados y cerrar modales
+        resetCalendarStates();
+        onClose();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [onClose]);
+  
   // Colores del tema
   const { dateSelected, selectDate } = useCalendarSettingsStore();
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
@@ -98,7 +129,7 @@ CalendarModalProps) {
     ]
   );
 
-  console.log(dateSelected, "<<< dateSelected from store");
+
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -115,6 +146,16 @@ CalendarModalProps) {
     console.log("📅 Día seleccionado:", day.dateString);
     setSelected(day.dateString);
     selectDate(day.dateString);
+  };
+
+  const handleGoToDate = () => {
+    console.log("🚀 Abriendo detalle del día:", selected);
+    // Abrir el modal de detalle del día
+    setShowDayDetail(true);
+  };
+
+  const handleCloseDayDetail = () => {
+    setShowDayDetail(false);
   };
 
   const markedDates = useMemo(() => {
@@ -282,12 +323,21 @@ CalendarModalProps) {
         <ThemedView style={styles.buttons}>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: "#007bff" }]}
-            //onPress={handleGoToDate}
+            onPress={handleGoToDate}
           >
-            <ThemedText style={styles.buttonText}>Ir a esta fecha</ThemedText>
+            <ThemedText style={styles.buttonText}>
+              � Ver tareas de este día
+            </ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
+      
+      {/* Modal de detalle del día */}
+      <DayDetailModal
+        visible={showDayDetail}
+        onClose={handleCloseDayDetail}
+        selectedDate={selected as string}
+      />
     </Modal>
   );
 }
