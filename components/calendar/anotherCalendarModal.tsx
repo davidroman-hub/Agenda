@@ -2,8 +2,8 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
-import React, { useMemo, useState, useEffect } from "react";
-import { Modal, ScrollView, StyleSheet, TouchableOpacity, AppState } from "react-native";
+import React, { useMemo, useState } from "react";
+import { Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Calendar } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { ThemedText } from "../themed-text";
@@ -25,32 +25,6 @@ export default function AnotherCalendarModal({
 CalendarModalProps) {
   // Estados para el modal de día
   const [showDayDetail, setShowDayDetail] = useState(false);
-  
-  // Función para resetear todos los estados del calendario
-  const resetCalendarStates = () => {
-    setShowDayDetail(false);
-  };
-
-  // Resetear estados cuando el modal principal se cierre
-  useEffect(() => {
-    if (!visible) {
-      resetCalendarStates();
-    }
-  }, [visible]);
-
-  // Detectar cuando la app vuelve del background y resetear estados
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'active') {
-        // Cuando la app vuelve a estar activa, resetear estados y cerrar modales
-        resetCalendarStates();
-        onClose();
-      }
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => subscription?.remove();
-  }, [onClose]);
   
   // Colores del tema
   const { dateSelected, selectDate } = useCalendarSettingsStore();
@@ -152,10 +126,6 @@ CalendarModalProps) {
     console.log("🚀 Abriendo detalle del día:", selected);
     // Abrir el modal de detalle del día
     setShowDayDetail(true);
-  };
-
-  const handleCloseDayDetail = () => {
-    setShowDayDetail(false);
   };
 
   const markedDates = useMemo(() => {
@@ -335,7 +305,7 @@ CalendarModalProps) {
       {/* Modal de detalle del día */}
       <DayDetailModal
         visible={showDayDetail}
-        onClose={handleCloseDayDetail}
+        onClose={() => setShowDayDetail(false)}
         selectedDate={selected as string}
       />
     </Modal>
