@@ -3,7 +3,7 @@ import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import React, { useMemo, useState } from "react";
-import { Modal, StyleSheet, TouchableOpacity } from "react-native";
+import { Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Calendar } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { ThemedText } from "../themed-text";
@@ -13,8 +13,6 @@ interface CalendarModalProps {
   readonly visible: boolean;
   readonly onClose: () => void;
   readonly selectedDate: string;
-  //   readonly onDateSelect: (date: Date) => void;
-  //   readonly currentDate: Date;
 }
 
 export default function AnotherCalendarModal({
@@ -212,26 +210,29 @@ CalendarModalProps) {
         </ThemedView>
 
         {/* Calendario */}
-        <Calendar
-          onDayPress={handleDayPress}
-          current={selected as string}
-          markingType={"multi-dot"}
-          markedDates={markedDates}
-          theme={{
-            backgroundColor: backgroundColor,
-            calendarBackground: backgroundColor,
-            textSectionTitleColor: textColor,
-            dayTextColor: textColor,
-            todayTextColor: tintColor,
-            selectedDayBackgroundColor: tintColor,
-            selectedDayTextColor: "#ffffff",
-            monthTextColor: textColor,
-            indicatorColor: tintColor,
-            arrowColor: tintColor,
-          }}
-        />
+        <ThemedView style={styles.calendarContainer}>
+          <Calendar
+            onDayPress={handleDayPress}
+            current={selected as string}
+            markingType={"multi-dot"}
+            markedDates={markedDates}
+            theme={{
+              backgroundColor: backgroundColor,
+              calendarBackground: backgroundColor,
+              textSectionTitleColor: textColor,
+              dayTextColor: textColor,
+              todayTextColor: tintColor,
+              selectedDayBackgroundColor: tintColor,
+              selectedDayTextColor: "#ffffff",
+              monthTextColor: textColor,
+              indicatorColor: tintColor,
+              arrowColor: tintColor,
+            }}
+          />
+        </ThemedView>
 
         {/* Preview de tareas */}
+
         <ThemedView style={styles.taskPreview}>
           <ThemedText style={styles.previewTitle}>
             {new Date(selected as string).toLocaleDateString("es-ES", {
@@ -245,7 +246,10 @@ CalendarModalProps) {
           {(() => {
             const selectedDayTasks = getTasksForDate(selected as string);
             return selectedDayTasks.length > 0 ? (
-              <>
+              <ScrollView
+                showsVerticalScrollIndicator={true}
+                style={{ height: 300 }}
+              >
                 <ThemedText style={styles.taskCount}>
                   {selectedDayTasks.length} tarea
                   {selectedDayTasks.length === 1 ? "" : "s"}
@@ -265,7 +269,7 @@ CalendarModalProps) {
                     {task.completed ? "✅" : ""}
                   </ThemedText>
                 ))}
-              </>
+              </ScrollView>
             ) : (
               <ThemedText style={styles.noTasks}>
                 No hay tareas este día
@@ -308,6 +312,10 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 5,
+  },
+  calendarContainer: {
+    height: 320,
+    overflow: "hidden",
   },
   taskPreview: {
     padding: 20,
