@@ -28,9 +28,6 @@ export default function SimpleCalendarModal({
   
   // Usar directamente todayString sin useMemo adicional para evitar bucles
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
-  
-  // Ref para controlar que solo se ejecute una vez por apertura
-  const hasInitialized = React.useRef(false);
 
   // Obtener tareas para marcar días en el calendario (solo tareas normales)
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
@@ -85,18 +82,12 @@ export default function SimpleCalendarModal({
     onDateSelect(date);
   };
 
-  // Solo resetear cuando se abre el modal por primera vez
-  React.useEffect(() => {
-    if (visible && !hasInitialized.current) {
-      const today = new Date().toISOString().split("T")[0];
-      console.log("🔄 Modal abierto por PRIMERA vez, estableciendo fecha inicial:", today);
-      setSelectedDate(today);
-      hasInitialized.current = true;
-    } else if (!visible) {
-      // Reset para la próxima apertura
-      hasInitialized.current = false;
-    }
-  }, [visible]); // Solo cuando cambia visible
+  // Eliminar useEffect problemático - manejar directamente en el render
+  // Si el modal está visible y selectedDate no es hoy, resetearlo
+  if (visible && selectedDate !== todayString) {
+    console.log("🔄 Reseteando a fecha de hoy:", todayString);
+    setSelectedDate(todayString);
+  }
 
   return (
     <Modal visible={visible} animationType="slide">
@@ -112,7 +103,7 @@ export default function SimpleCalendarModal({
           key={`simple-calendar-${todayString}`}
           onDayPress={handleDayPress}
           markedDates={markedDates}
-          current={selectedDate}
+          current={todayString}
           theme={{
             backgroundColor: backgroundColor,
             calendarBackground: backgroundColor,

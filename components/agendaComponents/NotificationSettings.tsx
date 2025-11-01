@@ -256,34 +256,26 @@ export default function NotificationSettings() {
             {isLoading ? "🔄 Verificando..." : "🔁 Verificar Tareas Repetidas"}
           </ThemedText>
         </TouchableOpacity>
+      </ThemedView>
 
-        {repeatedTaskStats && (
-          <ThemedView
-            style={[styles.statsContainer, { borderColor: textColor + "20" }]}
-          >
-            <ThemedText style={[styles.statsTitle, { color: textColor }]}>
-              📊 Estadísticas de Tareas Repetidas
-            </ThemedText>
-            <ThemedText style={[styles.statsText, { color: textColor }]}>
-              Última verificación:{" "}
-              {repeatedTaskStats.lastCheck
-                ? new Date(repeatedTaskStats.lastCheck).toLocaleString()
-                : "Nunca"}
-            </ThemedText>
-            <ThemedText style={[styles.statsText, { color: textColor }]}>
-              Patrones activos: {repeatedTaskStats.totalPatterns}
-            </ThemedText>
-            <ThemedText style={[styles.statsText, { color: textColor }]}>
-              Notificaciones hoy: {repeatedTaskStats.notificationsToday}
-            </ThemedText>
-            <ThemedText style={[styles.statsText, { color: textColor }]}>
-              Próxima verificación:{" "}
-              {repeatedTaskStats.nextCheck
-                ? new Date(repeatedTaskStats.nextCheck).toLocaleString()
-                : "No programada"}
-            </ThemedText>
-          </ThemedView>
-        )}
+      <ThemedView style={styles.section}>
+        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+          Información
+        </ThemedText>
+
+        <ThemedView
+          style={[
+            styles.infoBox,
+            { backgroundColor: tintColor + "20", borderColor: tintColor },
+          ]}
+        >
+          <ThemedText style={[styles.infoText, { color: textColor }]}>
+            💡 La lista de recordatorios se actualiza automáticamente cuando
+            editas tareas.
+            {"\n"}📱 Los recordatorios aparecerán como notificaciones en tu
+            dispositivo a la hora programada.
+          </ThemedText>
+        </ThemedView>
       </ThemedView>
 
       <ThemedView style={styles.section}>
@@ -313,7 +305,7 @@ export default function NotificationSettings() {
         {!isLoading && scheduledNotifications.length > 0 && (
           <ScrollView
             showsVerticalScrollIndicator={false}
-            style={{ maxHeight: 300 }}
+            style={{ maxHeight: 250 }}
           >
             <FlatList
               data={scheduledNotifications}
@@ -327,25 +319,6 @@ export default function NotificationSettings() {
       </ThemedView>
 
       {/* Sección de información */}
-      <ThemedView style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Información
-        </ThemedText>
-
-        <ThemedView
-          style={[
-            styles.infoBox,
-            { backgroundColor: tintColor + "20", borderColor: tintColor },
-          ]}
-        >
-          <ThemedText style={[styles.infoText, { color: textColor }]}>
-            💡 La lista de recordatorios se actualiza automáticamente cuando
-            editas tareas.
-            {"\n"}📱 Los recordatorios aparecerán como notificaciones en tu
-            dispositivo a la hora programada.
-          </ThemedText>
-        </ThemedView>
-      </ThemedView>
     </ThemedView>
   );
 }
