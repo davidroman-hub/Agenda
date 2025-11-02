@@ -19,12 +19,16 @@ interface DayDetailModalProps {
   readonly visible: boolean;
   readonly onClose: () => void;
   readonly selectedDate: string;
+  readonly tCommon: (key: string, options?: any) => string;
+  readonly tAgenda: (key: string, options?: any) => string;
 }
 
 export default function DayDetailModal({
   visible,
   onClose,
   selectedDate,
+  tCommon,
+  tAgenda,
 }: DayDetailModalProps) {
   const [newTaskText, setNewTaskText] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -69,7 +73,11 @@ export default function DayDetailModal({
     for (const [dateKey, dayTasks] of Object.entries(allExistingTasks)) {
       for (const [line, task] of Object.entries(dayTasks)) {
         if (task) {
-          originalTasksMap.set(task.id, { task, originalDate: dateKey, line: Number.parseInt(line, 10) });
+          originalTasksMap.set(task.id, {
+            task,
+            originalDate: dateKey,
+            line: Number.parseInt(line, 10),
+          });
         }
       }
     }
@@ -98,13 +106,16 @@ export default function DayDetailModal({
 
       if (shouldTaskRepeatOnDate(pattern.originalTaskId, selectedDate)) {
         const originalInfo = originalTasksMap.get(pattern.originalTaskId);
-        
+
         // Solo agregar como tarea repetida si NO estamos en el día de creación original
         if (originalInfo && originalInfo.originalDate !== selectedDate) {
           repeatedTasks.push({
             ...originalInfo.task,
             id: `${originalInfo.task.id}-repeat-${selectedDate}`,
-            completed: isRepeatingTaskCompleted(originalInfo.task.id, selectedDate),
+            completed: isRepeatingTaskCompleted(
+              originalInfo.task.id,
+              selectedDate
+            ),
             isRepeatingTask: true,
             repeatingTaskId: originalInfo.task.id,
             repeatingPatternId: pattern.id,
@@ -121,8 +132,8 @@ export default function DayDetailModal({
         ...task,
         line: Number.parseInt(line, 10),
         isRepeatingTask: false,
-      })); 
-    
+      }));
+
     // Retornar todas las tareas (normales + repetidas)
     return [...normalTasksArray, ...repeatedTasks];
   }, [
@@ -136,35 +147,9 @@ export default function DayDetailModal({
 
   // Constante para el límite máximo de tareas
   const MAX_TASKS = 12;
-  
+
   // Verificar si se ha alcanzado el límite de tareas
   const isTaskLimitReached = dayTasks.length >= MAX_TASKS;
-
-  const handleAddTask = () => {
-    if (!newTaskText.trim()) return;
-    
-    // Verificar límite de tareas
-    if (isTaskLimitReached) {
-      Alert.alert(
-        "Límite de tareas alcanzado",
-        "Solo puedes tener máximo 12 tareas por día. Próximamente agregamos la funcionalidad de lista (todoList) para más tareas."
-      );
-      return;
-    }
-
-    // Encontrar la primera línea disponible
-    const existingLines = new Set(
-      dayTasks.filter((task) => !task.isRepeatingTask).map((task) => task.line)
-    );
-
-    let lineNumber = 1;
-    while (existingLines.has(lineNumber)) {
-      lineNumber++;
-    }
-
-    addTask(selectedDate, lineNumber, newTaskText.trim());
-    setNewTaskText("");
-  };
 
   const handleToggleComplete = (task: any) => {
     if (task.isRepeatingTask) {
@@ -206,20 +191,17 @@ export default function DayDetailModal({
 
   const handleDeleteTask = (task: any) => {
     if (task.isRepeatingTask) {
-      Alert.alert(
-        "Tarea Repetida",
-        "No puedes eliminar una tarea repetida desde aquí. Desactiva el patrón de repetición en la configuración."
-      );
+      Alert.alert(tCommon("taskRepeat.cannotDeleteRepeated"));
       return;
     }
 
     Alert.alert(
-      "Eliminar Tarea",
-      "¿Estás seguro de que quieres eliminar esta tarea?",
+      tCommon("taskEditModal.deleteTask"),
+      tCommon("taskEditModal.deleteTaskConfirm"),
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: tCommon("buttons.cancel"), style: "cancel" },
         {
-          text: "Eliminar",
+          text: tCommon("buttons.delete"),
           style: "destructive",
           onPress: () => {
             deleteTask(selectedDate, task.line).catch(console.error);
@@ -235,8 +217,7 @@ export default function DayDetailModal({
         {/* Header */}
         <ThemedView style={styles.header}>
           <ThemedText style={[styles.title, { color: textColor }]}>
-            📅{" "}
-             {formatDateWithI18n(new Date(selectedDate))}
+            📅 {formatDateWithI18n(new Date(selectedDate))}
           </ThemedText>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="times" size={20} color={textColor} />
@@ -252,7 +233,15 @@ export default function DayDetailModal({
             {dayTasks.length > 0 ? (
               <>
                 <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-                  {dayTasks.length} tarea{dayTasks.length === 1 ? "" : "s"}
+                  {dayTasks.length}{" "}
+                  {tAgenda(
+                    dayTasks.length === 1
+                      ? "task.taskCount"
+                      : "tasks.taskCount_plural",
+                    {
+                      count: dayTasks.length,
+                    }
+                  )}{" "}
                 </ThemedText>
 
                 {dayTasks.map((task, index) => (
@@ -332,7 +321,7 @@ export default function DayDetailModal({
               </>
             ) : (
               <ThemedText style={[styles.emptyText, { color: textColor }]}>
-                No hay tareas en este día
+                {tCommon("taskEditModal.noTask")}
               </ThemedText>
             )}
           </ThemedView>
@@ -349,14 +338,16 @@ export default function DayDetailModal({
           {isTaskLimitReached && (
             <ThemedView style={styles.limitMessageContainer}>
               <ThemedText style={[styles.limitMessage, { color: "#ff8800" }]}>
-                📋 Límite de 12 tareas alcanzado
+                📋 {tCommon("taskEditModal.limitReached")}
               </ThemedText>
-              <ThemedText style={[styles.limitSubMessage, { color: textColor }]}>
-                Próximamente: funcionalidad de lista (todoList) para más tareas
+              <ThemedText
+                style={[styles.limitSubMessage, { color: textColor }]}
+              >
+                {tCommon("taskEditModal.soon")}
               </ThemedText>
             </ThemedView>
           )}
-          
+
           {/* <ThemedView style={styles.inputRow}>
             <TextInput
               style={[

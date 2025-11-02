@@ -41,20 +41,24 @@
     "writeTaskHere": "Write your task here...",
     "markAsCompleted": "Mark as completed",
     "markAsIncomplete": "Mark as incomplete",
-    "setReminder": "Set reminder"
+    "setReminder": "Set reminder",
+    "noTask": "No tasks for this day",
+    "soon": "Coming soon: todoList functionality for more tasks",
+    "limitReached": "12 task limit reached"
   },
   "taskRepeat": {
-    "repeatTask": "Repeat task",
+    "repeatTask": "Recurring task",
     "selectFrequency": "Select frequency",
-    "repeatFrequency": "Repeat frequency",
-    "removeRepeat": "Remove repeat",
-    "repeat": "Repeat",
+    "repeatFrequency": "Recurring frequency",
+    "removeRepeat": "Remove recurring",
+    "repeat": "Recurring",
     "daily": "Daily",
     "weekly": "Weekly",
     "monthly": "Monthly",
     "twice": "Twice a week",
     "three": "Three times a week",
-    "five": "Five times a week"
+    "five": "Five times a week",
+    "cannotDeleteRepeated": "You cannot delete a recurring task from here. Go to the calendar and delete it from there."
   },
   "taskReminder": {
     "reminder": "Reminder",

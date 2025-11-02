@@ -55,7 +55,11 @@
     "monthly": "Mensualmente",
     "twice": "Dos veces a la semana",
     "three": "Tres veces a la semana",
-    "five": "Cinco veces a la semana"
+    "five": "Cinco veces a la semana",
+    "cannotDeleteRepeated": "No puedes eliminar una tarea repetida desde aquí. Ve a la agenda y borrala desde allí.",
+    "noTask": "No hay tareas para este día",
+    "soon": "Próximamente: funcionalidad de lista (todoList) para más tareas",
+    "limitReached": "Límite de 12 tareas alcanzado"
   },
 
   "taskReminder": {

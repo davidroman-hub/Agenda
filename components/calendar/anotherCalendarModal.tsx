@@ -29,7 +29,7 @@ CalendarModalProps) {
   const [showDayDetail, setShowDayDetail] = useState(false);
 
   // Hooks de internacionalización
-  const { tAgenda, currentLanguage } = useI18n();
+  const { tAgenda, currentLanguage, tCommon } = useI18n();
 
   // Configurar LocaleConfig para el calendario basado en el idioma actual
   React.useEffect(() => {
@@ -431,7 +431,9 @@ CalendarModalProps) {
       <ThemedView style={[styles.container, { backgroundColor }]}>
         {/* Header */}
         <ThemedView style={styles.header}>
-          <ThemedText style={styles.title}>{tAgenda("calendar.title")}</ThemedText>
+          <ThemedText style={styles.title}>
+            {tAgenda("calendar.title")}
+          </ThemedText>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="times" size={20} color={textColor} />
           </TouchableOpacity>
@@ -516,6 +518,8 @@ CalendarModalProps) {
 
       {/* Modal de detalle del día */}
       <DayDetailModal
+        tCommon={tCommon}
+        tAgenda={tAgenda}
         visible={showDayDetail}
         onClose={() => setShowDayDetail(false)}
         selectedDate={selected}
