@@ -30,5 +30,38 @@
     "page": "Página",
     "days": "días",
     "day": "día"
+  },
+  "taskEditModal": {
+    "emptyTaskError": "La tarea no puede estar vacía",
+    "incompleteTaskError": "La tarea no se pudo completar",
+    "deleteTask": "Eliminar tarea",
+    "deleteTaskConfirm": "¿Estás seguro de que quieres eliminar esta tarea?",
+    "taskEdit": "Editar tarea",
+    "taskCreate": "Crear tarea",
+    "writeTaskHere": "Escribe tu tarea aquí...",
+    "markAsCompleted": "Marcar como completada",
+    "markAsIncomplete": "Marcar como incompleta",
+    "setReminder": "Establecer recordatorio"
+  },
+
+  "taskRepeat": {
+    "repeatTask": "Repetir tarea",
+    "selectFrequency": "Seleccionar frecuencia",
+    "repeatFrequency": "Frecuencia de repetición",
+    "removeRepeat": "Quitar repetición",
+    "repeat": "Repetir",
+    "daily": "Diariamente",
+    "weekly": "Semanalmente",
+    "monthly": "Mensualmente",
+    "twice": "Dos veces a la semana",
+    "three": "Tres veces a la semana",
+    "five": "Cinco veces a la semana"
+  },
+
+  "taskReminder": {
+    "reminder": "Recordatorio",
+    "setReminder": "Establecer recordatorio",
+    "changeReminder": "Cambiar recordatorio",
+    "removeReminder": "Quitar recordatorio"
   }
 }

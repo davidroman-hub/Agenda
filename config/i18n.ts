@@ -11,8 +11,16 @@ import esCommon from '../locales/es/common.json';
 import enAgenda from '../locales/en/agenda.json';
 import enCommon from '../locales/en/common.json';
 
+// Importar traducciones - Italiano
+import itAgenda from '../locales/it/agenda.json';
+import itCommon from '../locales/it/common.json';
+
+// Importar traducciones - Francés
+import frAgenda from '../locales/fr/agenda.json';
+import frCommon from '../locales/fr/common.json';
+
 // Idiomas soportados
-const SUPPORTED_LANGUAGES = new Set(['es', 'en']);
+const SUPPORTED_LANGUAGES = new Set(['es', 'en', 'it', 'fr']);
 
 // Función para detectar el idioma del dispositivo
 const getDeviceLanguage = (): string => {
@@ -87,6 +95,14 @@ const initializeI18n = async () => {
         en: {
           common: enCommon,
           agenda: enAgenda,
+        },
+        it: {
+          common: itCommon,
+          agenda: itAgenda,
+        },
+        fr: {
+          common: frCommon,
+          agenda: frAgenda,
         },
       },
 

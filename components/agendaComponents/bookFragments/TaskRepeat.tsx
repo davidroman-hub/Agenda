@@ -1,39 +1,58 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import React, { useState } from 'react';
-import { Modal, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import React, { useState } from "react";
+import {
+  Modal,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-export type RepeatOption = 'none' | 'daily' | 'weekly' | 'monthly';
+export type RepeatOption =
+  | "none"
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "twice"
+  | "five"
+  | "three";
 
 interface TaskRepeatProps {
   readonly repeatOption?: RepeatOption;
   readonly onRepeatChange: (option: RepeatOption) => void;
   readonly isEnabled?: boolean;
   readonly onToggleEnabled: (enabled: boolean) => void;
+  readonly tCommon: (key: string, options?: any) => string;
 }
 
 export default function TaskRepeat({
-  repeatOption = 'none',
+  repeatOption = "none",
   onRepeatChange,
   isEnabled = false,
   onToggleEnabled,
+  tCommon,
 }: TaskRepeatProps) {
   const [showOptions, setShowOptions] = useState(false);
 
-  const tintColor = useThemeColor({}, 'tint');
-  const textColor = useThemeColor({}, 'text');
-  const backgroundColor = useThemeColor({}, 'background');
+  const tintColor = useThemeColor({}, "tint");
+  const textColor = useThemeColor({}, "text");
+  const backgroundColor = useThemeColor({}, "background");
 
-  const repeatOptions: { value: RepeatOption; label: string; emoji: string }[] = [
-    { value: 'daily', label: 'Diariamente', emoji: '📅' },
-    { value: 'weekly', label: 'Semanalmente', emoji: '📆' },
-    { value: 'monthly', label: 'Mensualmente', emoji: '🗓️' },
-  ];
+  const repeatOptions: { value: RepeatOption; label: string; emoji: string }[] =
+    [
+      { value: "daily", label: tCommon("taskRepeat.daily"), emoji: "📅" },
+      // { value: "twice", label: tCommon("taskRepeat.twice"), emoji: "2️⃣" },
+      // { value: "three", label: tCommon("taskRepeat.three"), emoji: "3️⃣" },
+      // { value: "five", label: tCommon("taskRepeat.five"), emoji: "5️⃣" },
+      { value: "weekly", label: tCommon("taskRepeat.weekly"), emoji: "📆" },
+      { value: "monthly", label: tCommon("taskRepeat.monthly"), emoji: "🗓️" },
+    ];
 
   const getRepeatLabel = (option: RepeatOption) => {
-    const found = repeatOptions.find(opt => opt.value === option);
-    return found ? `${found.emoji} ${found.label}` : 'Seleccionar frecuencia';
+    const found = repeatOptions.find((opt) => opt.value === option);
+    return found ? `${found.emoji} ${found.label}` : tCommon("taskRepeat.selectFrequency");
   };
 
   const handleRepeatSelect = (option: RepeatOption) => {
@@ -46,13 +65,13 @@ export default function TaskRepeat({
       {/* Header con toggle */}
       <View style={styles.header}>
         <ThemedText style={[styles.title, { color: textColor }]}>
-          Repetir tarea
+          {tCommon("taskRepeat.repeatTask")}
         </ThemedText>
         <Switch
           value={isEnabled}
           onValueChange={onToggleEnabled}
-          trackColor={{ false: '#767577', true: tintColor + '50' }}
-          thumbColor={isEnabled ? tintColor : '#f4f3f4'}
+          trackColor={{ false: "#767577", true: tintColor + "50" }}
+          thumbColor={isEnabled ? tintColor : "#f4f3f4"}
         />
       </View>
 
@@ -62,12 +81,14 @@ export default function TaskRepeat({
           <TouchableOpacity
             style={[
               styles.selectButton,
-              { backgroundColor: backgroundColor, borderColor: tintColor }
+              { backgroundColor: backgroundColor, borderColor: tintColor },
             ]}
             onPress={() => setShowOptions(true)}
           >
             <ThemedText style={[styles.selectText, { color: tintColor }]}>
-              {repeatOption === 'none' ? 'Seleccionar frecuencia' : getRepeatLabel(repeatOption)}
+              {repeatOption === "none"
+                ? tCommon("taskRepeat.selectFrequency")
+                : getRepeatLabel(repeatOption)}
             </ThemedText>
           </TouchableOpacity>
 
@@ -81,7 +102,7 @@ export default function TaskRepeat({
             <View style={styles.modalOverlay}>
               <ThemedView style={[styles.modalContainer, { backgroundColor }]}>
                 <ThemedText style={[styles.modalTitle, { color: textColor }]}>
-                  Frecuencia de repetición
+                  {tCommon("taskRepeat.selectFrequency")}
                 </ThemedText>
 
                 {repeatOptions.map((option) => (
@@ -89,11 +110,15 @@ export default function TaskRepeat({
                     key={option.value}
                     style={[
                       styles.optionButton,
-                      repeatOption === option.value && { backgroundColor: tintColor + '20' }
+                      repeatOption === option.value && {
+                        backgroundColor: tintColor + "20",
+                      },
                     ]}
                     onPress={() => handleRepeatSelect(option.value)}
                   >
-                    <ThemedText style={[styles.optionText, { color: textColor }]}>
+                    <ThemedText
+                      style={[styles.optionText, { color: textColor }]}
+                    >
                       {option.emoji} {option.label}
                     </ThemedText>
                   </TouchableOpacity>
@@ -103,8 +128,8 @@ export default function TaskRepeat({
                   style={styles.cancelButton}
                   onPress={() => setShowOptions(false)}
                 >
-                  <ThemedText style={[styles.cancelText, { color: '#666' }]}>
-                    Cancelar
+                  <ThemedText style={[styles.cancelText, { color: "#666" }]}>
+                    {tCommon("buttons.cancel")}
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
@@ -112,17 +137,17 @@ export default function TaskRepeat({
           </Modal>
 
           {/* Mostrar selección actual */}
-          {repeatOption !== 'none' && (
+          {repeatOption !== "none" && (
             <View style={styles.selectedOption}>
               <ThemedText style={[styles.selectedText, { color: textColor }]}>
                 {getRepeatLabel(repeatOption)}
               </ThemedText>
               <TouchableOpacity
                 style={styles.removeButton}
-                onPress={() => onRepeatChange('none')}
+                onPress={() => onRepeatChange("none")}
               >
-                <ThemedText style={[styles.removeText, { color: '#ff4444' }]}>
-                  Quitar repetición
+                <ThemedText style={[styles.removeText, { color: "#ff4444" }]}>
+                  {tCommon("taskRepeat.removeRepeat")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -137,17 +162,17 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     marginVertical: 8,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   optionsContainer: {
     marginTop: 8,
@@ -157,24 +182,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 12,
   },
   selectText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
-    width: '80%',
+    width: "80%",
     borderRadius: 12,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -182,8 +207,8 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
     marginBottom: 20,
   },
   optionButton: {
@@ -194,26 +219,26 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   cancelButton: {
     paddingVertical: 12,
     marginTop: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   selectedOption: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.05)",
+    alignItems: "center",
   },
   selectedText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 8,
   },
   removeButton: {
@@ -222,6 +247,6 @@ const styles = StyleSheet.create({
   },
   removeText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

@@ -23,7 +23,8 @@ interface BookPageProps {
   readonly colorScheme: string;
   readonly colors: any;
   readonly dynamicStyles: any;
-tAgenda: (key: string, options?: any) => string
+  tAgenda: (key: string, options?: any) => string;
+  tCommon: (key: string, options?: any) => string;
 }
 
 // Objeto vacío estable para evitar re-renders innecesarios
@@ -38,6 +39,7 @@ export default function BookPage({
   colors,
   dynamicStyles,
   tAgenda,
+  tCommon,
 }: BookPageProps) {
   // Formatear fecha para el store usando utilidad que evita problemas de timezone
   const dateKey = dateToLocalDateString(day);
@@ -674,6 +676,7 @@ export default function BookPage({
 
       {/* Modal para editar tareas */}
       <TaskEditModal
+        tCommon={tCommon}
         visible={modalVisible}
         initialText={editingTask}
         initialReminder={allTasks[editingLine as number]?.reminder}

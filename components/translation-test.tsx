@@ -79,6 +79,36 @@ export default function TranslationTest() {
             🇺🇸 English
           </ThemedText>
         </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[
+            styles.languageButton,
+            currentLanguage === 'it' && styles.activeLanguageButton
+          ]}
+          onPress={() => changeLanguage('it')}
+        >
+          <ThemedText style={[
+            styles.languageButtonText,
+            currentLanguage === 'it' && styles.activeLanguageButtonText
+          ]}>
+            🇮🇹 Italiano
+          </ThemedText>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[
+            styles.languageButton,
+            currentLanguage === 'fr' && styles.activeLanguageButton
+          ]}
+          onPress={() => changeLanguage('fr')}
+        >
+          <ThemedText style={[
+            styles.languageButtonText,
+            currentLanguage === 'fr' && styles.activeLanguageButtonText
+          ]}>
+            🇫🇷 Français
+          </ThemedText>
+        </TouchableOpacity>
       </ThemedView>
       
       {/* Botón para resetear a automático */}
@@ -142,16 +172,19 @@ const styles = StyleSheet.create({
   },
   languageButtons: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 20,
+    gap: 10,
     marginBottom: 30,
   },
   languageButton: {
     padding: 10,
     backgroundColor: '#007AFF',
     borderRadius: 8,
-    minWidth: 100,
+    minWidth: 80,
     alignItems: 'center',
+    flex: 1,
+    maxWidth: '45%',
   },
   activeLanguageButton: {
     backgroundColor: '#FF6B35',

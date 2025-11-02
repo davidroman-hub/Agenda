@@ -106,7 +106,7 @@ export default function Book() {
       >
         {/* Efecto de página doblándose */}
         <PageFoldEffect
-
+          tCommon={tCommon}
           showPageTransition={showPageTransition}
           transitionProgress={transitionProgress}
           dynamicStyles={dynamicStyles}
@@ -119,6 +119,7 @@ export default function Book() {
 
         {/* Contenido principal de páginas */}
         <BookPagesContent
+          tCommon={tCommon}
           days={days}
           tAgenda={tAgenda}
           viewMode={viewMode}

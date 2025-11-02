@@ -21,6 +21,7 @@ interface TaskReminderProps {
   readonly isEnabled?: boolean;
   readonly onToggleEnabled: (enabled: boolean) => void;
   readonly taskDate: string;
+  readonly tCommon: (key: string, options?: any) => string;
 }
 
 export default function TaskReminder({
@@ -29,6 +30,7 @@ export default function TaskReminder({
   isEnabled = false,
   onToggleEnabled,
   taskDate,
+  tCommon,
 }: TaskReminderProps) {
   // Inicializar tempDate con la fecha local para evitar problemas de timezone
   const getInitialDate = () => {
@@ -59,7 +61,6 @@ export default function TaskReminder({
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-
       // Crear una nueva fecha manteniendo la zona horaria local del usuario
       const localDate = new Date(selectedDate);
 
@@ -134,10 +135,10 @@ export default function TaskReminder({
     try {
       // Convertir taskDate a fecha local sin problemas de timezone
       let maxDate: Date;
-      
-      if (taskDate.includes('T')) {
+
+      if (taskDate.includes("T")) {
         // Si es un ISO string, parsearlo correctamente en timezone local
-        const dateParts = taskDate.split('T')[0].split('-');
+        const dateParts = taskDate.split("T")[0].split("-");
         maxDate = new Date(
           Number.parseInt(dateParts[0]), // year
           Number.parseInt(dateParts[1]) - 1, // month (0-indexed)
@@ -145,22 +146,20 @@ export default function TaskReminder({
         );
       } else {
         // Si es una fecha simple YYYY-MM-DD
-        const dateParts = taskDate.split('-');
+        const dateParts = taskDate.split("-");
         maxDate = new Date(
           Number.parseInt(dateParts[0]), // year
           Number.parseInt(dateParts[1]) - 1, // month (0-indexed)
           Number.parseInt(dateParts[2]) // day
         );
       }
-      
+
       // Establecer al final del día en timezone local
       maxDate.setHours(23, 59, 59, 999);
       setTaskDateLocal(maxDate);
 
-
       setShowDatePicker(true);
     } catch (error) {
-    
       // Fallback
       const fallback = new Date();
       fallback.setDate(fallback.getDate() + 7); // 7 días desde hoy
@@ -176,7 +175,7 @@ export default function TaskReminder({
       {/* Header con toggle */}
       <View style={styles.header}>
         <ThemedText style={[styles.title, { color: textColor }]}>
-          Recordatorio
+          {tCommon("taskReminder.reminder")}
         </ThemedText>
         <Switch
           value={isEnabled}
@@ -198,8 +197,8 @@ export default function TaskReminder({
           >
             <ThemedText style={[styles.setReminderText, { color: tintColor }]}>
               {reminderDate
-                ? "Cambiar recordatorio"
-                : "Establecer recordatorio"}
+                ? tCommon("taskReminder.changeReminder")
+                : tCommon("taskReminder.setReminder")}
             </ThemedText>
           </TouchableOpacity>
 
@@ -221,7 +220,7 @@ export default function TaskReminder({
                 onPress={() => onReminderChange(null)}
               >
                 <ThemedText style={[styles.removeText, { color: "#ff4444" }]}>
-                  Quitar recordatorio
+                  {tCommon("taskReminder.removeReminder")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -234,8 +233,6 @@ export default function TaskReminder({
               mode="datetime"
               display="compact"
               onChange={handleDateChange}
-          
-
               minimumDate={setZeroHrs(today)}
               maximumDate={addHoursSameTime(
                 setZeroHrs(taskDateLocal || new Date())

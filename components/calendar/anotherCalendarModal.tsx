@@ -2,6 +2,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useMemo, useState } from "react";
 import { Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Calendar } from "react-native-calendars";
@@ -109,11 +110,17 @@ CalendarModalProps) {
   const textColor = useThemeColor({}, "text");
   const tintColor = useThemeColor({}, "tint");
 
-  const [selected, setSelected] = useState(dateSelected);
+  // Obtener fecha actual como fallback
+  const getCurrentDateString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const [selected, setSelected] = useState(dateSelected || getCurrentDateString());
 
   // Efecto para sincronizar el estado local con el store
   React.useEffect(() => {
-    setSelected(dateSelected);
+    setSelected(dateSelected || getCurrentDateString());
   }, [dateSelected]);
 
   const handleDayPress = (day: any) => {
@@ -193,21 +200,21 @@ CalendarModalProps) {
     }
 
     // Marcar día seleccionado
-    if (marked[dateSelected as string]) {
-      marked[dateSelected as string] = {
-        ...marked[dateSelected as string],
+    if (marked[selected]) {
+      marked[selected] = {
+        ...marked[selected],
         selected: true,
         selectedColor: tintColor,
       };
     } else {
-      marked[dateSelected as string] = {
+      marked[selected] = {
         selected: true,
         selectedColor: tintColor,
       };
     }
 
     return marked;
-  }, [getTasksForDate, tasksByDate, dateSelected, tintColor]);
+  }, [getTasksForDate, tasksByDate, selected, tintColor]);
 
   return (
     <Modal visible={visible} animationType="slide">
@@ -224,7 +231,7 @@ CalendarModalProps) {
         <ThemedView style={styles.calendarContainer}>
           <Calendar
             onDayPress={handleDayPress}
-            current={selected as string}
+            current={selected}
             markingType={"multi-dot"}
             markedDates={markedDates}
             theme={{
@@ -246,16 +253,11 @@ CalendarModalProps) {
 
         <ThemedView style={styles.taskPreview}>
           <ThemedText style={styles.previewTitle}>
-            {new Date(selected as string).toLocaleDateString("es-ES", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatDateWithI18n(new Date(selected))}
           </ThemedText>
 
           {(() => {
-            const selectedDayTasks = getTasksForDate(selected as string);
+            const selectedDayTasks = getTasksForDate(selected);
             return selectedDayTasks.length > 0 ? (
               <ScrollView
                 showsVerticalScrollIndicator={true}
@@ -306,7 +308,7 @@ CalendarModalProps) {
       <DayDetailModal
         visible={showDayDetail}
         onClose={() => setShowDayDetail(false)}
-        selectedDate={selected as string}
+        selectedDate={selected}
       />
     </Modal>
   );

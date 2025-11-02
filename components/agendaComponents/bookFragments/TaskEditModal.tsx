@@ -11,7 +11,11 @@ interface TaskEditModalProps {
   readonly initialText?: string;
   readonly initialReminder?: string | null;
   readonly initialRepeat?: RepeatOption;
-  readonly onSave: (text: string, reminder?: string | null, repeat?: RepeatOption) => void;
+  readonly onSave: (
+    text: string,
+    reminder?: string | null,
+    repeat?: RepeatOption
+  ) => void;
   readonly onCancel: () => void;
   readonly onDelete?: () => void;
   readonly colorScheme: "light" | "dark";
@@ -20,13 +24,14 @@ interface TaskEditModalProps {
   readonly date: string;
   readonly lineNumber: number;
   readonly completed: boolean;
+  readonly tCommon: (key: string, options?: any) => string;
 }
 
 export default function TaskEditModal({
   visible,
   initialText = "",
   initialReminder,
-  initialRepeat = 'none',
+  initialRepeat = "none",
   onSave,
   onCancel,
   onDelete,
@@ -36,12 +41,13 @@ export default function TaskEditModal({
   date,
   lineNumber,
   completed,
+  tCommon,
 }: TaskEditModalProps) {
   const [taskText, setTaskText] = useState(initialText);
   const [reminderDate, setReminderDate] = useState<Date | null>(null);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [repeatOption, setRepeatOption] = useState<RepeatOption>(initialRepeat);
-  const [repeatEnabled, setRepeatEnabled] = useState(initialRepeat !== 'none');
+  const [repeatEnabled, setRepeatEnabled] = useState(initialRepeat !== "none");
 
   React.useEffect(() => {
     setTaskText(initialText);
@@ -58,7 +64,7 @@ export default function TaskEditModal({
 
     // Inicializar repetición desde la tarea existente
     setRepeatOption(initialRepeat);
-    setRepeatEnabled(initialRepeat !== 'none');
+    setRepeatEnabled(initialRepeat !== "none");
   }, [initialText, initialReminder, initialRepeat, visible]);
 
   const handleSave = () => {
@@ -66,15 +72,15 @@ export default function TaskEditModal({
     if (trimmedText.length > 0) {
       const reminderString =
         reminderEnabled && reminderDate ? reminderDate.toISOString() : null;
-      const finalRepeatOption = repeatEnabled ? repeatOption : 'none';
+      const finalRepeatOption = repeatEnabled ? repeatOption : "none";
       onSave(trimmedText, reminderString, finalRepeatOption);
       setTaskText("");
       setReminderDate(null);
       setReminderEnabled(false);
-      setRepeatOption('none');
+      setRepeatOption("none");
       setRepeatEnabled(false);
     } else {
-      Alert.alert("Error", "La tarea no puede estar vacía");
+      Alert.alert("Error", tCommon("taskEditModal.emptyTaskError"));
     }
   };
 
@@ -85,26 +91,26 @@ export default function TaskEditModal({
       setTaskText("");
       onCancel();
     } else {
-      Alert.alert("Error", "La tarea no se pudo completar");
+      Alert.alert("Error", tCommon("taskEditModal.incompleteTaskError"));
     }
   };
 
   const handleDelete = () => {
     if (onDelete) {
       Alert.alert(
-        "Eliminar tarea",
-        "¿Estás seguro de que quieres eliminar esta tarea?",
+        tCommon("taskEditModal.deleteTask"),
+        tCommon("taskEditModal.deleteTaskConfirm"),
         [
-          { text: "Cancelar", style: "cancel" },
+          { text: tCommon("buttons.cancel"), style: "cancel" },
           {
-            text: "Eliminar",
+            text: tCommon("buttons.delete"),
             style: "destructive",
             onPress: () => {
               onDelete();
               setTaskText("");
               setReminderDate(null);
               setReminderEnabled(false);
-              setRepeatOption('none');
+              setRepeatOption("none");
               setRepeatEnabled(false);
             },
           },
@@ -117,7 +123,7 @@ export default function TaskEditModal({
     setTaskText("");
     setReminderDate(null);
     setReminderEnabled(false);
-    setRepeatOption('none');
+    setRepeatOption("none");
     setRepeatEnabled(false);
     onCancel();
   };
@@ -134,14 +140,16 @@ export default function TaskEditModal({
       <ThemedView style={modalStyles(colorScheme, colors).overlay}>
         <ThemedView style={modalStyles(colorScheme, colors).container}>
           <ThemedText style={modalStyles(colorScheme, colors).title}>
-            {initialText ? "Editar tarea" : "Nueva tarea"}
+            {initialText
+              ? tCommon("taskEditModal.taskEdit")
+              : tCommon("taskEditModal.taskCreate")}
           </ThemedText>
 
           <TextInput
             style={modalStyles(colorScheme, colors).input}
             value={taskText}
             onChangeText={setTaskText}
-            placeholder="Escribe tu tarea aquí..."
+            placeholder={tCommon("taskEditModal.writeTaskHere")}
             placeholderTextColor={
               colorScheme === "dark" ? "#888888" : "#666666"
             }
@@ -154,8 +162,10 @@ export default function TaskEditModal({
             onRepeatChange={setRepeatOption}
             isEnabled={repeatEnabled}
             onToggleEnabled={setRepeatEnabled}
+            tCommon={tCommon}
           />
           <TaskReminder
+            tCommon={tCommon}
             reminderDate={reminderDate}
             onReminderChange={setReminderDate}
             isEnabled={reminderEnabled}
@@ -177,7 +187,7 @@ export default function TaskEditModal({
                   modalStyles(colorScheme, colors).cancelButtonText,
                 ]}
               >
-                Cancelar
+                {tCommon("buttons.cancel")}
               </ThemedText>
             </TouchableOpacity>
 
@@ -195,7 +205,7 @@ export default function TaskEditModal({
                     modalStyles(colorScheme, colors).deleteButtonText,
                   ]}
                 >
-                  Eliminar
+                  {tCommon("buttons.delete")}
                 </ThemedText>
               </TouchableOpacity>
             )}
@@ -217,8 +227,8 @@ export default function TaskEditModal({
                   ]}
                 >
                   {completed
-                    ? "Marcar como incompleta"
-                    : "Marcar como completa"}
+                    ? tCommon("taskEditModal.markAsIncomplete")
+                    : tCommon("taskEditModal.markAsCompleted")}
                 </ThemedText>
               </TouchableOpacity>
             )}
@@ -235,7 +245,7 @@ export default function TaskEditModal({
                   modalStyles(colorScheme, colors).saveButtonText,
                 ]}
               >
-                Guardar
+                {tCommon("buttons.save")}
               </ThemedText>
             </TouchableOpacity>
           </View>

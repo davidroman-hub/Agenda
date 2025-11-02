@@ -13,6 +13,7 @@ interface PageFoldEffectProps {
   readonly colorScheme: string;
   readonly colors: any;
   readonly tAgenda: (key: string, options?: any) => string;
+  readonly tCommon: (key: string, options?: any) => string;
 }
 
 export default function PageFoldEffect({ 
@@ -23,7 +24,8 @@ export default function PageFoldEffect({
   viewMode,
   colorScheme,
   colors,
-  tAgenda
+  tAgenda,
+  tCommon
 }: PageFoldEffectProps) {
   
   if (!showPageTransition) return null;
@@ -76,6 +78,7 @@ export default function PageFoldEffect({
                 <ThemedView key={`fold-pair-${pairIndex}`} style={styles.expandedContainer}>
                   {leftDay && (
                     <BookPage
+                      tCommon={tCommon}
                       day={leftDay}
                       dayIndex={pairIndex * 2}
                       isLeftPage={true}
@@ -96,6 +99,7 @@ export default function PageFoldEffect({
                   </ThemedView>
                   {rightDay && (
                     <BookPage
+                      tCommon={tCommon}
                       day={rightDay}
                       dayIndex={pairIndex * 2 + 1}
                       isLeftPage={false}
@@ -114,7 +118,7 @@ export default function PageFoldEffect({
           days.map((day, dayIndex) => (
             <React.Fragment key={`fold-${day.toISOString()}`}>
               <BookPage
-              
+                tCommon={tCommon}   
                 day={day}
                 dayIndex={dayIndex}
                 viewMode={viewMode}
