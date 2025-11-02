@@ -33,8 +33,8 @@
     "repeatingTask": "Tarea Repetida",
     "repeatingTaskEditWarning": "No puedes editar directamente una tarea repetida. Edita la tarea original en su día de creación.",
     "repeatingTaskDeleteWarning": "No puedes eliminar una tarea repetida desde aquí. Desactiva el patrón de repetición en la configuración.",
-    "taskCount": "{{count}} tarea",
-    "taskCount_plural": "{{count}} tareas"
+    "taskCount": "tarea",
+    "taskCount_plural": "tareas"
   },
   "calendar": {
     "title": "Calendario",

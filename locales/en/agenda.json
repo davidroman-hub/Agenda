@@ -33,8 +33,8 @@
     "repeatingTask": "Repeating Task",
     "repeatingTaskEditWarning": "You cannot directly edit a repeating task. Edit the original task on its creation day.",
     "repeatingTaskDeleteWarning": "You cannot delete a repeating task from here. Disable the repetition pattern in settings.",
-    "taskCount": "{{count}} task",
-    "taskCount_plural": "{{count}} tasks"
+    "taskCount": "task",
+    "taskCount_plural": "tasks"
   },
   "calendar": {
     "title": "Calendar",

@@ -1,6 +1,7 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useState } from "react";
 import {
     Alert,
@@ -228,12 +229,7 @@ export default function DayDetailModal({
         <ThemedView style={styles.header}>
           <ThemedText style={[styles.title, { color: textColor }]}>
             📅{" "}
-            {new Date(selectedDate).toLocaleDateString("es-ES", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+             {formatDateWithI18n(new Date(selectedDate))}
           </ThemedText>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="times" size={20} color={textColor} />

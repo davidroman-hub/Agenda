@@ -1,3 +1,4 @@
+import { useI18n } from "@/hooks/use-i18n";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
@@ -5,7 +6,7 @@ import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useMemo, useState } from "react";
 import { Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { Calendar } from "react-native-calendars";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { ThemedText } from "../themed-text";
 import { ThemedView } from "../themed-view";
@@ -26,7 +27,188 @@ export default function AnotherCalendarModal({
 CalendarModalProps) {
   // Estados para el modal de día
   const [showDayDetail, setShowDayDetail] = useState(false);
-  
+
+  // Hooks de internacionalización
+  const { tAgenda, currentLanguage } = useI18n();
+
+  // Configurar LocaleConfig para el calendario basado en el idioma actual
+  React.useEffect(() => {
+    // Configuración para Español
+    LocaleConfig.locales["es"] = {
+      monthNames: [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre",
+      ],
+      monthNamesShort: [
+        "Ene.",
+        "Feb.",
+        "Mar.",
+        "Abr.",
+        "May.",
+        "Jun.",
+        "Jul.",
+        "Ago.",
+        "Sep.",
+        "Oct.",
+        "Nov.",
+        "Dic.",
+      ],
+      dayNames: [
+        "Domingo",
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+      ],
+      dayNamesShort: ["Dom.", "Lun.", "Mar.", "Mié.", "Jue.", "Vie.", "Sáb."],
+      today: "Hoy",
+    };
+
+    // Configuración para Inglés
+    LocaleConfig.locales["en"] = {
+      monthNames: [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ],
+      monthNamesShort: [
+        "Jan.",
+        "Feb.",
+        "Mar.",
+        "Apr.",
+        "May",
+        "Jun.",
+        "Jul.",
+        "Aug.",
+        "Sep.",
+        "Oct.",
+        "Nov.",
+        "Dec.",
+      ],
+      dayNames: [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ],
+      dayNamesShort: ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fri.", "Sat."],
+      today: "Today",
+    };
+
+    // Configuración para Francés
+    LocaleConfig.locales["fr"] = {
+      monthNames: [
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre",
+      ],
+      monthNamesShort: [
+        "Janv.",
+        "Févr.",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juil.",
+        "Août",
+        "Sept.",
+        "Oct.",
+        "Nov.",
+        "Déc.",
+      ],
+      dayNames: [
+        "Dimanche",
+        "Lundi",
+        "Mardi",
+        "Mercredi",
+        "Jeudi",
+        "Vendredi",
+        "Samedi",
+      ],
+      dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
+      today: "Aujourd'hui",
+    };
+
+    // Configuración para Italiano
+    LocaleConfig.locales["it"] = {
+      monthNames: [
+        "Gennaio",
+        "Febbraio",
+        "Marzo",
+        "Aprile",
+        "Maggio",
+        "Giugno",
+        "Luglio",
+        "Agosto",
+        "Settembre",
+        "Ottobre",
+        "Novembre",
+        "Dicembre",
+      ],
+      monthNamesShort: [
+        "Gen.",
+        "Feb.",
+        "Mar.",
+        "Apr.",
+        "Mag.",
+        "Giu.",
+        "Lug.",
+        "Ago.",
+        "Set.",
+        "Ott.",
+        "Nov.",
+        "Dic.",
+      ],
+      dayNames: [
+        "Domenica",
+        "Lunedì",
+        "Martedì",
+        "Mercoledì",
+        "Giovedì",
+        "Venerdì",
+        "Sabato",
+      ],
+      dayNamesShort: ["Dom.", "Lun.", "Mar.", "Mer.", "Gio.", "Ven.", "Sab."],
+      today: "Oggi",
+    };
+
+    // Establecer el locale por defecto basado en el idioma actual
+    LocaleConfig.defaultLocale = currentLanguage || "es";
+  }, [currentLanguage]);
+
   // Colores del tema
   const { dateSelected, selectDate } = useCalendarSettingsStore();
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
@@ -104,8 +286,6 @@ CalendarModalProps) {
     ]
   );
 
-
-
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const tintColor = useThemeColor({}, "tint");
@@ -113,10 +293,12 @@ CalendarModalProps) {
   // Obtener fecha actual como fallback
   const getCurrentDateString = () => {
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    return today.toISOString().split("T")[0];
   };
 
-  const [selected, setSelected] = useState(dateSelected || getCurrentDateString());
+  const [selected, setSelected] = useState(
+    dateSelected || getCurrentDateString()
+  );
 
   // Efecto para sincronizar el estado local con el store
   React.useEffect(() => {
@@ -133,6 +315,34 @@ CalendarModalProps) {
     console.log("🚀 Abriendo detalle del día:", selected);
     // Abrir el modal de detalle del día
     setShowDayDetail(true);
+  };
+
+  // Función para obtener el texto "sin tareas" según el idioma
+  const getNoTasksText = () => {
+    switch (currentLanguage) {
+      case "en":
+        return "No tasks this day";
+      case "fr":
+        return "Aucune tâche ce jour";
+      case "it":
+        return "Nessuna attività in questo giorno";
+      default:
+        return "No hay tareas este día";
+    }
+  };
+
+  // Función para obtener el texto del botón según el idioma
+  const getButtonText = () => {
+    switch (currentLanguage) {
+      case "en":
+        return "👁 View tasks for this day";
+      case "fr":
+        return "👁 Voir les tâches de ce jour";
+      case "it":
+        return "👁 Vedi attività di questo giorno";
+      default:
+        return "👁 Ver tareas de este día";
+    }
   };
 
   const markedDates = useMemo(() => {
@@ -221,7 +431,7 @@ CalendarModalProps) {
       <ThemedView style={[styles.container, { backgroundColor }]}>
         {/* Header */}
         <ThemedView style={styles.header}>
-          <ThemedText style={styles.title}>Calendario</ThemedText>
+          <ThemedText style={styles.title}>{tAgenda("calendar.title")}</ThemedText>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="times" size={20} color={textColor} />
           </TouchableOpacity>
@@ -234,6 +444,8 @@ CalendarModalProps) {
             current={selected}
             markingType={"multi-dot"}
             markedDates={markedDates}
+            // Configuración de localización basada en el idioma del usuario
+            firstDay={currentLanguage === "en" ? 0 : 1} // Domingo para inglés, Lunes para otros
             theme={{
               backgroundColor: backgroundColor,
               calendarBackground: backgroundColor,
@@ -264,8 +476,10 @@ CalendarModalProps) {
                 style={{ height: 300 }}
               >
                 <ThemedText style={styles.taskCount}>
-                  {selectedDayTasks.length} tarea
-                  {selectedDayTasks.length === 1 ? "" : "s"}
+                  {selectedDayTasks.length}{" "}
+                  {selectedDayTasks.length === 1
+                    ? tAgenda("tasks.taskCount")
+                    : tAgenda("tasks.taskCount_plural")}
                 </ThemedText>
                 {selectedDayTasks.map((task, index) => (
                   <ThemedText
@@ -284,9 +498,7 @@ CalendarModalProps) {
                 ))}
               </ScrollView>
             ) : (
-              <ThemedText style={styles.noTasks}>
-                No hay tareas este día
-              </ThemedText>
+              <ThemedText style={styles.noTasks}>{getNoTasksText()}</ThemedText>
             );
           })()}
         </ThemedView>
@@ -297,13 +509,11 @@ CalendarModalProps) {
             style={[styles.button, { backgroundColor: "#007bff" }]}
             onPress={handleGoToDate}
           >
-            <ThemedText style={styles.buttonText}>
-              � Ver tareas de este día
-            </ThemedText>
+            <ThemedText style={styles.buttonText}>{getButtonText()}</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
-      
+
       {/* Modal de detalle del día */}
       <DayDetailModal
         visible={showDayDetail}
