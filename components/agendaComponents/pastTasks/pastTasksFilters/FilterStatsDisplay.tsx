@@ -12,6 +12,7 @@ interface FilterStatsDisplayProps {
   statusFilter: TaskStatusFilter;
   onStatusFilterChange: (filter: TaskStatusFilter) => void;
   onResetStatusFilter: () => void;
+  tCommon: (key: string, options?: any) => string;
 }
 
 export const FilterStatsDisplay: React.FC<FilterStatsDisplayProps> = ({
@@ -21,6 +22,7 @@ export const FilterStatsDisplay: React.FC<FilterStatsDisplayProps> = ({
   statusFilter,
   onStatusFilterChange,
   onResetStatusFilter,
+  tCommon,
 }) => {
   const tintColor = useThemeColor({}, "tint");
   const successColor = "#4CAF50";
@@ -38,71 +40,78 @@ export const FilterStatsDisplay: React.FC<FilterStatsDisplayProps> = ({
   ];
 
   const getTitle = () => {
-    if (statusFilter === 'completed') return "Estadísticas (Mostrando: Completadas)";
-    if (statusFilter === 'pending') return "Estadísticas (Mostrando: Pendientes)";
-    return hasActiveFilters ? "Estadísticas Filtradas" : "Estadísticas Generales";
+    if (statusFilter === "completed")
+      return tCommon("pastTasks.states.completed");
+    if (statusFilter === "pending")
+      return tCommon("pastTasks.states.pending");
+    return hasActiveFilters
+      ? tCommon("pastTasks.states.filtered")
+      : tCommon("pastTasks.states.general");
   };
 
   return (
     <ThemedView style={styles.statsContainer}>
       <View style={styles.titleRow}>
-        <ThemedText style={styles.statsTitle}>
-          {getTitle()}
-        </ThemedText>
-        {statusFilter !== 'all' && (
-          <TouchableOpacity onPress={onResetStatusFilter} style={styles.resetButton}>
-            <ThemedText style={styles.resetButtonText}>Mostrar Todas</ThemedText>
+        <ThemedText style={styles.statsTitle}>{getTitle()}</ThemedText>
+        {statusFilter !== "all" && (
+          <TouchableOpacity
+            onPress={onResetStatusFilter}
+            style={styles.resetButton}
+          >
+            <ThemedText style={styles.resetButtonText}>
+              {tCommon("pastTasks.states.showAll")}
+            </ThemedText>
           </TouchableOpacity>
         )}
       </View>
-      
+
       <View style={styles.statsGrid}>
-        <TouchableOpacity 
-          style={getStatItemStyle('all')} 
-          onPress={() => onStatusFilterChange('all')}
+        <TouchableOpacity
+          style={getStatItemStyle("all")}
+          onPress={() => onStatusFilterChange("all")}
           activeOpacity={0.7}
         >
-          <ThemedText style={getStatNumberStyle(tintColor, 'all')}>
+          <ThemedText style={getStatNumberStyle(tintColor, "all")}>
             {stats.totalTasks}
           </ThemedText>
           <ThemedText style={styles.statLabel}>
-            {hasActiveFilters ? "Filtradas" : "Total"}
+            {hasActiveFilters ? tCommon("pastTasks.buttons.filtered") : tCommon("pastTasks.buttons.total")}
           </ThemedText>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={getStatItemStyle('completed')} 
-          onPress={() => onStatusFilterChange('completed')}
+
+        <TouchableOpacity
+          style={getStatItemStyle("completed")}
+          onPress={() => onStatusFilterChange("completed")}
           activeOpacity={0.7}
         >
-          <ThemedText style={getStatNumberStyle(successColor, 'completed')}>
+          <ThemedText style={getStatNumberStyle(successColor, "completed")}>
             {stats.completedTasks}
           </ThemedText>
-          <ThemedText style={styles.statLabel}>Completadas</ThemedText>
+          <ThemedText style={styles.statLabel}>{tCommon("pastTasks.buttons.completed")}</ThemedText>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={getStatItemStyle('pending')} 
-          onPress={() => onStatusFilterChange('pending')}
+
+        <TouchableOpacity
+          style={getStatItemStyle("pending")}
+          onPress={() => onStatusFilterChange("pending")}
           activeOpacity={0.7}
         >
-          <ThemedText style={getStatNumberStyle(warningColor, 'pending')}>
+          <ThemedText style={getStatNumberStyle(warningColor, "pending")}>
             {stats.pendingTasks}
           </ThemedText>
-          <ThemedText style={styles.statLabel}>Pendientes</ThemedText>
+          <ThemedText style={styles.statLabel}>{tCommon("pastTasks.buttons.pending")}</ThemedText>
         </TouchableOpacity>
-        
+
         <View style={styles.statItem}>
           <ThemedText style={[styles.statNumber, { color: tintColor }]}>
             {stats.completionRate}%
           </ThemedText>
-          <ThemedText style={styles.statLabel}>Completitud</ThemedText>
+          <ThemedText style={styles.statLabel}>{tCommon("pastTasks.buttons.completeness")}</ThemedText>
         </View>
       </View>
-      
+
       {hasActiveFilters && (
         <ThemedText style={styles.totalInfo}>
-          Total de tareas pasadas: {totalTasksAllTime}
+          {tCommon("pastTasks.buttons.totalPastTasks")} {totalTasksAllTime}
         </ThemedText>
       )}
     </ThemedView>
@@ -116,9 +125,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   statsTitle: {
@@ -128,15 +137,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   resetButton: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: "rgba(255, 59, 48, 0.1)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
   resetButtonText: {
     fontSize: 10,
-    color: '#FF3B30',
-    fontWeight: '600',
+    color: "#FF3B30",
+    fontWeight: "600",
   },
   statsGrid: {
     flexDirection: "row",
@@ -151,9 +160,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   statItemActive: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: "rgba(0, 122, 255, 0.1)",
     borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.3)',
+    borderColor: "rgba(0, 122, 255, 0.3)",
   },
   statNumber: {
     fontSize: 20,
@@ -164,7 +173,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.1 }],
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 10,
     opacity: 0.7,
     textAlign: "center",
   },

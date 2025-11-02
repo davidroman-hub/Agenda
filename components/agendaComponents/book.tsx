@@ -70,16 +70,7 @@ export default function Book() {
     getTranslateX,
   } = useBookPageLogic();
 
-  const {
-    tCommon,
-    tAgenda,
-    changeLanguage,
-    resetToDeviceLanguage,
-    currentLanguage,
-    deviceLanguage,
-    hasUserSelectedLanguage,
-    userSelectedLanguage,
-  } = useI18n();
+  const { tCommon, tAgenda } = useI18n();
 
   // Obtener las fechas según la página actual
   const days = calculateDays(currentPageIndex, daysToShow);

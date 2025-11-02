@@ -11,12 +11,9 @@ interface FilterChipsProps {
   selectedMonth: number | null;
   onYearSelect: (year: number | null) => void;
   onMonthSelect: (month: number | null) => void;
+  tAgenda: (key: string, options?: any) => string;
+  tCommon: (key: string, options?: any) => string;
 }
-
-const monthNames = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-];
 
 export const FilterChips: React.FC<FilterChipsProps> = ({
   years,
@@ -25,10 +22,27 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
   selectedMonth,
   onYearSelect,
   onMonthSelect,
+  tAgenda,
+  tCommon,
 }) => {
   const primaryColor = useThemeColor({}, "text");
   const backgroundColor = useThemeColor({}, "background");
   const tintColor = useThemeColor({}, "tint");
+
+  const monthNames = [
+    tAgenda("months.january"),
+    tAgenda("months.february"),
+    tAgenda("months.march"),
+    tAgenda("months.april"),
+    tAgenda("months.may"),
+    tAgenda("months.june"),
+    tAgenda("months.july"),
+    tAgenda("months.august"),
+    tAgenda("months.september"),
+    tAgenda("months.october"),
+    tAgenda("months.november"),
+    tAgenda("months.december"),
+  ];
 
   const getChipStyle = (isSelected: boolean) => [
     styles.chip,
@@ -42,17 +56,21 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
     styles.chipText,
     {
       color: isSelected ? backgroundColor : primaryColor,
-      fontWeight: isSelected ? "600" : "normal" as any,
+      fontWeight: isSelected ? "600" : ("normal" as any),
     },
   ];
 
   return (
     <ThemedView style={styles.filtersContainer}>
-      <ThemedText style={styles.filterTitle}>Filtros</ThemedText>
-      
+      <ThemedText style={styles.filterTitle}>
+        {tCommon("pastTasks.filters")}
+      </ThemedText>
+
       {/* Filtro por Año */}
       <View style={styles.filterSection}>
-        <ThemedText style={styles.filterLabel}>Año</ThemedText>
+        <ThemedText style={styles.filterLabel}>
+          {tCommon("pastTasks.year")}
+        </ThemedText>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -63,10 +81,10 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
             onPress={() => onYearSelect(null)}
           >
             <ThemedText style={getChipTextStyle(selectedYear === null)}>
-              Todos
+              {tCommon("pastTasks.all")}
             </ThemedText>
           </TouchableOpacity>
-          
+
           {years.map((year) => (
             <TouchableOpacity
               key={year}
@@ -84,7 +102,9 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
       {/* Filtro por Mes */}
       {selectedYear && (
         <View style={styles.filterSection}>
-          <ThemedText style={styles.filterLabel}>Mes</ThemedText>
+          <ThemedText style={styles.filterLabel}>
+            {tCommon("pastTasks.month")}
+          </ThemedText>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -95,10 +115,10 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
               onPress={() => onMonthSelect(null)}
             >
               <ThemedText style={getChipTextStyle(selectedMonth === null)}>
-                Todos
+                {tCommon("pastTasks.all")}
               </ThemedText>
             </TouchableOpacity>
-            
+
             {months.map((month) => (
               <TouchableOpacity
                 key={month}

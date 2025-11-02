@@ -7,12 +7,14 @@ import NotificationIconWithBadge from "@/components/ui/notification-icon-with-ba
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
+import { useI18n } from "@/hooks/use-i18n";
 import useLoginStore from "@/stores/login-store";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { isLoggedIn } = useLoginStore();
-
+  const { tCommon, tAgenda } = useI18n();
+  
   return (
     <Tabs
       screenOptions={{
@@ -37,7 +39,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Agenda",
+          title: tCommon("tabs.agenda"),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="agenda" color={color} />
           ),
@@ -48,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="pastTasks"
         options={{
-          title: "Tareas Pasadas",
+          title: tCommon("tabs.pastTasks"),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="bell.fill" color={color} />
           ),
@@ -59,7 +61,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          title: "Recordatorios",
+          title: tCommon("tabs.reminders"),
           tabBarIcon: ({ color }) => (
             <NotificationIconWithBadge color={color} size={28} />
           ),
@@ -71,7 +73,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: tCommon("tabs.settings"),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="gear" color={color} />
           ),

@@ -10,6 +10,15 @@
     "yes": "Yes",
     "no": "No"
   },
+
+  "tabs": {
+    "agenda": "Agenda",
+    "pastTasks": "Past Tasks",
+    "reminders": "Reminders",
+    "settings": "Settings",
+    "notes": "Notes"
+  },
+
   "navigation": {
     "home": "Home",
     "agenda": "Agenda",
@@ -65,5 +74,33 @@
     "setReminder": "Set reminder",
     "changeReminder": "Change reminder",
     "removeReminder": "Remove reminder"
+  },
+  "pastTasks": {
+    "cleanFilters": "Clean all the filters",
+    "noPastTasks": "No past tasks available",
+    "noResults": "No results found",
+    "notPastTasks": "There are no past tasks",
+    "adjustFilters": "Try adjusting your filters to find past tasks or create new ones.",
+    "hereAppears": "Here will appear a list of your past tasks.",
+    "all": "All",
+    "filters": "Filters",
+    "year": "Year",
+    "month": "Month",
+    "states": {
+      "completed": "Statistics (Showing: Completed)",
+      "pending": "Statistics (Showing: Pending)",
+      "general": "General Statistics",
+      "filtered": "Statistics (Filtered)",
+      "cancelled": "Statistics (Showing: Cancelled)",
+      "showAll": "Show all"
+    },
+    "buttons": {
+      "filtered": "Filtered",
+      "completed": "Completed",
+      "pending": "Pending",
+      "completeness": "Completeness",
+      "total": "Total",
+      "totalPastTasks": "Total Past Tasks"
+    }
   }
 }

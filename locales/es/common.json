@@ -10,6 +10,15 @@
     "yes": "Sí",
     "no": "No"
   },
+
+  "tabs": {
+    "agenda": "Agenda",
+    "pastTasks": "Tareas Pasadas",
+    "reminders": "Recordatorios",
+    "settings": "Ajustes",
+    "notes": "Notas"
+  },
+
   "navigation": {
     "home": "Inicio",
     "agenda": "Agenda",
@@ -67,5 +76,33 @@
     "setReminder": "Establecer recordatorio",
     "changeReminder": "Cambiar recordatorio",
     "removeReminder": "Quitar recordatorio"
+  },
+  "pastTasks": {
+    "cleanFilters": "Limpiar todos los filtros",
+    "noPastTasks": "No hay tareas pasadas disponibles",
+    "noResults": "No se encontraron resultados",
+    "notPastTasks": "No hay tareas pasadas",
+    "adjustFilters": "Intenta ajustar tus filtros para encontrar tareas pasadas o crea nuevas.",
+    "hereAppears": "Aquí aparecerá una lista de tus tareas pasadas.",
+    "all": "Todos",
+    "filters": "Filtros",
+    "year": "Año",
+    "month": "Mes",
+    "states": {
+      "completed": "Estadísticas (Mostrando: Completadas)",
+      "pending": "Estadísticas (Mostrando: Pendientes)",
+      "general": "Estadísticas Generales",
+      "filtered": "Estadísticas (Filtradas)",
+      "cancelled": "Estadísticas (Mostrando: Canceladas)",
+      "showAll": "Mostrar todo"
+    },
+    "buttons": {
+      "filtered": "Filtradas",
+      "completed": "Completadas",
+      "pending": "Pendientes",
+      "completeness": "Completitud",
+      "total": "Total",
+      "totalPastTasks": "Total de tareas pasadas"
+    }
   }
 }

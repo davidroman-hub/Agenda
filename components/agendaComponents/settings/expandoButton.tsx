@@ -1,10 +1,17 @@
+import { useI18n } from "@/hooks/use-i18n";
 import useBookSettingsStore from "@/stores/boook-settings";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ExpandoButton() {
-  const { setDaysToShow, daysToShow, setViewMode, viewMode, linesPerPage, setLinesPerPage } =
-    useBookSettingsStore();
+  const { tCommon } = useI18n();
+  const {
+    setDaysToShow,
+    daysToShow,
+    setViewMode,
+    linesPerPage,
+    setLinesPerPage,
+  } = useBookSettingsStore();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handlePress = () => {
@@ -12,10 +19,12 @@ export default function ExpandoButton() {
   };
 
   const optiones = [
-    { id: 1, label: daysToShow === 6 ? "3 dias" : "6 dias" },
+    {
+      id: 1,
+      label: daysToShow === 6 ? `3 ${tCommon("days")}` : `6 ${tCommon("days")}`,
+    },
     { id: 2, label: "•  •\n•  •\n•  •" },
     { id: 3, label: "•" },
-  
   ];
 
   const manageOptions = (optionId: number) => {
