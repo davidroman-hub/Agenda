@@ -23,6 +23,7 @@ interface BookPageProps {
   readonly colorScheme: string;
   readonly colors: any;
   readonly dynamicStyles: any;
+tAgenda: (key: string, options?: any) => string
 }
 
 // Objeto vacío estable para evitar re-renders innecesarios
@@ -36,9 +37,8 @@ export default function BookPage({
   colorScheme,
   colors,
   dynamicStyles,
+  tAgenda,
 }: BookPageProps) {
-  //console.log("📋 BookPage renderizado para:", day.toString(), "ISO:", day.toISOString());
-
   // Formatear fecha para el store usando utilidad que evita problemas de timezone
   const dateKey = dateToLocalDateString(day);
 
@@ -56,7 +56,7 @@ export default function BookPage({
     (state) => state.tasksByDate[dateKey] || EMPTY_TASKS
   );
 
-  const { setCalendarIsOpen, calendarIsopen, selectDate, dateSelected } =
+  const { setCalendarIsOpen, calendarIsopen, selectDate } =
     useCalendarSettingsStore();
 
   // Obtener funciones del store de patrones de repetición
@@ -179,28 +179,28 @@ export default function BookPage({
   };
   const formatDate = (date: Date) => {
     const dayNames = [
-      "domingo",
-      "lunes",
-      "martes",
-      "miércoles",
-      "jueves",
-      "viernes",
-      "sábado",
+      tAgenda("days.sunday"),
+      tAgenda("days.monday"),
+      tAgenda("days.tuesday"),
+      tAgenda("days.wednesday"),
+      tAgenda("days.thursday"),
+      tAgenda("days.friday"),
+      tAgenda("days.saturday"),
     ];
 
     const monthNames = [
-      "enero",
-      "febrero",
-      "marzo",
-      "abril",
-      "mayo",
-      "junio",
-      "julio",
-      "agosto",
-      "septiembre",
-      "octubre",
-      "noviembre",
-      "diciembre",
+      tAgenda("months.january"),
+      tAgenda("months.february"),
+      tAgenda("months.march"),
+      tAgenda("months.april"),
+      tAgenda("months.may"),
+      tAgenda("months.june"),
+      tAgenda("months.july"),
+      tAgenda("months.august"),
+      tAgenda("months.september"),
+      tAgenda("months.october"),
+      tAgenda("months.november"),
+      tAgenda("months.december"),
     ];
 
     return {
@@ -670,13 +670,6 @@ export default function BookPage({
       <AnotherCalendarModal
         visible={calendarIsopen}
         onClose={() => setCalendarIsOpen(false)}
-        //selectedDate={day.toISOString().split("T")[0]}
-        // onDateSelect={(date: Date) => {
-        //   // Aquí necesitaremos una prop para navegar a la fecha
-        //   console.log('Navegar a fecha:', date);
-        //   setCalendarIsOpen(false);
-        // }}
-        // currentDate={day}
       />
 
       {/* Modal para editar tareas */}

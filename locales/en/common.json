@@ -24,6 +24,11 @@
     "noData": "No data",
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "next": "Next",
+    "previous": "Previous",
+    "page": "Page",
+    "days": "days",
+    "day": "day"
   }
 }

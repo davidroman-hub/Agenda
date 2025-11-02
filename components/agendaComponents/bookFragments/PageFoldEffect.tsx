@@ -12,6 +12,7 @@ interface PageFoldEffectProps {
   readonly viewMode: string;
   readonly colorScheme: string;
   readonly colors: any;
+  readonly tAgenda: (key: string, options?: any) => string;
 }
 
 export default function PageFoldEffect({ 
@@ -21,7 +22,8 @@ export default function PageFoldEffect({
   days, 
   viewMode,
   colorScheme,
-  colors 
+  colors,
+  tAgenda
 }: PageFoldEffectProps) {
   
   if (!showPageTransition) return null;
@@ -81,6 +83,7 @@ export default function PageFoldEffect({
                       colorScheme={colorScheme}
                       colors={colors}
                       dynamicStyles={dynamicStyles}
+                      tAgenda={tAgenda}
                     />
                   )}
                   <ThemedView style={dynamicStyles.centerBinding}>
@@ -100,6 +103,7 @@ export default function PageFoldEffect({
                       colorScheme={colorScheme}
                       colors={colors}
                       dynamicStyles={dynamicStyles}
+                      tAgenda={tAgenda}
                     />
                   )}
                 </ThemedView>
@@ -110,11 +114,13 @@ export default function PageFoldEffect({
           days.map((day, dayIndex) => (
             <React.Fragment key={`fold-${day.toISOString()}`}>
               <BookPage
+              
                 day={day}
                 dayIndex={dayIndex}
                 viewMode={viewMode}
                 colorScheme={colorScheme}
                 colors={colors}
+                tAgenda={tAgenda}
                 dynamicStyles={dynamicStyles}
               />
               {dayIndex < days.length - 1 && (

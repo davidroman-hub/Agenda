@@ -1,12 +1,20 @@
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useDateMigration, useForceDateMigration } from "@/hooks/use-date-migration";
+import {
+  useDateMigration,
+  useForceDateMigration,
+} from "@/hooks/use-date-migration";
+import { useI18n } from "@/hooks/use-i18n";
 import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import { useWidgetSync } from "@/hooks/use-widget-sync";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
-import { debugCurrentDateIssues, testDateUtils, testMidnightTransition } from "@/utils/date-testing";
+import {
+  debugCurrentDateIssues,
+  testDateUtils,
+  testMidnightTransition,
+} from "@/utils/date-testing";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
@@ -62,12 +70,27 @@ export default function Book() {
     getTranslateX,
   } = useBookPageLogic();
 
+  const {
+    tCommon,
+    tAgenda,
+    changeLanguage,
+    resetToDeviceLanguage,
+    currentLanguage,
+    deviceLanguage,
+    hasUserSelectedLanguage,
+    userSelectedLanguage,
+  } = useI18n();
+
   // Obtener las fechas según la página actual
   const days = calculateDays(currentPageIndex, daysToShow);
 
   // Crear estilos dinámicos basados en el tema y configuración de fuente
   const fontMultiplier = FONT_SIZES[taskFontSize].multiplier;
-  const dynamicStyles = createDynamicStyles(colorScheme ?? "light", colors, fontMultiplier);
+  const dynamicStyles = createDynamicStyles(
+    colorScheme ?? "light",
+    colors,
+    fontMultiplier
+  );
 
   return (
     <View style={styles.container}>
@@ -83,11 +106,13 @@ export default function Book() {
       >
         {/* Efecto de página doblándose */}
         <PageFoldEffect
+
           showPageTransition={showPageTransition}
           transitionProgress={transitionProgress}
           dynamicStyles={dynamicStyles}
           days={days}
           viewMode={viewMode}
+          tAgenda={tAgenda}
           colorScheme={colorScheme ?? "light"}
           colors={colors}
         />
@@ -95,6 +120,7 @@ export default function Book() {
         {/* Contenido principal de páginas */}
         <BookPagesContent
           days={days}
+          tAgenda={tAgenda}
           viewMode={viewMode}
           colorScheme={colorScheme ?? "light"}
           colors={colors}
@@ -103,6 +129,7 @@ export default function Book() {
 
         {/* Controles de navegación */}
         <NavigationControls
+          tCommon={tCommon}
           currentPageIndex={currentPageIndex}
           daysToShow={daysToShow}
           viewMode={viewMode}

@@ -15,14 +15,17 @@ interface BookPagesContentProps {
   readonly colorScheme: string;
   readonly colors: any;
   readonly dynamicStyles: any;
+  tAgenda: (key: string, options?: any) => string
+
 }
 
 export default function BookPagesContent({ 
   days, 
   viewMode, 
   colorScheme, 
-  colors, 
-  dynamicStyles 
+  colors,
+  dynamicStyles,
+  tAgenda
 }: BookPagesContentProps) {
   
   // Número de anillos del resorte según el tamaño de pantalla
@@ -51,6 +54,7 @@ export default function BookPagesContent({
                 {/* Página izquierda */}
                 {leftDay && (
                   <BookPage
+                    tAgenda={tAgenda}
                     day={leftDay}
                     dayIndex={pairIndex * 2}
                     isLeftPage={true}
@@ -84,6 +88,7 @@ export default function BookPagesContent({
                     colorScheme={colorScheme}
                     colors={colors}
                     dynamicStyles={dynamicStyles}
+                    tAgenda={tAgenda}
                   />
                 )}
               </ThemedView>
@@ -96,6 +101,7 @@ export default function BookPagesContent({
           return (
             <React.Fragment key={day.toISOString()}>
               <BookPage
+                tAgenda={tAgenda}
                 day={day}
                 dayIndex={dayIndex}
                 viewMode={viewMode}

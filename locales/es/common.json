@@ -24,6 +24,11 @@
     "noData": "No hay datos",
     "today": "Hoy",
     "tomorrow": "Mañana",
-    "yesterday": "Ayer"
+    "yesterday": "Ayer",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "page": "Página",
+    "days": "días",
+    "day": "día"
   }
 }

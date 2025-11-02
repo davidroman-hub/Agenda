@@ -11,45 +11,50 @@ interface NavigationControlsProps {
   readonly dynamicStyles: any;
   readonly goToPrevPage: () => void;
   readonly goToNextPage: () => void;
+  readonly tCommon: (key: string, options?: any) => string;
 }
 
-export default function NavigationControls({ 
-  currentPageIndex, 
-  daysToShow, 
-  viewMode, 
-  dynamicStyles, 
-  goToPrevPage, 
-  goToNextPage 
+export default function NavigationControls({
+  currentPageIndex,
+  daysToShow,
+  viewMode,
+  dynamicStyles,
+  goToPrevPage,
+  goToNextPage,
+  tCommon,
 }: NavigationControlsProps) {
-  
   return (
     <ThemedView style={dynamicStyles.navigationControls}>
-      <TouchableOpacity 
-        style={[styles.navButton, currentPageIndex === 0 && styles.navButtonDisabled]}
+      <TouchableOpacity
+        style={[
+          styles.navButton,
+          currentPageIndex === 0 && styles.navButtonDisabled,
+        ]}
         onPress={goToPrevPage}
         disabled={currentPageIndex === 0}
       >
-        <ThemedText style={styles.navButtonText}>← Anterior</ThemedText>
+        <ThemedText style={styles.navButtonText}>
+          ← {tCommon("general.previous")}
+        </ThemedText>
       </TouchableOpacity>
-      
+
       <ThemedView style={styles.pageIndicatorContainer}>
         <ThemedText style={styles.pageIndicator}>
-          Página {currentPageIndex + 1}
+          {tCommon("general.page")} {currentPageIndex + 1}
         </ThemedText>
         <ThemedText style={styles.modeIndicator}>
           {(() => {
-            if (viewMode === 'expanded') return '6 días';
-            if (viewMode === 'single') return '1 día';
-            return `${daysToShow} días`;
+            if (viewMode === "expanded") return `6 ${tCommon("general.days")}`;
+            if (viewMode === "single") return `1 ${tCommon("general.day")}`;
+            return `${daysToShow} ${tCommon("general.days")}`;
           })()}
         </ThemedText>
       </ThemedView>
-      
-      <TouchableOpacity 
-        style={styles.navButton}
-        onPress={goToNextPage}
-      >
-        <ThemedText style={styles.navButtonText}>Siguiente →</ThemedText>
+
+      <TouchableOpacity style={styles.navButton} onPress={goToNextPage}>
+        <ThemedText style={styles.navButtonText}>{`${tCommon(
+          "general.next"
+        )} →`}</ThemedText>
       </TouchableOpacity>
     </ThemedView>
   );
