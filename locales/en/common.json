@@ -102,5 +102,43 @@
       "total": "Total",
       "totalPastTasks": "Total Past Tasks"
     }
+  },
+
+  "reminders": {
+    "activateNotification": "Activate notifications 📲",
+    "notificationTest": "This is a test notification! to test the reminders functionality.",
+    "scheduleReminder": "Scheduled Reminder",
+    "testReminder": "A test notification will be sent in 5 seconds",
+    "reminderSetTestFailed": "The test notification could not be scheduled",
+    "reminderSetSecondError": "Error scheduling test notification",
+    "verifyCompleted": "Verification Complete",
+    "verifyMessage": "The verification of repeated tasks has been performed and the corresponding notifications have been scheduled.",
+    "notVerifyException": "There was an error verifying the repeated tasks.",
+    "errorLoadRepeatedTasks": "Error loading repeated tasks.",
+    "reminderCanceled": "Reminder canceled",
+    "reminderCanceledMessageSuccess": "The reminder has been successfully canceled.",
+    "reminderCanceledMessageSuccessFailed": "The reminder could not be canceled.",
+    "noReminders": "No reminders set",
+    "setNewReminder": "Set a new reminder",
+    "allReminders": "All Reminders",
+    "upcomingReminders": "Upcoming Reminders",
+    "pastReminders": "Past Reminders",
+
+    "reminderConfigTitle": "  🔔 Reminder Settings",
+    "testActions": "Test actions",
+    "turnOnNotifications": "🧪 Turn on notifications to enable reminders.",
+    "repeatedTasks":" Repeated Tasks",
+    "repeatedTaskCheck": "🔄 Force check for repeated tasks",
+    "verifying": "🔄 Verifying...",
+    "veryfyRepeatedTasks": "🔄 Verify repeated tasks now",
+    "information": "Information",
+    "infoOne": "💡 The reminders list updates automatically when you edit tasks.",
+    "infoTwo": "📱 Reminders will appear as notifications on your device at the scheduled time.",
+    "updatig": "Updating...",
+    "loadingReminders": "🔄 Loading reminders...",
+    "scheduledReminders":"Scheduled reminders",
+    "scheduledAt": "at",
+    "infoThree": "There are no scheduled reminders.",
+    "infoFour": "Create a task and set a reminder to view it here."
   }
 }

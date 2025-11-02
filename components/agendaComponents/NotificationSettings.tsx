@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useI18n } from "@/hooks/use-i18n";
 import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { notificationService } from "@/services/notifications/notification-service";
@@ -21,11 +22,32 @@ export default function NotificationSettings() {
   const [scheduledNotifications, setScheduledNotifications] = useState<
     ScheduledNotificationInfo[]
   >([]);
+  const { tCommon, tAgenda } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [repeatedTaskStats, setRepeatedTaskStats] = useState<any>(null);
   const tintColor = useThemeColor({}, "tint");
   const textColor = useThemeColor({}, "text");
   const backgroundColor = useThemeColor({}, "background");
+
+  // Obtener el idioma actual para formateo de fechas
+  const { getCurrentLanguage } = useI18n();
+  const currentLanguage = getCurrentLanguage();
+  
+  // Mapear idiomas a locales apropiados para formateo de fechas
+  const getLocaleForDate = (language: string) => {
+    switch (language) {
+      case 'es':
+        return 'es-ES';
+      case 'en':
+        return 'en-US';
+      case 'it':
+        return 'it-IT';
+      case 'fr':
+        return 'fr-FR';
+      default:
+        return 'es-ES';
+    }
+  };
 
   // Activar el sistema de notificaciones automáticas para tareas repetidas
   useRepeatedTaskNotifications();
@@ -122,27 +144,27 @@ export default function NotificationSettings() {
 
       const notificationId = await notificationService.scheduleTaskReminder(
         "test-task-id",
-        "Activar notificaciones  📲",
-        "Esta es una notificación de prueba del sistema de recordatorios",
+        tCommon("reminders.activateNotification"),
+        tCommon("reminders.notificationTest"),
         testDate,
         todayDateKey
       );
 
       if (notificationId) {
         Alert.alert(
-          "Notificación programada",
-          "Se enviará una notificación de prueba en 5 segundos",
+          tCommon("reminders.scheduleReminder"),
+          tCommon("reminders.testReminder"),
           [{ text: "OK" }]
         );
 
         // Recargar la lista
         setTimeout(() => loadScheduledNotifications(), 1000);
       } else {
-        Alert.alert("Error", "No se pudo programar la notificación de prueba");
+        Alert.alert("Error", tCommon("reminders.reminderSetTestFailed"));
       }
     } catch (error) {
       console.error("Error sending test notification:", error);
-      Alert.alert("Error", "Error al programar la notificación de prueba");
+      Alert.alert("Error", tCommon("reminders.reminderSetSecondError"));
     }
   };
 
@@ -152,14 +174,14 @@ export default function NotificationSettings() {
       await RepeatedTaskNotificationService.forceNewCheck();
       await loadRepeatedTaskStats();
       Alert.alert(
-        "✅ Verificación Completada",
-        "Se ha ejecutado la verificación de tareas repetidas y se programaron las notificaciones correspondientes"
+        "✅" + tCommon("reminders.verifyCompleted"),
+        tCommon("reminders.verifyMessage")
       );
       // Recargar notificaciones después de la verificación
       setTimeout(() => loadScheduledNotifications(), 1000);
     } catch (error) {
       console.error("Error forcing repeated task check:", error);
-      Alert.alert("❌ Error", "No se pudo ejecutar la verificación");
+      Alert.alert("❌ Error", tCommon("reminders.notVerifyException"));
     } finally {
       setIsLoading(false);
     }
@@ -183,13 +205,16 @@ export default function NotificationSettings() {
     try {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
       Alert.alert(
-        "Notificación cancelada",
-        "La notificación ha sido cancelada exitosamente"
+        tCommon("reminders.reminderCanceled"),
+        tCommon("reminders.reminderCanceledMessageSuccess")
       );
       loadScheduledNotifications();
     } catch (error) {
       console.error("Error canceling notification:", error);
-      Alert.alert("Error", "No se pudo cancelar la notificación");
+      Alert.alert(
+        "Error",
+        tCommon("reminders.reminderCanceledMessageSuccessFailed")
+      );
     }
   };
 
@@ -204,8 +229,8 @@ export default function NotificationSettings() {
           {item.taskTitle}
         </ThemedText>
         <ThemedText style={[styles.notificationDate, { color: textColor }]}>
-          📅 {item.scheduledDate.toLocaleDateString("es-ES")} a las{" "}
-          {item.scheduledDate.toLocaleTimeString("es-ES", {
+          📅 {item.scheduledDate.toLocaleDateString(getLocaleForDate(currentLanguage))} {tCommon("reminders.scheduledAt")}{" "}
+          {item.scheduledDate.toLocaleTimeString(getLocaleForDate(currentLanguage), {
             hour: "2-digit",
             minute: "2-digit",
           })}
@@ -216,7 +241,7 @@ export default function NotificationSettings() {
         style={[styles.cancelButton, { backgroundColor: "#ff4444" }]}
         onPress={() => handleCancelNotification(item.id, item.taskId)}
       >
-        <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
+        <ThemedText style={styles.cancelButtonText}>{tCommon("buttons.cancel")}</ThemedText>
       </TouchableOpacity>
     </ThemedView>
   );
@@ -224,12 +249,12 @@ export default function NotificationSettings() {
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
       <ThemedText style={[styles.title, { color: textColor }]}>
-        🔔 Configuración de Recordatorios
+        {tCommon("reminders.reminderConfigTitle")}
       </ThemedText>
 
       <ThemedView style={styles.section}>
         <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Acciones de prueba
+          {tCommon("reminders.testActions")}
         </ThemedText>
 
         <TouchableOpacity
@@ -237,14 +262,14 @@ export default function NotificationSettings() {
           onPress={handleTestNotification}
         >
           <ThemedText style={styles.actionButtonText}>
-            🧪 Activa las notificaciones
+            {tCommon("reminders.turnOnNotifications")}
           </ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
       <ThemedView style={styles.section}>
         <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Tareas Repetidas
+          {tCommon("reminders.repeatedTasks")}
         </ThemedText>
 
         <TouchableOpacity
@@ -253,14 +278,16 @@ export default function NotificationSettings() {
           disabled={isLoading}
         >
           <ThemedText style={styles.actionButtonText}>
-            {isLoading ? "🔄 Verificando..." : "🔁 Verificar Tareas Repetidas"}
+            {isLoading
+              ? tCommon("reminders.verifying")
+              : tCommon("reminders.repeatedTaskCheck")}
           </ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
       <ThemedView style={styles.section}>
         <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Información
+          ℹ️ {tCommon("reminders.information")}
         </ThemedText>
 
         <ThemedView
@@ -270,35 +297,32 @@ export default function NotificationSettings() {
           ]}
         >
           <ThemedText style={[styles.infoText, { color: textColor }]}>
-            💡 La lista de recordatorios se actualiza automáticamente cuando
-            editas tareas.
-            {"\n"}📱 Los recordatorios aparecerán como notificaciones en tu
-            dispositivo a la hora programada.
+            {tCommon("reminders.infoOne")}
+            {"\n"}📆 {tCommon("reminders.infoTwo")}
           </ThemedText>
         </ThemedView>
       </ThemedView>
 
       <ThemedView style={styles.section}>
         <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Recordatorios programados ({scheduledNotifications.length})
+          {tCommon("reminders.scheduledReminders")} (
+          {scheduledNotifications.length})
           {isLoading && (
-            <ThemedText style={{ color: tintColor }}>
-              {" "}
-              - Actualizando...
-            </ThemedText>
+            <ThemedText style={{ color: tintColor }}> 🔄</ThemedText>
           )}
         </ThemedText>
 
         {isLoading && (
           <ThemedText style={[styles.loadingText, { color: tintColor }]}>
-            🔄 Cargando recordatorios...
+            {tCommon("reminders.loadingReminders")}
           </ThemedText>
         )}
 
         {!isLoading && scheduledNotifications.length === 0 && (
           <ThemedText style={[styles.emptyText, { color: textColor }]}>
-            No hay recordatorios programados.{"\n"}
-            Crea una tarea y activa el recordatorio para verlo aquí.
+            {tCommon("reminders.noReminders")}
+            {"\n"}
+            {tCommon("reminders.infoFour")}
           </ThemedText>
         )}
 

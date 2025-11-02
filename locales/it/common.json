@@ -59,5 +59,9 @@
   "import": "Importa",
   "export": "Esporta",
   "print": "Stampa",
-  "preview": "Anteprima"
+  "preview": "Anteprima",
+  
+  "reminders": {
+    "scheduledAt": "alle"
+  }
 }

@@ -59,5 +59,9 @@
   "import": "Importer",
   "export": "Exporter",
   "print": "Imprimer",
-  "preview": "Aperçu"
+  "preview": "Aperçu",
+  
+  "reminders": {
+    "scheduledAt": "à"
+  }
 }
