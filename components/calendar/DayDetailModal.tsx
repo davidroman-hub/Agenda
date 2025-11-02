@@ -56,76 +56,83 @@ export default function DayDetailModal({
   );
 
   // Función para obtener todas las tareas del día (normales + repetidas)
-  const getTasksForDate = React.useCallback(
-    (dateString: string) => {
-      const allExistingTasks = getAllTasks();
-      const allPatterns = getAllRepeatingPatterns();
+  const dayTasks = React.useMemo(() => {
+    const allExistingTasks = getAllTasks();
+    const allPatterns = getAllRepeatingPatterns();
 
-      // Comenzar con las tareas normales del día
-      const normalTasks = tasksByDate[dateString] || {};
-      const combined = { ...normalTasks };
+    // Comenzar con las tareas normales del día
+    const normalTasks = tasksByDate[selectedDate] || {};
+    const combined = { ...normalTasks };
 
-      // Crear un Set de IDs de tareas que tienen patrones de repetición activos
-      const tasksWithActivePatterns = new Set(
-        allPatterns
-          .filter((pattern) => pattern.isActive)
-          .map((pattern) => pattern.originalTaskId)
-      );
+    // Crear un mapa de tareas originales y sus fechas de creación
+    const originalTasksMap = new Map();
+    for (const [dateKey, dayTasks] of Object.entries(allExistingTasks)) {
+      for (const [line, task] of Object.entries(dayTasks)) {
+        if (task) {
+          originalTasksMap.set(task.id, { task, originalDate: dateKey, line: Number.parseInt(line, 10) });
+        }
+      }
+    }
 
-      // Filtrar tareas normales que tienen patrones de repetición activos
-      for (const [line, task] of Object.entries(combined)) {
-        if (task && tasksWithActivePatterns.has(task.id)) {
+    // Solo filtrar tareas originales si NO estamos en su día de creación
+    const tasksWithActivePatterns = new Set(
+      allPatterns
+        .filter((pattern) => pattern.isActive)
+        .map((pattern) => pattern.originalTaskId)
+    );
+
+    for (const [line, task] of Object.entries(combined)) {
+      if (task && tasksWithActivePatterns.has(task.id)) {
+        const originalInfo = originalTasksMap.get(task.id);
+        // Solo filtrar si NO estamos en el día de creación original
+        if (originalInfo && originalInfo.originalDate !== selectedDate) {
           delete combined[Number.parseInt(line, 10)];
         }
       }
+    }
 
-      // Agregar tareas repetidas para esta fecha
-      const repeatedTasks: any[] = [];
-      for (const pattern of allPatterns) {
-        if (!pattern.isActive) continue;
+    // Agregar tareas repetidas para esta fecha (solo si NO es el día original)
+    const repeatedTasks: any[] = [];
+    for (const pattern of allPatterns) {
+      if (!pattern.isActive) continue;
 
-        if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateString)) {
-          const originalTask = Object.values(allExistingTasks)
-            .flatMap((dayTasks) => Object.values(dayTasks))
-            .find(
-              (task): task is any =>
-                task !== null && task.id === pattern.originalTaskId
-            );
-
-          if (originalTask) {
-            repeatedTasks.push({
-              ...originalTask,
-              id: `${originalTask.id}-repeat-${dateString}`,
-              completed: isRepeatingTaskCompleted(originalTask.id, dateString),
-              isRepeatingTask: true,
-              repeatingTaskId: originalTask.id,
-              repeatingPatternId: pattern.id,
-              line: -1, // Las tareas repetidas no tienen línea específica
-            });
-          }
+      if (shouldTaskRepeatOnDate(pattern.originalTaskId, selectedDate)) {
+        const originalInfo = originalTasksMap.get(pattern.originalTaskId);
+        
+        // Solo agregar como tarea repetida si NO estamos en el día de creación original
+        if (originalInfo && originalInfo.originalDate !== selectedDate) {
+          repeatedTasks.push({
+            ...originalInfo.task,
+            id: `${originalInfo.task.id}-repeat-${selectedDate}`,
+            completed: isRepeatingTaskCompleted(originalInfo.task.id, selectedDate),
+            isRepeatingTask: true,
+            repeatingTaskId: originalInfo.task.id,
+            repeatingPatternId: pattern.id,
+            line: -1, // Las tareas repetidas no tienen línea específica
+          });
         }
       }
+    }
 
-      // Convertir tareas normales a array con información de línea
-      const normalTasksArray = Object.entries(combined)
-        .filter(([_, task]) => task !== null)
-        .map(([line, task]) => ({
-          ...task,
-          line: Number.parseInt(line, 10),
-          isRepeatingTask: false,
-        })); // Retornar todas las tareas (normales + repetidas)
-      return [...normalTasksArray, ...repeatedTasks];
-    },
-    [
-      tasksByDate,
-      getAllTasks,
-      getAllRepeatingPatterns,
-      shouldTaskRepeatOnDate,
-      isRepeatingTaskCompleted,
-    ]
-  );
-
-  const dayTasks = getTasksForDate(selectedDate);
+    // Convertir tareas normales a array con información de línea
+    const normalTasksArray = Object.entries(combined)
+      .filter(([_, task]) => task !== null)
+      .map(([line, task]) => ({
+        ...task,
+        line: Number.parseInt(line, 10),
+        isRepeatingTask: false,
+      })); 
+    
+    // Retornar todas las tareas (normales + repetidas)
+    return [...normalTasksArray, ...repeatedTasks];
+  }, [
+    tasksByDate,
+    selectedDate,
+    getAllTasks,
+    getAllRepeatingPatterns,
+    shouldTaskRepeatOnDate,
+    isRepeatingTaskCompleted,
+  ]);
 
   // Constante para el límite máximo de tareas
   const MAX_TASKS = 12;
@@ -350,7 +357,7 @@ export default function DayDetailModal({
             </ThemedView>
           )}
           
-          <ThemedView style={styles.inputRow}>
+          {/* <ThemedView style={styles.inputRow}>
             <TextInput
               style={[
                 styles.addTaskInput,
@@ -381,7 +388,7 @@ export default function DayDetailModal({
             >
               <Icon name="plus" size={20} color="#fff" />
             </TouchableOpacity>
-          </ThemedView>
+          </ThemedView> */}
         </ThemedView>
       </ThemedView>
     </Modal>
