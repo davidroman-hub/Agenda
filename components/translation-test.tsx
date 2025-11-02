@@ -5,7 +5,16 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function TranslationTest() {
-  const { tCommon, tAgenda, changeLanguage, currentLanguage, deviceLanguage } = useI18n();
+  const { 
+    tCommon, 
+    tAgenda, 
+    changeLanguage, 
+    resetToDeviceLanguage,
+    currentLanguage, 
+    deviceLanguage, 
+    hasUserSelectedLanguage,
+    userSelectedLanguage 
+  } = useI18n();
 
   return (
     <ThemedView style={styles.container}>
@@ -26,9 +35,17 @@ export default function TranslationTest() {
         )}
       </ThemedView>
       
+      {/* Información de preferencias */}
+      <ThemedView style={styles.section}>
+        <ThemedText style={styles.sectionTitle}>Language Preferences:</ThemedText>
+        <ThemedText>• User Selected: {hasUserSelectedLanguage() ? userSelectedLanguage : 'Auto (Device)'}</ThemedText>
+        <ThemedText>• Current App Language: {currentLanguage}</ThemedText>
+        <ThemedText>• Status: {hasUserSelectedLanguage() ? '🔒 Manual Override' : '🤖 Auto Detection'}</ThemedText>
+      </ThemedView>
+      
       {/* Idioma actual */}
       <ThemedText style={styles.subtitle}>
-        Current App Language: {currentLanguage}
+        Current App Language: {currentLanguage} {hasUserSelectedLanguage() ? '(User Selected)' : '(Auto)'}
       </ThemedText>
       
       {/* Botones para cambiar idioma */}
@@ -63,6 +80,20 @@ export default function TranslationTest() {
           </ThemedText>
         </TouchableOpacity>
       </ThemedView>
+      
+      {/* Botón para resetear a automático */}
+      {hasUserSelectedLanguage() && (
+        <ThemedView style={styles.resetSection}>
+          <TouchableOpacity 
+            style={styles.resetButton}
+            onPress={resetToDeviceLanguage}
+          >
+            <ThemedText style={styles.resetButtonText}>
+              🤖 Reset to Device Language
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+      )}
       
       {/* Ejemplos de traducciones comunes */}
       <ThemedView style={styles.section}>
@@ -131,6 +162,21 @@ const styles = StyleSheet.create({
   },
   activeLanguageButtonText: {
     fontWeight: 'bold',
+  },
+  resetSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  resetButton: {
+    padding: 12,
+    backgroundColor: '#FF6B35',
+    borderRadius: 8,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   section: {
     marginBottom: 20,

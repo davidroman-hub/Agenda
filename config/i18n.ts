@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -43,42 +44,72 @@ const getDeviceLanguage = (): string => {
   return 'en';
 };
 
-// Detectar idioma del dispositivo
-const detectedLanguage = getDeviceLanguage();
-
-i18n
-  .use(initReactI18next)
-  .init({
-    lng: detectedLanguage, // usar idioma detectado del dispositivo
-    fallbackLng: 'en', // idioma de respaldo (inglés)
+// Función para obtener el idioma inicial (preferencia del usuario o detección automática)
+const getInitialLanguage = async (): Promise<string> => {
+  try {
+    // Intentar obtener la preferencia guardada del usuario
+    const storedPreferences = await AsyncStorage.getItem('language-preferences-storage');
     
-    resources: {
-      es: {
-        common: esCommon,
-        agenda: esAgenda,
+    if (storedPreferences) {
+      const preferences = JSON.parse(storedPreferences);
+      const userSelectedLanguage = preferences?.state?.userSelectedLanguage;
+      
+      if (userSelectedLanguage && SUPPORTED_LANGUAGES.has(userSelectedLanguage)) {
+        console.log(`🌍 Usando idioma guardado por el usuario: ${userSelectedLanguage}`);
+        return userSelectedLanguage;
+      }
+    }
+  } catch (error) {
+    console.warn('🌍 Error leyendo preferencia de idioma guardada:', error);
+  }
+  
+  // Si no hay preferencia guardada, usar detección automática
+  const detectedLanguage = getDeviceLanguage();
+  console.log(`🌍 No hay preferencia guardada, usando detección automática: ${detectedLanguage}`);
+  return detectedLanguage;
+};
+
+// Configurar i18next de forma asíncrona
+const initializeI18n = async () => {
+  const initialLanguage = await getInitialLanguage();
+  
+  await i18n
+    .use(initReactI18next)
+    .init({
+      lng: initialLanguage, // usar idioma inicial (preferencia del usuario o detección automática)
+      fallbackLng: 'en', // idioma de respaldo (inglés)
+      
+      resources: {
+        es: {
+          common: esCommon,
+          agenda: esAgenda,
+        },
+        en: {
+          common: enCommon,
+          agenda: enAgenda,
+        },
       },
-      en: {
-        common: enCommon,
-        agenda: enAgenda,
+
+      interpolation: {
+        escapeValue: false, // React ya escapa por defecto
       },
-    },
 
-    interpolation: {
-      escapeValue: false, // React ya escapa por defecto
-    },
+      // Namespace por defecto
+      defaultNS: 'common',
+      
+      // Configuración de debug (solo en desarrollo)
+      debug: __DEV__ ?? false,
+      
+      // Configuración adicional para React Native
+      react: {
+        useSuspense: false, // evitar problemas en React Native
+      },
+    });
 
-    // Namespace por defecto
-    defaultNS: 'common',
-    
-    // Configuración de debug (solo en desarrollo)
-    debug: __DEV__ ?? false,
-    
-    // Configuración adicional para React Native
-    react: {
-      useSuspense: false, // evitar problemas en React Native
-    },
-  });
+  console.log(`🌍 i18next inicializado con idioma: ${initialLanguage}`);
+};
 
-console.log(`🌍 i18next inicializado con idioma: ${detectedLanguage}`);
+// Inicializar i18next
+initializeI18n().catch(console.error);
 
 export default i18n;
