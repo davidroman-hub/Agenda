@@ -9,6 +9,9 @@ import { useNotifications } from '@/hooks/use-notifications';
 import { useVersionNotification } from '@/hooks/use-version-notification';
 import { useWidgetSync } from '@/hooks/use-widget-sync';
 
+// Inicializar i18next
+import '../config/i18n';
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };

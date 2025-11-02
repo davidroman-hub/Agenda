@@ -1,0 +1,52 @@
+{
+  "days": {
+    "sunday": "domingo",
+    "monday": "lunes",
+    "tuesday": "martes",
+    "wednesday": "miércoles",
+    "thursday": "jueves",
+    "friday": "viernes",
+    "saturday": "sábado"
+  },
+  "months": {
+    "january": "enero",
+    "february": "febrero",
+    "march": "marzo",
+    "april": "abril",
+    "may": "mayo",
+    "june": "junio",
+    "july": "julio",
+    "august": "agosto",
+    "september": "septiembre",
+    "october": "octubre",
+    "november": "noviembre",
+    "december": "diciembre"
+  },
+  "tasks": {
+    "addTask": "Agregar nueva tarea...",
+    "noTasks": "No hay tareas en este día",
+    "taskLimit": "Límite de 12 tareas alcanzado",
+    "taskLimitDescription": "Próximamente: funcionalidad de lista (todoList) para más tareas",
+    "editTask": "Editar tarea",
+    "deleteTask": "Eliminar tarea",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta tarea?",
+    "repeatingTask": "Tarea Repetida",
+    "repeatingTaskEditWarning": "No puedes editar directamente una tarea repetida. Edita la tarea original en su día de creación.",
+    "repeatingTaskDeleteWarning": "No puedes eliminar una tarea repetida desde aquí. Desactiva el patrón de repetición en la configuración.",
+    "taskCount": "{{count}} tarea",
+    "taskCount_plural": "{{count}} tareas"
+  },
+  "calendar": {
+    "title": "Calendario",
+    "viewTasks": "Ver tareas de este día",
+    "goToDate": "Ir a esta fecha",
+    "openAgenda": "Abrir agenda en esta fecha"
+  },
+  "dayDetail": {
+    "title": "Tareas del día",
+    "indicators": {
+      "repeating": "🔄",
+      "reminder": "⏰"
+    }
+  }
+}

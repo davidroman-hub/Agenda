@@ -1,0 +1,52 @@
+{
+  "days": {
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "tasks": {
+    "addTask": "Add new task...",
+    "noTasks": "No tasks for this day",
+    "taskLimit": "12 task limit reached",
+    "taskLimitDescription": "Coming soon: todoList functionality for more tasks",
+    "editTask": "Edit task",
+    "deleteTask": "Delete task",
+    "deleteConfirm": "Are you sure you want to delete this task?",
+    "repeatingTask": "Repeating Task",
+    "repeatingTaskEditWarning": "You cannot directly edit a repeating task. Edit the original task on its creation day.",
+    "repeatingTaskDeleteWarning": "You cannot delete a repeating task from here. Disable the repetition pattern in settings.",
+    "taskCount": "{{count}} task",
+    "taskCount_plural": "{{count}} tasks"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "viewTasks": "View tasks for this day",
+    "goToDate": "Go to date",
+    "openAgenda": "Open agenda on this date"
+  },
+  "dayDetail": {
+    "title": "Day tasks",
+    "indicators": {
+      "repeating": "🔄",
+      "reminder": "⏰"
+    }
+  }
+}

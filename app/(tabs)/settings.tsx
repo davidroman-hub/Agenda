@@ -5,6 +5,7 @@ import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import VersionInfoButton from "@/components/settings/versionInfoButton";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import TranslationTest from "@/components/translation-test";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import {
   Linking,
@@ -65,6 +66,8 @@ export default function SettingsPage() {
           padding: 10,
         }}
       >
+
+        <TranslationTest />
         <ThemedText
           style={{
             fontSize: 7,
