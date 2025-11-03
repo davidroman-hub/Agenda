@@ -455,7 +455,7 @@ CalendarModalProps) {
               dayTextColor: textColor,
               todayTextColor: tintColor,
               selectedDayBackgroundColor: tintColor,
-              selectedDayTextColor: "#ffffff",
+              selectedDayTextColor: "#4ECDC4",
               monthTextColor: textColor,
               indicatorColor: tintColor,
               arrowColor: tintColor,
@@ -464,7 +464,6 @@ CalendarModalProps) {
         </ThemedView>
 
         {/* Preview de tareas */}
-
         <ThemedView style={styles.taskPreview}>
           <ThemedText style={styles.previewTitle}>
             {formatDateWithI18n(new Date(selected))}
@@ -483,21 +482,57 @@ CalendarModalProps) {
                     ? tAgenda("tasks.taskCount")
                     : tAgenda("tasks.taskCount_plural")}
                 </ThemedText>
-                {selectedDayTasks.map((task, index) => (
-                  <ThemedText
-                    key={task.id || `task-${index}`}
-                    style={styles.taskItem}
-                  >
-                    •{" "}
-                    {task.text.length > 30
-                      ? `${task.text.slice(0, 30)}...`
-                      : `${task.text}`}{" "}
-                    {`${task.isRepeatingTask ? "🔄 " : ""} ${
-                      task.reminder ? `⏰ ` : ""
-                    }`}{" "}
-                    {task.completed ? "✅" : ""}
-                  </ThemedText>
-                ))}
+
+                <ThemedView style={styles.tasksContainer}>
+                  {selectedDayTasks.map((task, index) => (
+                    <ThemedView
+                      key={task.id || `task-${index}`}
+                      style={[
+                        styles.taskCard,
+                        task.completed && styles.taskCardCompleted,
+                        task.isRepeatingTask &&
+                          !task.completed &&
+                          styles.taskCardRepeating,
+                      ]}
+                    >
+                      <ThemedText style={styles.taskCheckbox}>
+                        {task.completed ? "✅" : ""}
+                      </ThemedText>
+
+                      <ThemedView
+                        style={[
+                          styles.taskContent,
+                          { backgroundColor: "transparent" },
+                        ]}
+                      >
+                        <ThemedText
+                          style={[
+                            styles.taskText,
+                            task.completed && styles.taskTextCompleted,
+                            { backgroundColor: "transparent" },
+                          ]}
+                          numberOfLines={2}
+                        >
+                          {task.text}
+                        </ThemedText>
+
+                        <ThemedView
+                          style={[
+                            styles.taskIcons,
+                            { backgroundColor: "transparent" },
+                          ]}
+                        >
+                          {task.isRepeatingTask && (
+                            <ThemedText style={styles.taskIcon}>🔄</ThemedText>
+                          )}
+                          {task.reminder && (
+                            <ThemedText style={styles.taskIcon}>⏰</ThemedText>
+                          )}
+                        </ThemedView>
+                      </ThemedView>
+                    </ThemedView>
+                  ))}
+                </ThemedView>
               </ScrollView>
             ) : (
               <ThemedText style={styles.noTasks}>{getNoTasksText()}</ThemedText>
@@ -567,6 +602,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.7,
     marginBottom: 10,
+  },
+  tasksContainer: {
+    gap: 8,
+  },
+  taskCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "transparent",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#007AFF",
+    borderWidth: 1,
+    borderColor: "rgba(0, 122, 255, 0.2)",
+  },
+  taskCardCompleted: {
+    backgroundColor: "rgba(34, 197, 94, 0.1)",
+    borderLeftColor: "#22C55E",
+    borderColor: "rgba(34, 197, 94, 0.3)",
+  },
+  taskCardRepeating: {
+    backgroundColor: "transparent",
+    borderLeftColor: "#007AFF",
+    borderColor: "rgba(0, 122, 255, 0.2)",
+  },
+  taskCheckbox: {
+    fontSize: 16,
+    marginRight: 12,
+  },
+  taskContent: {
+    flex: 1,
+  },
+  taskText: {
+    fontSize: 14,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  taskTextCompleted: {
+    textDecorationLine: "line-through",
+    opacity: 0.7,
+  },
+  taskIcons: {
+    flexDirection: "row",
+    gap: 4,
+  },
+  taskIcon: {
+    fontSize: 12,
   },
   taskItem: {
     fontSize: 14,

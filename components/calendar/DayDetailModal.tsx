@@ -4,12 +4,12 @@ import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useState } from "react";
 import {
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { ThemedText } from "../themed-text";
