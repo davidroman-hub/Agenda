@@ -81,6 +81,9 @@ export default function BookPage({
   const isRepeatingTaskCompleted = useRepeatingTasksStore(
     (state) => state.isRepeatingTaskCompleted
   );
+  const getRepeatingPatternForTask = useRepeatingTasksStore(
+    (state) => state.getRepeatingPatternForTask
+  );
 
   // Store de tareas para acceder a todas las tareas por su ID
   const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
@@ -258,8 +261,9 @@ export default function BookPage({
       const existingTask = allTasks[editingLine];
 
       if (existingTask) {
+        // Verificar si es una tarea repetida virtual (isRepeatingTask = true)
         if (existingTask.isRepeatingTask) {
-          // Editando una tarea repetida
+          // Editando una instancia virtual de tarea repetida
           if (repeat && repeat !== "none") {
             // Mantener como tarea repetida - actualizar SOLO la tarea original
             const allExistingTasks = getAllTasks();
@@ -288,36 +292,59 @@ export default function BookPage({
             // 2. Crear una tarea normal SOLO en esta fecha específica
             await addTask(dateKey, editingLine, text, reminder, "none");
           }
-        } else if (repeat && repeat !== "none") {
-          // Convertir tarea normal a tarea repetida
-          // 1. Crear un patrón de repetición usando el ID de la tarea existente
-          addRepeatingPattern({
-            originalTaskId: existingTask.id,
-            repeatOption: repeat,
-            startDate: dateKey,
-          });
-          // 2. Actualizar la tarea para incluir la info de repetición
-          await updateTask(dateKey, editingLine, { text, reminder, repeat });
         } else {
-          // Actualizar tarea normal usando la línea directamente
-          const allExistingTasks = getAllTasks();
-          const dayTasks = allExistingTasks[dateKey] || {};
-
-          // Buscar la línea original de la tarea por su ID
-          let originalLineNumber: number | null = null;
-          for (const [line, originalTask] of Object.entries(dayTasks)) {
-            if (originalTask && originalTask.id === existingTask.id) {
-              originalLineNumber = Number.parseInt(line, 10);
-              break;
+          // Verificar si es la tarea original de un patrón de repetición
+          const existingPattern = getRepeatingPatternForTask(existingTask.id);
+          
+          if (existingPattern && existingPattern.isActive) {
+            // Estamos editando la tarea original de un patrón repetido
+            if (repeat && repeat !== "none") {
+              // Mantener como tarea repetida - solo actualizar la tarea original
+              await updateTask(dateKey, editingLine, {
+                text,
+                reminder,
+                repeat,
+              });
+            } else {
+              // Convertir de repetida a normal - eliminar patrón
+              removeRepeatingPattern(existingTask.id);
+              await updateTask(dateKey, editingLine, {
+                text,
+                reminder,
+                repeat: "none",
+              });
             }
-          }
-
-          if (originalLineNumber !== null) {
-            await updateTask(dateKey, originalLineNumber, {
-              text,
-              reminder,
-              repeat,
+          } else if (repeat && repeat !== "none") {
+            // Convertir tarea normal a tarea repetida
+            // 1. Crear un patrón de repetición usando el ID de la tarea existente
+            addRepeatingPattern({
+              originalTaskId: existingTask.id,
+              repeatOption: repeat,
+              startDate: dateKey,
             });
+            // 2. Actualizar la tarea para incluir la info de repetición
+            await updateTask(dateKey, editingLine, { text, reminder, repeat });
+          } else {
+            // Actualizar tarea normal usando la línea directamente
+            const allExistingTasks = getAllTasks();
+            const dayTasks = allExistingTasks[dateKey] || {};
+
+            // Buscar la línea original de la tarea por su ID
+            let originalLineNumber: number | null = null;
+            for (const [line, originalTask] of Object.entries(dayTasks)) {
+              if (originalTask && originalTask.id === existingTask.id) {
+                originalLineNumber = Number.parseInt(line, 10);
+                break;
+              }
+            }
+
+            if (originalLineNumber !== null) {
+              await updateTask(dateKey, originalLineNumber, {
+                text,
+                reminder,
+                repeat,
+              });
+            }
           }
         }
       } else if (repeat && repeat !== "none") {
