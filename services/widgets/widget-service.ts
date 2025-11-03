@@ -34,60 +34,95 @@ class WidgetService {
     const today = new Date();
     const dateString = today.toISOString().split('T')[0];
     
+    console.log('🔍 Widget Service - Obteniendo datos para:', dateString);
+    
     // Get tasks for today from the store
-    const { tasksByDate } = useAgendaTasksStore.getState();
+    const { tasksByDate, getAllTasks } = useAgendaTasksStore.getState();
     const dayTasks = tasksByDate[dateString] || {};
+    
+    console.log('📋 Tareas normales del día:', Object.keys(dayTasks).length);
     
     // Get repeating tasks data
     const { getAllRepeatingPatterns, shouldTaskRepeatOnDate, isRepeatingTaskCompleted } = useRepeatingTasksStore.getState();
     const allPatterns = getAllRepeatingPatterns();
+    const allExistingTasks = getAllTasks();
     
-    // Convert DayTasks object to array of tasks
-    const normalTasks: AgendaTask[] = Object.values(dayTasks).filter((task): task is AgendaTask => task !== null);
+    console.log('🔄 Patrones de repetición encontrados:', allPatterns.length);
+    console.log('🔄 Patrones activos:', allPatterns.filter(p => p.isActive).length);
     
-    // Get all tasks from all dates to find original tasks for repeating patterns
-    const allExistingTasks = tasksByDate;
+    // Comenzar con las tareas normales del día
+    const normalTasks = { ...dayTasks };
     
-    // Create repeating tasks for today
-    const repeatingTasks: AgendaTask[] = [];
+    // Crear un mapa de tareas originales y sus fechas de creación
+    const originalTasksMap = new Map();
+    for (const [dateKey, dayTasks] of Object.entries(allExistingTasks)) {
+      for (const [line, task] of Object.entries(dayTasks)) {
+        if (task) {
+          originalTasksMap.set(task.id, {
+            task,
+            originalDate: dateKey,
+            line: Number.parseInt(line, 10),
+          });
+        }
+      }
+    }
     
-    // Filter normal tasks to exclude those with active patterns
+    // Solo filtrar tareas originales si NO estamos en su día de creación
     const tasksWithActivePatterns = new Set(
       allPatterns
         .filter(pattern => pattern.isActive)
         .map(pattern => pattern.originalTaskId)
     );
     
-    const filteredNormalTasks = normalTasks.filter(task => !tasksWithActivePatterns.has(task.id));
+    for (const [line, task] of Object.entries(normalTasks)) {
+      if (task && tasksWithActivePatterns.has(task.id)) {
+        const originalInfo = originalTasksMap.get(task.id);
+        // Solo filtrar si NO estamos en el día de creación original
+        if (originalInfo && originalInfo.originalDate !== dateString) {
+          delete normalTasks[Number.parseInt(line, 10)];
+        }
+      }
+    }
     
-    // Generate repeating tasks for today
+    // Generar tareas repetidas para hoy (solo si NO es el día original)
+    const repeatingTasks: AgendaTask[] = [];
     for (const pattern of allPatterns) {
       if (!pattern.isActive) continue;
       
       if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateString)) {
-        // Find the original task
-        const originalTask = Object.values(allExistingTasks)
-          .flatMap(dayTasks => Object.values(dayTasks))
-          .find((task): task is AgendaTask => task !== null && task.id === pattern.originalTaskId);
+        const originalInfo = originalTasksMap.get(pattern.originalTaskId);
         
-        if (originalTask) {
+        // Solo agregar como tarea repetida si NO estamos en el día de creación original
+        if (originalInfo && originalInfo.originalDate !== dateString) {
           repeatingTasks.push({
-            ...originalTask,
-            id: `${originalTask.id}-repeat-${dateString}`,
-            completed: isRepeatingTaskCompleted(originalTask.id, dateString),
+            ...originalInfo.task,
+            id: `${originalInfo.task.id}-repeat-${dateString}`,
+            completed: isRepeatingTaskCompleted(originalInfo.task.id, dateString),
             isRepeatingTask: true,
-            repeatingTaskId: originalTask.id,
+            repeatingTaskId: originalInfo.task.id,
             repeatingPatternId: pattern.id,
           });
         }
       }
     }
     
-    // Combine normal and repeating tasks
-    const todayTasksArray = [...filteredNormalTasks, ...repeatingTasks];
+    console.log('🔄 Tareas repetidas generadas:', repeatingTasks.length);
+    
+    // Convertir tareas normales a array
+    const normalTasksArray = Object.values(normalTasks).filter((task): task is AgendaTask => task !== null);
+    
+    console.log('📋 Tareas normales finales:', normalTasksArray.length);
+    
+    // Combinar tareas normales y repetidas
+    const todayTasksArray = [...normalTasksArray, ...repeatingTasks];
+    
+    console.log('📊 Total de tareas para widget:', todayTasksArray.length);
     
     const completedTasks = todayTasksArray.filter((task: AgendaTask) => task.completed).length;
     const pendingTasks = todayTasksArray.length - completedTasks;
+
+    console.log('✅ Tareas completadas:', completedTasks);
+    console.log('⏳ Tareas pendientes:', pendingTasks);
 
     return {
       currentDate: this.formatDate(today),

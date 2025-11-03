@@ -28,78 +28,114 @@ export const useWidgetSync = () => {
   const syncRealDataToWidget = useCallback(
     async (date: string) => {
       try {
+        console.log('🔍 Hook Widget - Obteniendo datos para:', date);
+        
+        // Obtener tareas normales del día
         const dayTasks = tasksByDate[date] || {};
+        console.log('📋 Tareas normales del día:', Object.keys(dayTasks).length);
 
-        // Obtener tareas repetidas para esta fecha
+        // Obtener todos los patrones de repetición
         const allPatterns = getAllRepeatingPatterns();
+        console.log('🔄 Patrones de repetición encontrados:', allPatterns.length);
+        console.log('🔄 Patrones activos:', allPatterns.filter(p => p.isActive).length);
 
-        // Filtrar tareas normales que tienen patrones activos (para evitar duplicar)
-        const tasksWithActivePatterns = new Set(
-          allPatterns
-            .filter((pattern) => pattern.isActive)
-            .map((pattern) => pattern.originalTaskId)
-        );
-
-        // Crear array de tareas combinadas (normales + repetidas)
+        // Crear array de tareas combinadas
         const allTasks = [];
 
-        // Agregar tareas normales (excluyendo las que tienen patrones activos)
+        // 1. Agregar tareas normales del día
         for (const [, task] of Object.entries(dayTasks)) {
-          if (task?.text && !tasksWithActivePatterns.has(task.id)) {
+          if (task?.text) {
             allTasks.push({
               id: task.id,
               text: task.text,
               completed: task.completed,
               isRepeating: false,
+              originalTaskId: task.id,
             });
           }
         }
 
-        // Agregar tareas repetidas para esta fecha
+        // 2. Agregar tareas repetidas para este día
         for (const pattern of allPatterns) {
           if (!pattern.isActive) continue;
 
           if (shouldTaskRepeatOnDate(pattern.originalTaskId, date)) {
-            // Buscar la tarea original
-            const originalTask = Object.values(tasksByDate)
-              .flatMap((dayTasks) => Object.values(dayTasks))
-              .find(
-                (task) => task !== null && task.id === pattern.originalTaskId
-              );
+            // Buscar la tarea original en cualquier día
+            let originalTask = null;
+            for (const [, dayTasks] of Object.entries(tasksByDate)) {
+              for (const [, task] of Object.entries(dayTasks)) {
+                if (task && task.id === pattern.originalTaskId) {
+                  originalTask = task;
+                  break;
+                }
+              }
+              if (originalTask) break;
+            }
 
             if (originalTask) {
-              const isCompleted = isRepeatingTaskCompleted(
-                pattern.originalTaskId,
-                date
-              );
+              const isCompleted = isRepeatingTaskCompleted(pattern.originalTaskId, date);
               allTasks.push({
                 id: `${originalTask.id}-repeat-${date}`,
                 text: originalTask.text,
                 completed: isCompleted,
                 isRepeating: true,
+                originalTaskId: originalTask.id,
               });
             }
           }
         }
 
-        // Crear un array simple de las tareas pendientes
-        const pendingTasksList = []; // Solo tareas NO completadas
-        let totalTasks = allTasks.length;
+        // 3. Filtrar duplicados: si hay tarea normal Y repetida del mismo ID, quedarse solo con una
+        const taskMap = new Map();
+        for (const task of allTasks) {
+          const key = task.originalTaskId;
+          
+          // Si ya existe una tarea con este originalTaskId
+          if (taskMap.has(key)) {
+            const existingTask = taskMap.get(key);
+            
+            // Priorizar tarea normal sobre repetida
+            if (!existingTask.isRepeating && task.isRepeating) {
+              // Mantener la tarea normal, ignorar la repetida
+              continue;
+            } else if (existingTask.isRepeating && !task.isRepeating) {
+              // Reemplazar la repetida con la normal
+              taskMap.set(key, task);
+            }
+            // Si ambas son del mismo tipo, mantener la primera
+          } else {
+            // Nueva tarea, agregarla
+            taskMap.set(key, task);
+          }
+        }
+
+        // Convertir el mapa a array
+        const finalTasks = Array.from(taskMap.values());
+        
+        console.log('📊 Tareas antes de filtrar duplicados:', allTasks.length);
+        console.log('📊 Tareas después de filtrar duplicados:', finalTasks.length);
+
+        // Crear array de tareas pendientes para el widget
+        const pendingTasksList = [];
+        let totalTasks = finalTasks.length;
         let completedTasks = 0;
 
-        for (const task of allTasks) {
+        for (const task of finalTasks) {
           if (task.completed) {
             completedTasks++;
           } else {
-            // Solo agregar tareas NO completadas al array, con indicador de repetición
+            // Agregar indicador visual para tareas repetidas
             const taskText = task.isRepeating ? `🔄 ${task.text}` : task.text;
             pendingTasksList.push(taskText);
           }
         }
 
+        console.log('✅ Tareas completadas:', completedTasks);
+        console.log('⏳ Tareas pendientes:', pendingTasksList.length);
+
         // Actualizar Widget Store con datos reales
         await WidgetStore.updateWidgetData({
-          tasks: pendingTasksList, // Array con solo las tareas pendientes
+          tasks: pendingTasksList,
           totalTasks,
           completedTasks,
           date,
@@ -112,12 +148,7 @@ export const useWidgetSync = () => {
         console.error("❌ Error sincronizando datos reales:", error);
       }
     },
-    [
-      tasksByDate,
-      getAllRepeatingPatterns,
-      shouldTaskRepeatOnDate,
-      isRepeatingTaskCompleted,
-    ]
+    [tasksByDate, getAllRepeatingPatterns, shouldTaskRepeatOnDate, isRepeatingTaskCompleted]
   );
 
   const forceWidgetUpdate = useCallback(async () => {
@@ -137,18 +168,9 @@ export const useWidgetSync = () => {
     // Usar fecha actual local sin problemas de timezone
     const today = getCurrentLocalDateString();
 
-    // Verificar si hay tareas para hoy en Zustand
-    const todayTasks = tasksByDate[today] || {};
-
-    if (Object.keys(todayTasks).length > 0) {
-      // Si hay datos reales, usarlos
-      await syncRealDataToWidget(today);
-    } else {
-      // Si no hay datos reales, usar datos estáticos
-
-      await createStaticWidgetData();
-    }
-  }, [tasksByDate, syncRealDataToWidget, createStaticWidgetData]);
+    // Siempre usar la función de datos reales ya que ahora maneja todos los casos
+    await syncRealDataToWidget(today);
+  }, [syncRealDataToWidget]);
 
   // Función para forzar sincronización manual (útil para debugging)
   const forceSyncWidget = useCallback(async () => {

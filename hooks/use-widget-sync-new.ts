@@ -1,11 +1,14 @@
 import { mmkvStorage } from "@/lib/mmkv";
+import WidgetService from "@/services/widgets/widget-service";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
+import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import WidgetStore from "@/stores/widget-store";
 import { useCallback, useEffect } from "react";
 
 // Hook para sincronizar datos del widget
 export const useWidgetSync = () => {
   const { tasksByDate } = useAgendaTasksStore();
+  const { repeatingTaskCompletions } = useRepeatingTasksStore();
 
   // Función para crear datos estáticos de prueba
   const createStaticWidgetData = useCallback(async () => {
@@ -16,37 +19,29 @@ export const useWidgetSync = () => {
     console.log("📱 Datos guardados verificados:", savedData);
   }, []);
 
-  // Función para sincronizar datos reales desde Zustand store
+  // Función para sincronizar datos reales usando el WidgetService
   const syncRealDataToWidget = useCallback(
     async (date: string) => {
       try {
-        console.log("Datos completos de tasksByDate:", tasksByDate);
+        console.log("🔄 Sincronizando datos del widget para fecha:", date);
 
-        const dayTasks = tasksByDate[date] || {};
+        // Usar el WidgetService que ya tiene la lógica de tareas repetidas
+        const widgetData = WidgetService.getCurrentDayData();
+        
+        console.log("📊 Datos del widget generados:", widgetData);
 
-        // Crear un array simple de las tareas del día
-        const tasksList = [];
-        let totalTasks = 0;
-        let completedTasks = 0;
+        // Filtrar solo tareas no completadas para mostrar en el widget (máximo 3)
+        const pendingTasksTexts = widgetData.todayTasks
+          .filter(task => !task.completed)
+          .slice(0, 3)
+          .map(task => task.text);
 
-        for (const [, task] of Object.entries(dayTasks)) {
-          if (task?.text) {
-            totalTasks++;
-            if (task.completed) {
-              completedTasks++;
-            } else if (tasksList.length < 3) {
-              // Solo agregar tareas no completadas al widget (máximo 3)
-              tasksList.push(task.text);
-            }
-          }
-        }
-
-        // Actualizar Widget Store con datos reales
+        // Actualizar Widget Store con datos del servicio
         await WidgetStore.updateWidgetData({
-          tasks: tasksList,
-          totalTasks,
-          completedTasks,
-          date,
+          tasks: pendingTasksTexts,
+          totalTasks: widgetData.tasksCount,
+          completedTasks: widgetData.completedTasks,
+          date: date,
           timestamp: Date.now(),
         });
 
@@ -59,7 +54,7 @@ export const useWidgetSync = () => {
         console.error("❌ Error sincronizando datos reales:", error);
       }
     },
-    [tasksByDate]
+    [] // Sin dependencias ya que WidgetService maneja el estado internamente
   );
 
   const forceWidgetUpdate = useCallback(async () => {
@@ -79,16 +74,9 @@ export const useWidgetSync = () => {
     // Usar fecha actual dinámica
     const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD formato actual
 
-    // Verificar si hay tareas para hoy en Zustand
-    const todayTasks = tasksByDate[today] || {};
-
-    if (Object.keys(todayTasks).length > 0) {
-      // Si hay datos reales, usarlos
-      await syncRealDataToWidget(today);
-    } else {
-      await createStaticWidgetData();
-    }
-  }, [tasksByDate, syncRealDataToWidget, createStaticWidgetData]);
+    // Usar WidgetService que incluye tareas repetidas
+    await syncRealDataToWidget(today);
+  }, [syncRealDataToWidget]);
 
   // Función para forzar sincronización manual (útil para debugging)
   const forceSyncWidget = useCallback(async () => {
@@ -99,7 +87,7 @@ export const useWidgetSync = () => {
   // Sincronizar automáticamente cuando cambien las tareas O al inicio
   useEffect(() => {
     syncTodayWidget();
-  }, [tasksByDate, syncTodayWidget]);
+  }, [tasksByDate, repeatingTaskCompletions, syncTodayWidget]);
 
   return {
     syncRealDataToWidget,
