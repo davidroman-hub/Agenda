@@ -39,15 +39,20 @@ export default function SettingsPage() {
       }
     >
       <ThemedView style={dynamicStyles.container}>
-        <ThemedText style={{
-          marginBottom: 10,
-          height: 40,
-        }} type="title">{tCommon("settings.title")}</ThemedText>
-        <ThemedText style={dynamicStyles.text}>
-        {tCommon("settings.info")}
+        <ThemedText
+          style={{
+            marginBottom: 10,
+            height: 40,
+          }}
+          type="title"
+        >
+          {tCommon("settings.title")}
         </ThemedText>
         <ThemedText style={dynamicStyles.text}>
-       {tCommon("settings.version")} {versionJSON}
+          {tCommon("settings.info")}
+        </ThemedText>
+        <ThemedText style={dynamicStyles.text}>
+          {tCommon("settings.version")} {versionJSON}
         </ThemedText>
 
         <ChangeThemeButton />
@@ -56,15 +61,6 @@ export default function SettingsPage() {
         {/* <DevToolsButton /> */}
         <LogoutButton />
       </ThemedView>
-      <ThemedText style={dynamicStyles.text}>
-        Creado con ❤️‍🔥 desde 🇲🇽 por{" "}
-      </ThemedText>
-      <TouchableOpacity
-        style={{ justifyContent: "center", alignItems: "center", padding: 10 }}
-        onPress={handleDavidRomanPress}
-      >
-        <ThemedText style={dynamicStyles.link}>David Roman</ThemedText>
-      </TouchableOpacity>
 
       <TouchableOpacity
         style={{
@@ -74,14 +70,18 @@ export default function SettingsPage() {
         }}
       >
         <TranslationTest />
-        <ThemedText
-          style={{
-            fontSize: 7,
-          }}
-        >
-          Powered by React Native
-        </ThemedText>
+  
       </TouchableOpacity>
+      <ThemedText style={dynamicStyles.text}>
+        Creado con ❤️‍🔥 desde 🇲🇽 por{" "}
+      </ThemedText>
+      <TouchableOpacity
+        style={{ justifyContent: "center", alignItems: "center", padding: 10 }}
+        onPress={handleDavidRomanPress}
+      >
+        <ThemedText style={dynamicStyles.link}>David Roman</ThemedText>
+      </TouchableOpacity>
+      
     </ParallaxScrollView>
   );
 }

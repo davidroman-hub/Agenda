@@ -27,6 +27,7 @@ export default function AnotherCalendarModal({
 CalendarModalProps) {
   // Estados para el modal de día
   const [showDayDetail, setShowDayDetail] = useState(false);
+  const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<Record<string, boolean>>({});
 
   // Hooks de internacionalización
   const { tAgenda, currentLanguage, tCommon } = useI18n();
@@ -263,7 +264,8 @@ CalendarModalProps) {
             repeatedTasks.push({
               ...originalTask,
               id: `${originalTask.id}-repeat-${dateString}`,
-              completed: isRepeatingTaskCompleted(originalTask.id, dateString),
+              completed: localRepeatingCompletions[`${originalTask.id}-${dateString}`] ?? 
+                        isRepeatingTaskCompleted(originalTask.id, dateString),
               isRepeatingTask: true,
               repeatingTaskId: originalTask.id,
               repeatingPatternId: pattern.id,
@@ -283,6 +285,7 @@ CalendarModalProps) {
       getAllRepeatingPatterns,
       shouldTaskRepeatOnDate,
       isRepeatingTaskCompleted,
+      localRepeatingCompletions,
     ]
   );
 
@@ -304,6 +307,14 @@ CalendarModalProps) {
   React.useEffect(() => {
     setSelected(dateSelected || getCurrentDateString());
   }, [dateSelected]);
+
+  // Efecto para sincronizar estado local cuando se cierra el DayDetailModal
+  React.useEffect(() => {
+    if (!showDayDetail) {
+      // Limpiar estado local para forzar recarga desde el store
+      setLocalRepeatingCompletions({});
+    }
+  }, [showDayDetail]);
 
   const handleDayPress = (day: any) => {
     console.log("📅 Día seleccionado:", day.dateString);

@@ -33,6 +33,9 @@ export default function DayDetailModal({
   const [newTaskText, setNewTaskText] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
+  const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<
+    Record<string, boolean>
+  >({});
 
   // Colores del tema
   const backgroundColor = useThemeColor({}, "background");
@@ -59,8 +62,11 @@ export default function DayDetailModal({
     (state) => state.toggleRepeatingTaskCompletion
   );
 
-  // Función para obtener todas las tareas del día (normales + repetidas)
-  const dayTasks = React.useMemo(() => {
+  // Estado para forzar re-renders
+  // const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Función para calcular las tareas del día
+  const calculateDayTasks = React.useCallback(() => {
     const allExistingTasks = getAllTasks();
     const allPatterns = getAllRepeatingPatterns();
 
@@ -112,10 +118,10 @@ export default function DayDetailModal({
           repeatedTasks.push({
             ...originalInfo.task,
             id: `${originalInfo.task.id}-repeat-${selectedDate}`,
-            completed: isRepeatingTaskCompleted(
-              originalInfo.task.id,
-              selectedDate
-            ),
+            completed:
+              localRepeatingCompletions[
+                `${originalInfo.task.id}-${selectedDate}`
+              ] ?? isRepeatingTaskCompleted(originalInfo.task.id, selectedDate),
             isRepeatingTask: true,
             repeatingTaskId: originalInfo.task.id,
             repeatingPatternId: pattern.id,
@@ -143,7 +149,24 @@ export default function DayDetailModal({
     getAllRepeatingPatterns,
     shouldTaskRepeatOnDate,
     isRepeatingTaskCompleted,
+    localRepeatingCompletions,
   ]);
+
+  // Calcular las tareas usando la función
+  const dayTasks = calculateDayTasks();
+
+  // Efecto para forzar re-render cuando cambien las tareas repetidas
+  React.useEffect(() => {
+    // Sincronizar estado local con el store cuando cambie el modal
+    const syncCompletions = async () => {
+      const newCompletions: Record<string, boolean> = {};
+      setLocalRepeatingCompletions(newCompletions);
+    };
+
+    if (visible) {
+      syncCompletions();
+    }
+  }, [visible, selectedDate]);
 
   // Constante para el límite máximo de tareas
   const MAX_TASKS = 12;
@@ -152,9 +175,30 @@ export default function DayDetailModal({
   const isTaskLimitReached = dayTasks.length >= MAX_TASKS;
 
   const handleToggleComplete = (task: any) => {
+    console.log(
+      "🔄 Toggleando tarea:",
+      task.id,
+      "isRepeating:",
+      task.isRepeatingTask
+    );
     if (task.isRepeatingTask) {
+      console.log(
+        "📅 Tarea repetida - toggleando:",
+        task.repeatingTaskId,
+        selectedDate
+      );
+
+      // Actualizar estado local inmediatamente para reactividad instantánea
+      const completionKey = `${task.repeatingTaskId}-${selectedDate}`;
+      setLocalRepeatingCompletions((prev) => ({
+        ...prev,
+        [completionKey]: !task.completed,
+      }));
+
+      // También actualizar el store para persistencia
       toggleRepeatingTaskCompletion(task.repeatingTaskId, selectedDate);
     } else {
+      console.log("📝 Tarea normal - actualizando:", selectedDate, task.line);
       updateTask(selectedDate, task.line, {
         ...task,
         completed: !task.completed,
@@ -247,7 +291,13 @@ export default function DayDetailModal({
                 {dayTasks.map((task, index) => (
                   <ThemedView
                     key={task.id}
-                    style={[styles.taskItem, { borderColor: tintColor + "30" }]}
+                    style={[
+                      styles.taskCard,
+                      task.completed && styles.taskCardCompleted,
+                      task.isRepeatingTask &&
+                        !task.completed &&
+                        styles.taskCardRepeating,
+                    ]}
                   >
                     <ThemedView style={styles.taskContent}>
                       {/* Checkbox */}
@@ -255,11 +305,9 @@ export default function DayDetailModal({
                         onPress={() => handleToggleComplete(task)}
                         style={styles.checkbox}
                       >
-                        <Icon
-                          name={task.completed ? "check-square" : "square-o"}
-                          size={20}
-                          color={task.completed ? tintColor : textColor}
-                        />
+                        <ThemedText style={styles.taskCheckbox}>
+                          {task.completed ? "✅" : "☐"}
+                        </ThemedText>
                       </TouchableOpacity>
 
                       {/* Texto de la tarea */}
@@ -284,9 +332,13 @@ export default function DayDetailModal({
                             <ThemedText
                               style={[
                                 styles.taskText,
-                                { color: textColor },
-                                task.completed && styles.completedTask,
+                                {
+                                  color: textColor,
+                                  backgroundColor: "transparent",
+                                },
+                                task.completed && styles.taskTextCompleted,
                               ]}
+                              numberOfLines={2}
                             >
                               {task.text}
                             </ThemedText>
@@ -294,27 +346,30 @@ export default function DayDetailModal({
                         )}
 
                         {/* Indicadores */}
-                        <ThemedView style={styles.indicators}>
+                        <ThemedView
+                          style={[
+                            styles.taskIcons,
+                            { backgroundColor: "transparent" },
+                          ]}
+                        >
                           {task.isRepeatingTask && (
-                            <ThemedText style={styles.indicator}>🔄</ThemedText>
+                            <ThemedText style={styles.taskIcon}>🔄</ThemedText>
                           )}
                           {task.reminder && (
-                            <ThemedText style={styles.indicator}>⏰</ThemedText>
+                            <ThemedText style={styles.taskIcon}>⏰</ThemedText>
                           )}
                         </ThemedView>
                       </ThemedView>
 
                       {/* Botones de acción */}
-                      <ThemedView style={styles.actions}>
-                        {!task.isRepeatingTask && (
-                          <TouchableOpacity
-                            onPress={() => handleDeleteTask(task)}
-                            style={styles.actionButton}
-                          >
-                            <Icon name="trash" size={16} color="#ff4444" />
-                          </TouchableOpacity>
-                        )}
-                      </ThemedView>
+                      {!task.isRepeatingTask && (
+                        <TouchableOpacity
+                          onPress={() => handleDeleteTask(task)}
+                          style={styles.actionButton}
+                        >
+                          <Icon name="trash" size={16} color="#ff4444" />
+                        </TouchableOpacity>
+                      )}
                     </ThemedView>
                   </ThemedView>
                 ))}
@@ -347,39 +402,6 @@ export default function DayDetailModal({
               </ThemedText>
             </ThemedView>
           )}
-
-          {/* <ThemedView style={styles.inputRow}>
-            <TextInput
-              style={[
-                styles.addTaskInput,
-                { 
-                  color: isTaskLimitReached ? textColor + "40" : textColor, 
-                  borderColor: isTaskLimitReached ? tintColor + "40" : tintColor,
-                  backgroundColor: isTaskLimitReached ? backgroundColor + "80" : "transparent"
-                },
-              ]}
-              value={newTaskText}
-              onChangeText={setNewTaskText}
-              placeholder={isTaskLimitReached ? "Límite de tareas alcanzado" : "Agregar nueva tarea..."}
-              placeholderTextColor={isTaskLimitReached ? textColor + "40" : textColor + "60"}
-              onSubmitEditing={handleAddTask}
-              multiline
-              editable={!isTaskLimitReached}
-            />
-            <TouchableOpacity
-              onPress={handleAddTask}
-              style={[
-                styles.addButton, 
-                { 
-                  backgroundColor: isTaskLimitReached ? tintColor + "40" : tintColor,
-                  opacity: isTaskLimitReached ? 0.5 : 1
-                }
-              ]}
-              disabled={!newTaskText.trim() || isTaskLimitReached}
-            >
-              <Icon name="plus" size={20} color="#fff" />
-            </TouchableOpacity>
-          </ThemedView> */}
         </ThemedView>
       </ThemedView>
     </Modal>
@@ -426,20 +448,54 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 12,
   },
+  taskCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "transparent",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#007AFF",
+    borderWidth: 1,
+    borderColor: "rgba(0, 122, 255, 0.2)",
+    marginBottom: 8,
+  },
+  taskCardCompleted: {
+    backgroundColor: "rgba(34, 197, 94, 0.1)",
+    borderLeftColor: "#22C55E",
+    borderColor: "rgba(34, 197, 94, 0.3)",
+  },
+  taskCardRepeating: {
+    backgroundColor: "transparent",
+    borderLeftColor: "#007AFF",
+    borderColor: "rgba(0, 122, 255, 0.2)",
+  },
+  taskCheckbox: {
+    fontSize: 16,
+    marginRight: 12,
+  },
   taskContent: {
     flexDirection: "row",
     alignItems: "flex-start",
+    backgroundColor: "transparent",
+    flex: 1,
   },
   checkbox: {
     marginRight: 12,
     marginTop: 2,
   },
   taskTextContainer: {
+    backgroundColor: "transparent",
     flex: 1,
   },
   taskText: {
     fontSize: 16,
     lineHeight: 22,
+  },
+  taskTextCompleted: {
+    textDecorationLine: "line-through",
+    opacity: 0.7,
   },
   completedTask: {
     textDecorationLine: "line-through",
@@ -456,9 +512,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 4,
   },
+  taskIcons: {
+    flexDirection: "row",
+    gap: 4,
+    marginTop: 4,
+  },
   indicator: {
     fontSize: 12,
     marginRight: 4,
+  },
+  taskIcon: {
+    fontSize: 12,
   },
   actions: {
     marginLeft: 8,
