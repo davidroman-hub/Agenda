@@ -2,10 +2,12 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useI18n } from "@/hooks/use-i18n";
 import useThemeStore from "@/stores/theme-store";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
 const ChangeThemeButton = () => {
+    const { tCommon } = useI18n();
   const { colorScheme, toggleColorScheme } = useThemeStore();
   const systemColorScheme = useColorScheme();
   const colors = Colors[systemColorScheme ?? 'light'];
@@ -25,7 +27,7 @@ const ChangeThemeButton = () => {
           {colorScheme === "light" ? "🌙" : "☀️"}
         </ThemedText>
         <ThemedText style={[styles.buttonText, { color: colors.background }]}>
-          {colorScheme === "light" ? "Modo Oscuro" : "Modo Claro"}
+          {colorScheme === "light" ? tCommon("settings.darkMode") : tCommon("settings.lightMode")}
         </ThemedText>
       </ThemedView>
     </TouchableOpacity>

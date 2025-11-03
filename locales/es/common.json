@@ -141,5 +141,44 @@
     "scheduledAt": "a las",
     "infoThree": "No hay recordatorios programados.",
     "infoFour": "Crea una tarea y establece un recordatorio para verla aquí."
+  },
+
+  "settings": {
+    "title": "Ajustes",
+    "info": "Aquí puedes ajustar tus preferencias de la aplicación.",
+    "darkMode": "Modo oscuro",
+    "lightMode": "Modo claro",
+    "language": "Idioma",
+    "theme": "Tema",
+    "notifications": "Notificaciones",
+    "privacy": "Privacidad",
+    "terms": "Términos de Servicio",
+    "help": "Ayuda",
+    "about": "Acerca de",
+    "version": "Versión",
+    "versionInfo": "Información de la versión",
+    "currentVersion": "Versión actual",
+    "what": "¿Qué quieres ver?",
+    "changeHistory": "Historial de cambios",
+    "latestVersion": "Última versión",
+    "signOut": "Cerrar sesión",
+    "languageSettings": {
+      "title": "Configuración de idioma",
+      "info": "Selecciona tu idioma preferido para la interfaz de la aplicación.",
+      "systemDefault": "Predeterminado del sistema",
+      "selectLanguage": "Seleccionar idioma"
+    },
+    "fontSize": {
+      "taskExample": "Texto de ejemplo de tarea",
+      "title": "Tamaño de fuente",
+      "selectFontSize": "Selecciona el tamaño de fuente para las tareas",
+      "current": "Actual",
+      "info": "Ajusta el tamaño de fuente para mejorar la legibilidad.",
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande",
+      "veryLarge": "Muy grande",
+      "extraLarge": "Extra grande"
+    }
   }
 }

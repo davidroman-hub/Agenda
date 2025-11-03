@@ -127,7 +127,7 @@
     "reminderConfigTitle": "  🔔 Reminder Settings",
     "testActions": "Test actions",
     "turnOnNotifications": "🧪 Turn on notifications to enable reminders.",
-    "repeatedTasks":" Repeated Tasks",
+    "repeatedTasks": " Repeated Tasks",
     "repeatedTaskCheck": "🔄 Force check for repeated tasks",
     "verifying": "🔄 Verifying...",
     "veryfyRepeatedTasks": "🔄 Verify repeated tasks now",
@@ -136,9 +136,48 @@
     "infoTwo": "📱 Reminders will appear as notifications on your device at the scheduled time.",
     "updatig": "Updating...",
     "loadingReminders": "🔄 Loading reminders...",
-    "scheduledReminders":"Scheduled reminders",
+    "scheduledReminders": "Scheduled reminders",
     "scheduledAt": "at",
     "infoThree": "There are no scheduled reminders.",
     "infoFour": "Create a task and set a reminder to view it here."
+  },
+
+  "settings": {
+    "title": "Settings",
+    "info": "Here you can adjust your app preferences.",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "terms": "Terms of Service",
+    "help": "Help",
+    "about": "About",
+    "version": "Version",
+    "versionInfo": "Version Information",
+    "currentVersion": "Current Version",
+    "what": "What do you want to see?",
+    "changeHistory": "Change History",
+    "latestVersion": "Latest Version",
+    "languageSettings": {
+      "title": "Language Settings",
+      "info": "Select your preferred language for the app interface.",
+      "systemDefault": "System Default",
+      "selectLanguage": "Select Language"
+    },
+    "signOut": "Sign Out",
+    "fontSize": {
+      "taskExample": "Example task text",
+      "title": "Font Size",
+      "current": "Current",
+      "selectFontSize": "Select font size",
+      "info": "Adjust the font size for better readability.",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "veryLarge": "Very Large",
+      "extraLarge": "Extra Large"
+    }
   }
 }

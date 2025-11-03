@@ -1,51 +1,56 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 
+import { useI18n } from "@/hooks/use-i18n";
 import { useVersionStore } from "@/stores/version-store";
 import React from "react";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 import pjson from "../../app.json";
+import { changeLogLocales } from "./changeLogLocales";
 const versionJSON = pjson.expo.version;
 
 export default function VersionInfoButton() {
+  const { tCommon ,currentLanguage} = useI18n();
+
   const { previousVersion, isFirstLaunch } = useVersionStore();
+
+  const showChanelog = () => {
+    if (currentLanguage === "es") {
+      return changeLogLocales.es.changes;
+    }
+    if (currentLanguage === "en") {
+      return changeLogLocales.en.changes;
+    }
+    if (currentLanguage === "fr") {
+      return changeLogLocales.fr.changes;
+    }
+    if (currentLanguage === "it") {
+      return changeLogLocales.it.changes;
+    }   
+    return undefined;
+  };
 
   const handleVersionPress = () => {
     Alert.alert(
-      "📱 Información de Versión",
-      `Versión actual: ${versionJSON}\n\n\n¿Qué quieres ver?`,
+      "📱" + tCommon("settings.versionInfo"),
+      `${tCommon("settings.currentVersion")}: ${versionJSON}\n\n\n ${tCommon(
+        "settings.what"
+      )}`,
       [
         {
           text: "Changelog",
           onPress: () => {
             Alert.alert(
-              "📋 Historial de Cambios",
-              ` ${versionJSON} - ✨ ADD Enlaces clickeables en tareas: URLs automáticamente detectadas y convertidas en hipervínculos
-- ✨ ADD Soporte completo para múltiples formatos de URL (https://, http://, www., dominios)
-- ✨ ADD Componente LinkableText para renderizar texto con enlaces interactivos
-- ✨ ADD Utilidades url-utils para detección, normalización y apertura de enlaces
-- ✨ ADD ScrollView en configuración de notificaciones para mejor navegación
-- ✨ ADD Límite de texto extendido para tareas (de 100 a 500 caracteres)
-- ✨ ADD Sistema de migración de fechas para compatibilidad global de zonas horarias
-- 🔧 IMPROVE Enlaces con estilos adaptativos para modo claro/oscuro (azul con subrayado)
-- 🔧 IMPROVE Widget simplificado: solo abre la app, eliminada sincronización agresiva
-- 🔧 IMPROVE Manejo de errores al abrir enlaces con alertas informativas
-- 🔧 IMPROVE Altura de campo de entrada de tareas aumentada (120px → 200px)
-- 🔧 IMPROVE Límites de visualización de texto aumentados (30/25 → 80/75 caracteres)
-- 🔧 IMPROVE Sistema de fechas completamente compatible con todas las zonas horarias
-- 🐛 FIX Widget ya no causa pérdida de datos al tocarlo
-- 🐛 FIX Problemas de compilación Android en WidgetDataManagerModule y AgendaWidgetProvider
-- 🐛 FIX Tareas aparecían 1 hora después del cambio de día por problemas de timezone
-- 🐛 FIX Sistema de migración automática ejecuta una sola vez por instalación
-- 🐛 FIX Uso correcto de dateToLocalDateString en lugar de toISOString().split('T')[0]`,
+              "📋 " + tCommon("settings.changeHistory"),
+              ` ${versionJSON} ${showChanelog()}`,
 
-              [{ text: "Cerrar", style: "cancel" }]
+              [{ text: tCommon("buttons.close"), style: "cancel" }]
             );
           },
         },
 
         {
-          text: "Cerrar",
+          text: tCommon("buttons.close"),
           style: "cancel",
         },
       ]
@@ -56,14 +61,14 @@ export default function VersionInfoButton() {
     <ThemedView style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={handleVersionPress}>
         <ThemedText style={styles.buttonText}>
-          📱 Información de Versión
+          📱 {tCommon("settings.versionInfo")}
         </ThemedText>
         <ThemedText style={styles.versionText}>
           v{versionJSON}
           {previousVersion && !isFirstLaunch && (
             <ThemedText style={styles.updateIndicator}>
               {" "}
-              • Actualizada
+              • {tCommon("settings.latestVersion")}
             </ThemedText>
           )}
         </ThemedText>

@@ -1,153 +1,80 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useI18n } from '@/hooks/use-i18n';
-import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useI18n } from "@/hooks/use-i18n";
+import React, { useState } from "react";
+import { StyleSheet, TouchableOpacity } from "react-native";
 
 export default function TranslationTest() {
-  const { 
-    tCommon, 
-    tAgenda, 
-    changeLanguage, 
-    resetToDeviceLanguage,
-    currentLanguage, 
-    deviceLanguage, 
-    hasUserSelectedLanguage,
-    userSelectedLanguage 
-  } = useI18n();
+  const { changeLanguage, tCommon, currentLanguage } = useI18n();
+
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  const languages = [
+    { code: "es", name: "Español", flag: "🇪🇸" },
+    { code: "en", name: "English", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
+    { code: "it", name: "Italiano", flag: "🇮🇹" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
+  ];
+
+  const handleLanguageSelect = (languageCode: string) => {
+    changeLanguage(languageCode);
+    setShowLanguageMenu(false);
+  };
+
+  const getCurrentLanguageName = () => {
+    const currentLang = languages.find((lang) => lang.code === currentLanguage);
+    return currentLang
+      ? `${currentLang.flag} ${currentLang.name}`
+      : currentLanguage;
+  };
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText style={styles.title}>🌍 Translation Test</ThemedText>
-      
-      {/* Información del dispositivo */}
+      <ThemedText style={styles.title}>🌍 {tCommon("settings.languageSettings.title")}</ThemedText>
+
+      {/* Selector de idioma */}
       <ThemedView style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Device Language Info:</ThemedText>
-        {deviceLanguage ? (
-          <>
-            <ThemedText>• Language Code: {deviceLanguage.languageCode}</ThemedText>
-            <ThemedText>• Language Tag: {deviceLanguage.languageTag}</ThemedText>
-            <ThemedText>• Region: {deviceLanguage.regionCode || 'N/A'}</ThemedText>
-            <ThemedText>• Text Direction: {deviceLanguage.textDirection}</ThemedText>
-          </>
-        ) : (
-          <ThemedText>• Could not detect device language</ThemedText>
+        <ThemedText style={styles.sectionTitle}>
+          {tCommon("settings.languageSettings.selectLanguage")}
+        </ThemedText>
+        <TouchableOpacity
+          style={styles.languageSelector}
+          onPress={() => setShowLanguageMenu(!showLanguageMenu)}
+        >
+          <ThemedText style={styles.languageSelectorText}>
+            {getCurrentLanguageName()}
+          </ThemedText>
+          <ThemedText style={styles.dropdownArrow}>
+            {showLanguageMenu ? "▲" : "▼"}
+          </ThemedText>
+        </TouchableOpacity>
+
+        {/* Menú desplegable */}
+        {showLanguageMenu && (
+          <ThemedView style={styles.languageMenu}>
+            {languages.map((language) => (
+              <TouchableOpacity
+                key={language.code}
+                style={[
+                  styles.languageOption,
+                  currentLanguage === language.code &&
+                    styles.activeLanguageOption,
+                ]}
+                onPress={() => handleLanguageSelect(language.code)}
+              >
+                <ThemedText
+                  style={[
+                    styles.languageOptionText,
+                    currentLanguage === language.code &&
+                      styles.activeLanguageOptionText,
+                  ]}
+                >
+                  {language.flag} {language.name}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ThemedView>
         )}
-      </ThemedView>
-      
-      {/* Información de preferencias */}
-      <ThemedView style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Language Preferences:</ThemedText>
-        <ThemedText>• User Selected: {hasUserSelectedLanguage() ? userSelectedLanguage : 'Auto (Device)'}</ThemedText>
-        <ThemedText>• Current App Language: {currentLanguage}</ThemedText>
-        <ThemedText>• Status: {hasUserSelectedLanguage() ? '🔒 Manual Override' : '🤖 Auto Detection'}</ThemedText>
-      </ThemedView>
-      
-      {/* Idioma actual */}
-      <ThemedText style={styles.subtitle}>
-        Current App Language: {currentLanguage} {hasUserSelectedLanguage() ? '(User Selected)' : '(Auto)'}
-      </ThemedText>
-      
-      {/* Botones para cambiar idioma */}
-      <ThemedView style={styles.languageButtons}>
-        <TouchableOpacity 
-          style={[
-            styles.languageButton,
-            currentLanguage === 'es' && styles.activeLanguageButton
-          ]}
-          onPress={() => changeLanguage('es')}
-        >
-          <ThemedText style={[
-            styles.languageButtonText,
-            currentLanguage === 'es' && styles.activeLanguageButtonText
-          ]}>
-            🇪🇸 Español
-          </ThemedText>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[
-            styles.languageButton,
-            currentLanguage === 'en' && styles.activeLanguageButton
-          ]}
-          onPress={() => changeLanguage('en')}
-        >
-          <ThemedText style={[
-            styles.languageButtonText,
-            currentLanguage === 'en' && styles.activeLanguageButtonText
-          ]}>
-            🇺🇸 English
-          </ThemedText>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[
-            styles.languageButton,
-            currentLanguage === 'it' && styles.activeLanguageButton
-          ]}
-          onPress={() => changeLanguage('it')}
-        >
-          <ThemedText style={[
-            styles.languageButtonText,
-            currentLanguage === 'it' && styles.activeLanguageButtonText
-          ]}>
-            🇮🇹 Italiano
-          </ThemedText>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[
-            styles.languageButton,
-            currentLanguage === 'fr' && styles.activeLanguageButton
-          ]}
-          onPress={() => changeLanguage('fr')}
-        >
-          <ThemedText style={[
-            styles.languageButtonText,
-            currentLanguage === 'fr' && styles.activeLanguageButtonText
-          ]}>
-            🇫🇷 Français
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-      
-      {/* Botón para resetear a automático */}
-      {hasUserSelectedLanguage() && (
-        <ThemedView style={styles.resetSection}>
-          <TouchableOpacity 
-            style={styles.resetButton}
-            onPress={resetToDeviceLanguage}
-          >
-            <ThemedText style={styles.resetButtonText}>
-              🤖 Reset to Device Language
-            </ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      )}
-      
-      {/* Ejemplos de traducciones comunes */}
-      <ThemedView style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Common Translations:</ThemedText>
-        <ThemedText>• {tCommon('buttons.save')}</ThemedText>
-        <ThemedText>• {tCommon('buttons.cancel')}</ThemedText>
-        <ThemedText>• {tCommon('general.today')}</ThemedText>
-        <ThemedText>• {tCommon('navigation.agenda')}</ThemedText>
-      </ThemedView>
-      
-      {/* Ejemplos de traducciones de agenda */}
-      <ThemedView style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Agenda Translations:</ThemedText>
-        <ThemedText>• {tAgenda('tasks.addTask')}</ThemedText>
-        <ThemedText>• {tAgenda('tasks.noTasks')}</ThemedText>
-        <ThemedText>• {tAgenda('calendar.title')}</ThemedText>
-        <ThemedText>• {tAgenda('days.monday')}</ThemedText>
-      </ThemedView>
-      
-      {/* Ejemplo de pluralización */}
-      <ThemedView style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Pluralization Test:</ThemedText>
-        <ThemedText>• {tAgenda('tasks.taskCount', { count: 1 })}</ThemedText>
-        <ThemedText>• {tAgenda('tasks.taskCount', { count: 5 })}</ThemedText>
       </ThemedView>
     </ThemedView>
   );
@@ -160,66 +87,75 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 20,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-    fontStyle: 'italic',
-  },
-  languageButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 10,
-    marginBottom: 30,
-  },
-  languageButton: {
-    padding: 10,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: 'center',
-    flex: 1,
-    maxWidth: '45%',
-  },
-  activeLanguageButton: {
-    backgroundColor: '#FF6B35',
-  },
-  languageButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  activeLanguageButtonText: {
-    fontWeight: 'bold',
-  },
-  resetSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  resetButton: {
-    padding: 12,
-    backgroundColor: '#FF6B35',
-    borderRadius: 8,
-    minWidth: 200,
-    alignItems: 'center',
-  },
-  resetButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
   section: {
     marginBottom: 20,
     padding: 15,
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: "rgba(0,0,0,0.05)",
     borderRadius: 8,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
+  },
+  languageSelector: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#007AFF",
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  languageSelectorText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  dropdownArrow: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  languageMenu: {
+    marginTop: 5,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  languageOption: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.1)",
+  },
+  activeLanguageOption: {
+    backgroundColor: "#FF6B35",
+  },
+  languageOptionText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  activeLanguageOptionText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  },
+  resetSection: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  resetButton: {
+    padding: 12,
+    backgroundColor: "#FF6B35",
+    borderRadius: 8,
+    minWidth: 200,
+    alignItems: "center",
+  },
+  resetButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
 });

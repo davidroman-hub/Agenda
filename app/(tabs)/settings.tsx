@@ -7,6 +7,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import TranslationTest from "@/components/translation-test";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useI18n } from "@/hooks/use-i18n";
 import {
   Linking,
   StyleSheet,
@@ -15,6 +16,7 @@ import {
   ViewStyle,
 } from "react-native";
 import pjson from "../../app.json";
+
 const versionJSON = pjson.expo.version;
 
 const handleDavidRomanPress = () => {
@@ -22,6 +24,8 @@ const handleDavidRomanPress = () => {
 };
 
 export default function SettingsPage() {
+  const { tCommon } = useI18n();
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
@@ -35,12 +39,15 @@ export default function SettingsPage() {
       }
     >
       <ThemedView style={dynamicStyles.container}>
-        <ThemedText type="title">Configuración</ThemedText>
+        <ThemedText style={{
+          marginBottom: 10,
+          height: 40,
+        }} type="title">{tCommon("settings.title")}</ThemedText>
         <ThemedText style={dynamicStyles.text}>
-          Aquí puedes ajustar tus preferencias de la aplicación.
+        {tCommon("settings.info")}
         </ThemedText>
         <ThemedText style={dynamicStyles.text}>
-          Versión {versionJSON}
+       {tCommon("settings.version")} {versionJSON}
         </ThemedText>
 
         <ChangeThemeButton />
@@ -66,14 +73,13 @@ export default function SettingsPage() {
           padding: 10,
         }}
       >
-
         <TranslationTest />
         <ThemedText
           style={{
             fontSize: 7,
           }}
         >
-         Powered by React Native
+          Powered by React Native
         </ThemedText>
       </TouchableOpacity>
     </ParallaxScrollView>

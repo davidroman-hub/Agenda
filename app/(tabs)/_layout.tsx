@@ -13,7 +13,7 @@ import useLoginStore from "@/stores/login-store";
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { isLoggedIn } = useLoginStore();
-  const { tCommon, tAgenda } = useI18n();
+  const { tCommon } = useI18n();
   
   return (
     <Tabs

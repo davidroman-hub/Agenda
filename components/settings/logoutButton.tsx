@@ -1,17 +1,18 @@
+import { useI18n } from "@/hooks/use-i18n";
 import useLoginStore from "@/stores/login-store";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { ThemedText } from "../themed-text";
 
 const LogoutButton = () => {
   const { logout } = useLoginStore();
-
+  const { tCommon } = useI18n();
   const handleLogout = () => {
     logout();
   };
 
   return (
     <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-      <ThemedText style={styles.logoutButtonText}>Cerrar Sesión</ThemedText>
+      <ThemedText style={styles.logoutButtonText}>{tCommon("settings.signOut")}</ThemedText>
     </TouchableOpacity>
   );
 };
