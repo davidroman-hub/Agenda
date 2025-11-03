@@ -652,15 +652,13 @@ export default function BookPage({
                             textDecorationLine: "underline",
                           }}
                           numberOfLines={undefined}
-                          ellipsizeMode="tail"
+                          ellipsizeMode="tail" 
                         >
                           {`${
-                            task.repeat && task.repeat !== "none" ? "🔄 " : ""
-                          }${task.reminder ? "⏰ " : ""}${
-                            task.text.length > 80 && viewMode !== "expanded"
-                              ? task.text.slice(0, 75) + "..."
-                              : task.text
-                          }`}
+                            task.repeat && task.repeat !== "none"
+                              ? "🔄 "
+                              : ""
+                          }${task.reminder ? "⏰ " : ""}${task.text}`}
                         </LinkableText>
                       </ThemedView>
                     );
