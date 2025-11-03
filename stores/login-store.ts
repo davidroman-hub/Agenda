@@ -13,8 +13,8 @@ interface LoginState {
 const useLoginStore = create<LoginState>()(
   persist(
     (set) => ({
-      isLoggedIn: false,
-      userValues: null,
+      isLoggedIn: true, // Ya logueado por defecto
+      userValues: { username: "test", password: "123" },
       login: () => set({ isLoggedIn: true }),
       logout: () => set({ isLoggedIn: false, userValues: null }),
       setUserValues: (username: string, password: string) =>

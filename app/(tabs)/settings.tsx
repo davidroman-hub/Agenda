@@ -1,6 +1,5 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
-import LogoutButton from "@/components/settings/logoutButton";
 import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import VersionInfoButton from "@/components/settings/versionInfoButton";
 import { ThemedText } from "@/components/themed-text";
@@ -59,7 +58,7 @@ export default function SettingsPage() {
         <TaskFontSizeButton />
         <VersionInfoButton />
         {/* <DevToolsButton /> */}
-        <LogoutButton />
+        {/* <LogoutButton /> */}
       </ThemedView>
 
       <TouchableOpacity

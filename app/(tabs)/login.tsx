@@ -13,7 +13,11 @@ export default function LoginScreen() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // Auto-login ya que las credenciales están hardcodeadas
+    if (!isLoggedIn) {
+      login();
+    }
+  }, [isLoggedIn, login]);
 
   useEffect(() => {
     if (isMounted && isLoggedIn) {
@@ -22,10 +26,8 @@ export default function LoginScreen() {
   }, [isLoggedIn, router, isMounted]);
 
   const handleLogin = () => {
-    const trimmedUsername = userValues?.username?.trim() || "";
-    if (trimmedUsername === "test" && userValues?.password === "123") {
-      login();
-    }
+    // Login automático ya que los valores están hardcodeados
+    login();
   };
 
   return (
@@ -34,7 +36,7 @@ export default function LoginScreen() {
         {/* Header con logo o título */}
         <ThemedView style={styles.headerContainer}>
           <ThemedText type="title" style={styles.title}>
-            Mi Agenda
+            Just an Agenda
           </ThemedText>
           <ThemedText style={styles.subtitle}>
             Organiza tu día, todos los días
@@ -82,19 +84,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {/* Enlaces adicionales */}
-          <ThemedView style={styles.linksContainer}>
-            <TouchableOpacity>
-              <ThemedText style={styles.linkText}>
-                ¿Olvidaste tu contraseña?
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity>
-              <ThemedText style={styles.linkText}>
-                Crear cuenta nueva
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
+         
         </ThemedView>
 
         {/* Footer */}
