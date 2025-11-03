@@ -100,7 +100,11 @@ export default function BookPage({
     for (const [dateKeyMap, dayTasksMap] of Object.entries(allExistingTasks)) {
       for (const [line, task] of Object.entries(dayTasksMap)) {
         if (task) {
-          originalTasksMap.set(task.id, { task, originalDate: dateKeyMap, line: Number.parseInt(line, 10) });
+          originalTasksMap.set(task.id, {
+            task,
+            originalDate: dateKeyMap,
+            line: Number.parseInt(line, 10),
+          });
         }
       }
     }
@@ -133,7 +137,7 @@ export default function BookPage({
 
       if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateKey)) {
         const originalInfo = originalTasksMap.get(pattern.originalTaskId);
-        
+
         // Solo agregar como tarea repetida si NO estamos en el día de creación original
         if (originalInfo && originalInfo.originalDate !== dateKey) {
           repeatedTasks.push({
@@ -453,7 +457,7 @@ export default function BookPage({
                   styles.dayNumber,
                   dynamicStyles.dayNumber,
                   viewMode === "expanded" ? styles.expandedDayNumber : null,
-                  { marginRight:5, marginTop:2}
+                  { marginRight: 5, marginTop: 2 },
                 ]}
               >
                 {dateInfo.dayNumber}
@@ -463,13 +467,15 @@ export default function BookPage({
               style={[
                 styles.externalLinkButton,
                 {
-                  backgroundColor: colorScheme === "dark" 
-                    ? "rgba(255, 107, 53, 0.2)" 
-                    : "rgba(255, 107, 53, 0.15)",
-                  borderColor: colorScheme === "dark"
-                    ? "rgba(255, 107, 53, 0.4)"
-                    : "rgba(255, 107, 53, 0.3)",
-                }
+                  backgroundColor:
+                    colorScheme === "dark"
+                      ? "rgba(255, 107, 53, 0.2)"
+                      : "rgba(255, 107, 53, 0.15)",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255, 107, 53, 0.4)"
+                      : "rgba(255, 107, 53, 0.3)",
+                },
               ]}
               onPress={() => {
                 setCalendarIsOpen(!calendarIsopen);
@@ -498,20 +504,8 @@ export default function BookPage({
       {/* Líneas de escritura como en agenda real */}
       <ThemedView style={styles.linesContainer}>
         {generateLines().map((lineNumber) => {
-          const hasTask = allTasks[lineNumber];
-
-          let lineStyle;
-          if (hasTask) {
-            lineStyle =
-              viewMode === "expanded"
-                ? [dynamicStyles.lineWithTask, styles.expandedLine]
-                : dynamicStyles.lineWithTask;
-          } else {
-            lineStyle =
-              viewMode === "expanded"
-                ? [dynamicStyles.line, styles.expandedLine]
-                : dynamicStyles.line;
-          }
+          // Siempre usar el estilo con líneas visibles independientemente del contenido
+          const lineStyle = [dynamicStyles.lineWithTask, styles.expandedLine];
 
           return (
             <TouchableOpacity
@@ -522,7 +516,7 @@ export default function BookPage({
               <ThemedView
                 style={[
                   styles.lineNumber,
-                  viewMode === "expanded" ? styles.expandedLineNumber : null,
+                  styles.expandedLineNumber,
                   {
                     alignItems: "center",
                     justifyContent: "center",
@@ -657,9 +651,7 @@ export default function BookPage({
                               colorScheme === "dark" ? "#64B5F6" : "#1976D2",
                             textDecorationLine: "underline",
                           }}
-                          numberOfLines={
-                            viewMode === "expanded" ? undefined : 2
-                          }
+                          numberOfLines={undefined}
                           ellipsizeMode="tail"
                         >
                           {`${
