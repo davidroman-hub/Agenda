@@ -453,13 +453,24 @@ export default function BookPage({
                   styles.dayNumber,
                   dynamicStyles.dayNumber,
                   viewMode === "expanded" ? styles.expandedDayNumber : null,
+                  { marginRight:5, marginTop:2}
                 ]}
               >
                 {dateInfo.dayNumber}
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.externalLinkButton}
+              style={[
+                styles.externalLinkButton,
+                {
+                  backgroundColor: colorScheme === "dark" 
+                    ? "rgba(255, 107, 53, 0.2)" 
+                    : "rgba(255, 107, 53, 0.15)",
+                  borderColor: colorScheme === "dark"
+                    ? "rgba(255, 107, 53, 0.4)"
+                    : "rgba(255, 107, 53, 0.3)",
+                }
+              ]}
               onPress={() => {
                 setCalendarIsOpen(!calendarIsopen);
                 selectDate(day.toISOString().split("T")[0]);
@@ -468,7 +479,7 @@ export default function BookPage({
               <Icon
                 name="calendar"
                 size={12}
-                color={colorScheme === "dark" ? "#fff" : "#000"}
+                color={colorScheme === "dark" ? "#FF8A65" : "#FF6B35"}
               />
             </TouchableOpacity>
           </ThemedView>

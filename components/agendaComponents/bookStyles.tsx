@@ -78,11 +78,13 @@ export const styles = StyleSheet.create({
     top: "50%",
     
     transform: [{ translateY: -6 }],
-    padding: 3,
+    padding: 4,
     marginBottom: 2,
     
-    borderRadius: 3,
-    backgroundColor: "transparent",
+    borderRadius: 6,
+    backgroundColor: "rgba(255, 107, 53, 0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 107, 53, 0.3)",
   },
   dayNumber: {
     fontSize: isLargeScreen ? 36 : 32, // Vista normal: más grande

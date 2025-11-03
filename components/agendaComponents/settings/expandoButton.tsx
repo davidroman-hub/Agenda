@@ -21,7 +21,7 @@ export default function ExpandoButton() {
   const optiones = [
     {
       id: 1,
-      label: daysToShow === 6 ? `3 ${tCommon("days")}` : `6 ${tCommon("days")}`,
+      label: daysToShow === 6 ? `3 ${tCommon("general.days")}` : `6 ${tCommon("general.days")}`,
     },
     { id: 2, label: "•  •\n•  •\n•  •" },
     { id: 3, label: "•" },
