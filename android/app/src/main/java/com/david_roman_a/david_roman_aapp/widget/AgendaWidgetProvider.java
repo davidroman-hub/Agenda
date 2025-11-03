@@ -14,8 +14,148 @@ import org.json.JSONArray;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AgendaWidgetProvider extends AppWidgetProvider {
+
+    // Clase para manejar las traducciones del widget
+    private static class WidgetTranslations {
+        private final Map<String, String> translations;
+        
+        public WidgetTranslations(String language) {
+            translations = new HashMap<>();
+            loadTranslations(language);
+        }
+        
+        private void loadTranslations(String language) {
+            switch (language.toLowerCase()) {
+                case "en":
+                    loadEnglishTranslations();
+                    break;
+                case "fr":
+                    loadFrenchTranslations();
+                    break;
+                case "pt":
+                    loadPortugueseTranslations();
+                    break;
+                case "it":
+                    loadItalianTranslations();
+                    break;
+                case "es":
+                default:
+                    loadSpanishTranslations();
+                    break;
+            }
+        }
+        
+        private void loadSpanishTranslations() {
+            translations.put("no_tasks", "Sin tareas");
+            translations.put("completed_of", "de");
+            translations.put("completed", "completadas");
+            translations.put("all_completed", "¡Todas completadas!");
+            translations.put("no_tasks_today", "Sin tareas hoy");
+            translations.put("see_more", "Ver");
+            translations.put("more_tasks", "tareas más...");
+            translations.put("format_not_recognized", "Formato no reconocido");
+            translations.put("format_error", "Error de formato");
+            translations.put("widget_store_empty", "Widget Store vacío");
+            translations.put("open_app_first", "Abre la app primero");
+            translations.put("no_data", "Sin datos");
+            translations.put("json_error", "Error JSON:");
+            translations.put("general_error", "Error general");
+            translations.put("open_app", "Abre la app");
+            translations.put("error", "Error");
+        }
+        
+        private void loadEnglishTranslations() {
+            translations.put("no_tasks", "No tasks");
+            translations.put("completed_of", "of");
+            translations.put("completed", "completed");
+            translations.put("all_completed", "All completed!");
+            translations.put("no_tasks_today", "No tasks today");
+            translations.put("see_more", "See");
+            translations.put("more_tasks", "more tasks...");
+            translations.put("format_not_recognized", "Format not recognized");
+            translations.put("format_error", "Format error");
+            translations.put("widget_store_empty", "Widget Store empty");
+            translations.put("open_app_first", "Open app first");
+            translations.put("no_data", "No data");
+            translations.put("json_error", "JSON error:");
+            translations.put("general_error", "General error");
+            translations.put("open_app", "Open app");
+            translations.put("error", "Error");
+        }
+        
+        private void loadFrenchTranslations() {
+            translations.put("no_tasks", "Aucune tâche");
+            translations.put("completed_of", "de");
+            translations.put("completed", "terminées");
+            translations.put("all_completed", "Tout terminé!");
+            translations.put("no_tasks_today", "Aucune tâche aujourd'hui");
+            translations.put("see_more", "Voir");
+            translations.put("more_tasks", "tâches de plus...");
+            translations.put("format_not_recognized", "Format non reconnu");
+            translations.put("format_error", "Erreur de format");
+            translations.put("widget_store_empty", "Widget Store vide");
+            translations.put("open_app_first", "Ouvrir l'app d'abord");
+            translations.put("no_data", "Aucune donnée");
+            translations.put("json_error", "Erreur JSON:");
+            translations.put("general_error", "Erreur générale");
+            translations.put("open_app", "Ouvrir l'app");
+            translations.put("error", "Erreur");
+        }
+        
+        private void loadPortugueseTranslations() {
+            translations.put("no_tasks", "Sem tarefas");
+            translations.put("completed_of", "de");
+            translations.put("completed", "concluídas");
+            translations.put("all_completed", "Todas concluídas!");
+            translations.put("no_tasks_today", "Sem tarefas hoje");
+            translations.put("see_more", "Ver");
+            translations.put("more_tasks", "tarefas mais...");
+            translations.put("format_not_recognized", "Formato não reconhecido");
+            translations.put("format_error", "Erro de formato");
+            translations.put("widget_store_empty", "Widget Store vazio");
+            translations.put("open_app_first", "Abrir app primeiro");
+            translations.put("no_data", "Sem dados");
+            translations.put("json_error", "Erro JSON:");
+            translations.put("general_error", "Erro geral");
+            translations.put("open_app", "Abrir app");
+            translations.put("error", "Erro");
+        }
+        
+        private void loadItalianTranslations() {
+            translations.put("no_tasks", "Nessun compito");
+            translations.put("completed_of", "di");
+            translations.put("completed", "completati");
+            translations.put("all_completed", "Tutti completati!");
+            translations.put("no_tasks_today", "Nessun compito oggi");
+            translations.put("see_more", "Vedi");
+            translations.put("more_tasks", "compiti in più...");
+            translations.put("format_not_recognized", "Formato non riconosciuto");
+            translations.put("format_error", "Errore di formato");
+            translations.put("widget_store_empty", "Widget Store vuoto");
+            translations.put("open_app_first", "Apri prima l'app");
+            translations.put("no_data", "Nessun dato");
+            translations.put("json_error", "Errore JSON:");
+            translations.put("general_error", "Errore generale");
+            translations.put("open_app", "Apri l'app");
+            translations.put("error", "Errore");
+        }
+        
+        public String get(String key) {
+            return translations.getOrDefault(key, key);
+        }
+        
+        public String getFormattedProgress(int completed, int total) {
+            return "📋 " + completed + " " + get("completed_of") + " " + total + " " + get("completed");
+        }
+        
+        public String getMoreTasksText(int remaining) {
+            return "👁️ " + get("see_more") + " " + remaining + " " + get("more_tasks");
+        }
+    }
 
     public AgendaWidgetProvider() {
         super();
@@ -62,18 +202,44 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         android.util.Log.d("AgendaWidget", "=== INICIANDO ACTUALIZACIÓN DE WIDGET " + appWidgetId + " ===");
         
+        // Detectar idioma del sistema
+        String systemLanguage = Locale.getDefault().getLanguage();
+        android.util.Log.d("AgendaWidget", "🌐 Idioma del sistema detectado: " + systemLanguage);
+        
+        // Crear instancia de traducciones
+        WidgetTranslations translations = new WidgetTranslations(systemLanguage);
+        
         // Crear RemoteViews para el layout del widget
         RemoteViews views = new RemoteViews(context.getPackageName(), 
             context.getResources().getIdentifier("agenda_widget", "layout", context.getPackageName()));
         
-        // Configurar título con fecha actual
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d MMM", new Locale("es", "ES"));
+        // Configurar título con fecha actual usando el idioma detectado
+        SimpleDateFormat dateFormat;
+        switch (systemLanguage.toLowerCase()) {
+            case "en":
+                dateFormat = new SimpleDateFormat("EEEE, MMM d", Locale.ENGLISH);
+                break;
+            case "fr":
+                dateFormat = new SimpleDateFormat("EEEE d MMM", Locale.FRENCH);
+                break;
+            case "pt":
+                dateFormat = new SimpleDateFormat("EEEE, d MMM", new Locale("pt", "BR"));
+                break;
+            case "it":
+                dateFormat = new SimpleDateFormat("EEEE, d MMM", Locale.ITALIAN);
+                break;
+            case "es":
+            default:
+                dateFormat = new SimpleDateFormat("EEEE, d MMM", new Locale("es", "ES"));
+                break;
+        }
+        
         String todayDate = dateFormat.format(new Date());
         views.setTextViewText(context.getResources().getIdentifier("widget_date", "id", context.getPackageName()), todayDate);
         
         // Intentar cargar datos desde Widget Store
         String[] taskTexts = {"", "", ""};
-        String progressText = "Sin tareas";
+        String progressText = translations.get("no_tasks");
         
         try {
             // Buscar en múltiples SharedPreferences posibles
@@ -173,7 +339,7 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
                     
                     // Configurar progreso correctamente
                     int pendingTasks = totalTasks - completedTasks;
-                    progressText = "📋 " + completedTasks + " de " + totalTasks + " completadas";
+                    progressText = translations.getFormattedProgress(completedTasks, totalTasks);
                     
                     if (tasksArray != null && tasksArray.length() > 0) {
                         // tasksArray contiene solo las tareas PENDIENTES (no completadas)
@@ -190,7 +356,7 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
                         // Si hay más de 2 tareas pendientes, mostrar "Ver más" en la tercera posición
                         if (tasksArray.length() > 2) {
                             int remainingTasks = tasksArray.length() - 2; // Tareas pendientes restantes
-                            taskTexts[2] = "👁️ Ver " + remainingTasks + " tareas más...";
+                            taskTexts[2] = translations.getMoreTasksText(remainingTasks);
                         } else if (tasksToShow < 2) {
                             // Limpiar las posiciones no usadas
                             for (int i = tasksToShow; i < 3; i++) {
@@ -201,40 +367,40 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
                         android.util.Log.d("AgendaWidget", "✅ Widget actualizado: " + tasksToShow + " tareas mostradas, " + (tasksArray.length() - tasksToShow) + " restantes");
                     } else if (pendingTasks == 0 && totalTasks > 0) {
                         // Todas las tareas están completadas
-                        taskTexts[0] = "✅ ¡Todas completadas!\n  ──────────────";
+                        taskTexts[0] = "✅ " + translations.get("all_completed") + "\n  ──────────────";
                         taskTexts[1] = "";
                         taskTexts[2] = "";
                         android.util.Log.d("AgendaWidget", "✅ Todas las tareas completadas");
                     } else {
                         // No hay tareas para hoy
-                        taskTexts[0] = "📅 Sin tareas hoy\n  ──────────────";
+                        taskTexts[0] = "📅 " + translations.get("no_tasks_today") + "\n  ──────────────";
                         taskTexts[1] = "";
                         taskTexts[2] = "";
                         android.util.Log.d("AgendaWidget", "📅 No hay tareas");
                     }
                 } else {
                     android.util.Log.d("AgendaWidget", "❌ Formato de datos no reconocido");
-                    taskTexts[0] = "❌ Formato no reconocido";
-                    progressText = "Error de formato";
+                    taskTexts[0] = "❌ " + translations.get("format_not_recognized");
+                    progressText = translations.get("format_error");
                 }
             } else {
                 android.util.Log.d("AgendaWidget", "❌ No se encontraron datos de Widget Store");
-                taskTexts[0] = "❌ Widget Store vacío";
-                taskTexts[1] = "📱 Abre la app primero";
+                taskTexts[0] = "❌ " + translations.get("widget_store_empty");
+                taskTexts[1] = "📱 " + translations.get("open_app_first");
                 taskTexts[2] = "";
-                progressText = "Sin datos";
+                progressText = translations.get("no_data");
             }
             
         } catch (JSONException e) {
             android.util.Log.e("AgendaWidget", "❌ Error parseando JSON: " + e.getMessage());
-            taskTexts[0] = "❌ Error JSON: " + e.getMessage();
-            progressText = "Error JSON";
+            taskTexts[0] = "❌ " + translations.get("json_error") + " " + e.getMessage();
+            progressText = translations.get("json_error").replace(":", "");
         } catch (Exception e) {
             android.util.Log.e("AgendaWidget", "❌ Error general: " + e.getMessage());
-            taskTexts[0] = "❌ Error general";
-            taskTexts[1] = "📱 Abre la app";
+            taskTexts[0] = "❌ " + translations.get("general_error");
+            taskTexts[1] = "📱 " + translations.get("open_app");
             taskTexts[2] = "";
-            progressText = "Error";
+            progressText = translations.get("error");
         }
         
         // Aplicar los datos al widget
