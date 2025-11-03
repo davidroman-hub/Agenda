@@ -49,6 +49,7 @@ export default function BookPage({
   const [editingLine, setEditingLine] = useState<number | null>(null);
   const [editingTask, setEditingTask] = useState<string>("");
   const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
+  const [forceRefresh, setForceRefresh] = useState(0);
 
   // Obtener configuración de líneas por página
   const { linesPerPage } = useBookSettingsStore();
@@ -175,6 +176,7 @@ export default function BookPage({
     lastUpdateTime,
     repeatingCompletions,
     linesPerPage,
+    forceRefresh,
   ]);
   const {
     addTask,
@@ -259,39 +261,32 @@ export default function BookPage({
         if (existingTask.isRepeatingTask) {
           // Editando una tarea repetida
           if (repeat && repeat !== "none") {
-            // Mantener como tarea repetida - actualizar la tarea original
-            // Encontrar la tarea original y actualizarla
+            // Mantener como tarea repetida - actualizar SOLO la tarea original
             const allExistingTasks = getAllTasks();
-            const originalTask = Object.values(allExistingTasks)
-              .flatMap((dayTasks) => Object.values(dayTasks))
-              .find(
-                (task): task is AgendaTask =>
-                  task !== null && task.id === existingTask.repeatingTaskId
-              );
-
-            if (originalTask) {
-              // Encontrar en qué fecha y línea está la tarea original
-              for (const [date, tasks] of Object.entries(allExistingTasks)) {
-                for (const [line, task] of Object.entries(tasks)) {
-                  if (task && task.id === existingTask.repeatingTaskId) {
-                    await updateTask(date, Number.parseInt(line, 10), {
-                      text,
-                      reminder,
-                      repeat,
-                    });
-                    break;
-                  }
+            let foundOriginal = false;
+            
+            // Buscar la tarea original en todas las fechas
+            for (const [date, tasks] of Object.entries(allExistingTasks)) {
+              for (const [line, task] of Object.entries(tasks)) {
+                if (task && task.id === existingTask.repeatingTaskId) {
+                  // Actualizar solo la tarea original, no crear nuevas
+                  await updateTask(date, Number.parseInt(line, 10), {
+                    text,
+                    reminder,
+                    repeat,
+                  });
+                  foundOriginal = true;
+                  break;
                 }
               }
+              if (foundOriginal) break;
             }
           } else {
             // Convertir tarea repetida a tarea normal
-            // 1. Eliminar el patrón de repetición
+            // 1. Primero eliminar el patrón de repetición para detener la generación de instancias
             removeRepeatingPattern(existingTask.repeatingTaskId!);
-            // 2. Crear una tarea normal en esta fecha específica
+            // 2. Crear una tarea normal SOLO en esta fecha específica
             await addTask(dateKey, editingLine, text, reminder, "none");
-            // 3. Forzar actualización inmediata para evitar duplicaciones
-            setLastUpdateTime(Date.now());
           }
         } else if (repeat && repeat !== "none") {
           // Convertir tarea normal a tarea repetida
@@ -363,14 +358,22 @@ export default function BookPage({
       setEditingLine(null);
       setEditingTask("");
 
-      // Forzar actualización del useMemo
-      setLastUpdateTime(Date.now());
+      // Forzar múltiples actualizaciones para limpiar completamente las instancias virtuales
+      const updateTime = Date.now();
+      setLastUpdateTime(updateTime);
+      setForceRefresh(prev => prev + 1);
 
-      // Esperar un frame adicional para asegurar que todos los stores se actualicen
-      setTimeout(() => {
-        // Este setTimeout fuerza un re-render después de que los stores se actualicen
-        setLastUpdateTime(Date.now());
-      }, 50);
+      // Para tareas repetidas, forzar limpieza agresiva
+      if (existingTask?.isRepeatingTask || (repeat && repeat !== "none")) {
+        setTimeout(() => {
+          setLastUpdateTime(updateTime + 1);
+          setForceRefresh(prev => prev + 1);
+        }, 50);
+        setTimeout(() => {
+          setLastUpdateTime(updateTime + 2);
+          setForceRefresh(prev => prev + 1);
+        }, 150);
+      }
     }
   };
 
