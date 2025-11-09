@@ -36,7 +36,7 @@ export default function PageFoldEffect({
   // Crear efecto de doblez más suave y realista
   const scaleX = 1 - (progress * 0.3); // Reducción más sutil
   const rotateY = progress * 15; // Rotación más suave
-  const translateX = progress * 50; // Movimiento más moderado
+  const translateX = progress * 20; // Movimiento más moderado
   const opacity = 1 - (progress * 0.8); // Desvanecimiento gradual
   
   return (
