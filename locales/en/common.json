@@ -64,9 +64,9 @@
     "daily": "Daily",
     "weekly": "Weekly",
     "monthly": "Monthly",
-    "twice": "Twice a week",
-    "three": "Three times a week",
-    "five": "Five times a week",
+    "twice": "Every two days",
+    "three": "Every three days",
+    "five": "Every five days",
     "cannotDeleteRepeated": "You cannot delete a recurring task from here. Go to the calendar and delete it from there."
   },
   "taskReminder": {

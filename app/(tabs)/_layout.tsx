@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -10,11 +10,51 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useI18n } from "@/hooks/use-i18n";
 import useLoginStore from "@/stores/login-store";
 
+import useAgendaTasksStore from "@/stores/agenda-tasks-store";
+import useBookSettingsStore from "@/stores/boook-settings";
+import useCalendarStore from "@/stores/Calendar-store";
+import useFontSettingsStore from "@/stores/font-settings-store";
+import useLanguagePreferencesStore from "@/stores/language-preferences-store";
+import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import useThemeStore from "@/stores/theme-store";
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { isLoggedIn } = useLoginStore();
   const { tCommon } = useI18n();
-  
+
+  // Obtener todos los states de las stores para logging
+  const agendaTasksState = useAgendaTasksStore((state) => state);
+  const repeatingTasksState = useRepeatingTasksStore((state) => state);
+  const themeState = useThemeStore((state) => state);
+  const languageState = useLanguagePreferencesStore((state) => state);
+  const bookSettingsState = useBookSettingsStore((state) => state);
+  const calendarState = useCalendarStore((state) => state);
+  const fontSettingsState = useFontSettingsStore((state) => state);
+
+  // Console log de todas las stores
+  useEffect(() => {
+    console.log("=== STORES STATE UPDATE ===");
+    console.log("📝 Agenda Tasks:", agendaTasksState);
+    console.log("🔄 Repeating Tasks:", repeatingTasksState);
+    console.log("🎨 Theme:", themeState);
+    console.log("🌍 Language:", languageState);
+    console.log("📖 Book Settings:", bookSettingsState);
+    console.log("📅 Calendar:", calendarState);
+    console.log("🔤 Font Settings:", fontSettingsState);
+
+    console.log("=========================");
+  }, [
+    agendaTasksState,
+    repeatingTasksState,
+    themeState,
+    languageState,
+    bookSettingsState,
+    calendarState,
+    fontSettingsState,
+    isLoggedIn,
+  ]);
+
   return (
     <Tabs
       screenOptions={{

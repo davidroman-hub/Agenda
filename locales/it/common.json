@@ -67,9 +67,9 @@
     "daily": "Giornaliera",
     "weekly": "Settimanale",
     "monthly": "Mensile",
-    "twice": "Due volte a settimana",
-    "three": "Tre volte a settimana",
-    "five": "Cinque volte a settimana",
+    "twice": "Ogni due giorni",
+    "three": "Ogni tre giorni",
+    "five": "Ogni cinque giorni",
     "cannotDeleteRepeated": "Non puoi eliminare un'attività ricorrente da qui. Vai al calendario e cancellala da lì."
   },
 

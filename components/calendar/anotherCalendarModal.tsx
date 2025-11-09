@@ -10,6 +10,12 @@ import { Calendar, LocaleConfig } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { ThemedText } from "../themed-text";
 import { ThemedView } from "../themed-view";
+import {
+  enCalendarLocales,
+  esCalendarLocales,
+  frCalendarLocales,
+  itCalendarLocales,
+} from "./calendarLocales";
 import DayDetailModal from "./DayDetailModal";
 
 interface CalendarModalProps {
@@ -27,187 +33,23 @@ export default function AnotherCalendarModal({
 CalendarModalProps) {
   // Estados para el modal de día
   const [showDayDetail, setShowDayDetail] = useState(false);
-  const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<Record<string, boolean>>({});
+  const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<
+    Record<string, boolean>
+  >({});
 
   // Hooks de internacionalización
   const { tAgenda, currentLanguage, tCommon } = useI18n();
 
-  // Configurar LocaleConfig para el calendario basado en el idioma actual
   React.useEffect(() => {
-    // Configuración para Español
-    LocaleConfig.locales["es"] = {
-      monthNames: [
-        "Enero",
-        "Febrero",
-        "Marzo",
-        "Abril",
-        "Mayo",
-        "Junio",
-        "Julio",
-        "Agosto",
-        "Septiembre",
-        "Octubre",
-        "Noviembre",
-        "Diciembre",
-      ],
-      monthNamesShort: [
-        "Ene.",
-        "Feb.",
-        "Mar.",
-        "Abr.",
-        "May.",
-        "Jun.",
-        "Jul.",
-        "Ago.",
-        "Sep.",
-        "Oct.",
-        "Nov.",
-        "Dic.",
-      ],
-      dayNames: [
-        "Domingo",
-        "Lunes",
-        "Martes",
-        "Miércoles",
-        "Jueves",
-        "Viernes",
-        "Sábado",
-      ],
-      dayNamesShort: ["Dom.", "Lun.", "Mar.", "Mié.", "Jue.", "Vie.", "Sáb."],
-      today: "Hoy",
-    };
+    LocaleConfig.locales["es"] = esCalendarLocales;
 
-    // Configuración para Inglés
-    LocaleConfig.locales["en"] = {
-      monthNames: [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ],
-      monthNamesShort: [
-        "Jan.",
-        "Feb.",
-        "Mar.",
-        "Apr.",
-        "May",
-        "Jun.",
-        "Jul.",
-        "Aug.",
-        "Sep.",
-        "Oct.",
-        "Nov.",
-        "Dec.",
-      ],
-      dayNames: [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ],
-      dayNamesShort: ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fri.", "Sat."],
-      today: "Today",
-    };
+    LocaleConfig.locales["en"] = enCalendarLocales;
 
-    // Configuración para Francés
-    LocaleConfig.locales["fr"] = {
-      monthNames: [
-        "Janvier",
-        "Février",
-        "Mars",
-        "Avril",
-        "Mai",
-        "Juin",
-        "Juillet",
-        "Août",
-        "Septembre",
-        "Octobre",
-        "Novembre",
-        "Décembre",
-      ],
-      monthNamesShort: [
-        "Janv.",
-        "Févr.",
-        "Mars",
-        "Avril",
-        "Mai",
-        "Juin",
-        "Juil.",
-        "Août",
-        "Sept.",
-        "Oct.",
-        "Nov.",
-        "Déc.",
-      ],
-      dayNames: [
-        "Dimanche",
-        "Lundi",
-        "Mardi",
-        "Mercredi",
-        "Jeudi",
-        "Vendredi",
-        "Samedi",
-      ],
-      dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
-      today: "Aujourd'hui",
-    };
+    LocaleConfig.locales["fr"] = frCalendarLocales;
 
-    // Configuración para Italiano
-    LocaleConfig.locales["it"] = {
-      monthNames: [
-        "Gennaio",
-        "Febbraio",
-        "Marzo",
-        "Aprile",
-        "Maggio",
-        "Giugno",
-        "Luglio",
-        "Agosto",
-        "Settembre",
-        "Ottobre",
-        "Novembre",
-        "Dicembre",
-      ],
-      monthNamesShort: [
-        "Gen.",
-        "Feb.",
-        "Mar.",
-        "Apr.",
-        "Mag.",
-        "Giu.",
-        "Lug.",
-        "Ago.",
-        "Set.",
-        "Ott.",
-        "Nov.",
-        "Dic.",
-      ],
-      dayNames: [
-        "Domenica",
-        "Lunedì",
-        "Martedì",
-        "Mercoledì",
-        "Giovedì",
-        "Venerdì",
-        "Sabato",
-      ],
-      dayNamesShort: ["Dom.", "Lun.", "Mar.", "Mer.", "Gio.", "Ven.", "Sab."],
-      today: "Oggi",
-    };
+    LocaleConfig.locales["it"] = itCalendarLocales;
 
-    // Establecer el locale por defecto basado en el idioma actual
-    LocaleConfig.defaultLocale = currentLanguage || "es";
+    LocaleConfig.defaultLocale = currentLanguage || "en";
   }, [currentLanguage]);
 
   // Colores del tema
@@ -264,8 +106,9 @@ CalendarModalProps) {
             repeatedTasks.push({
               ...originalTask,
               id: `${originalTask.id}-repeat-${dateString}`,
-              completed: localRepeatingCompletions[`${originalTask.id}-${dateString}`] ?? 
-                        isRepeatingTaskCompleted(originalTask.id, dateString),
+              completed:
+                localRepeatingCompletions[`${originalTask.id}-${dateString}`] ??
+                isRepeatingTaskCompleted(originalTask.id, dateString),
               isRepeatingTask: true,
               repeatingTaskId: originalTask.id,
               repeatingPatternId: pattern.id,
@@ -323,7 +166,6 @@ CalendarModalProps) {
   };
 
   const handleGoToDate = () => {
-    console.log("🚀 Abriendo detalle del día:", selected);
     // Abrir el modal de detalle del día
     setShowDayDetail(true);
   };

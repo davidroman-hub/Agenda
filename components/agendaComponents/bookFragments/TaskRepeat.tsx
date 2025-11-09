@@ -43,16 +43,18 @@ export default function TaskRepeat({
   const repeatOptions: { value: RepeatOption; label: string; emoji: string }[] =
     [
       { value: "daily", label: tCommon("taskRepeat.daily"), emoji: "📅" },
-      // { value: "twice", label: tCommon("taskRepeat.twice"), emoji: "2️⃣" },
-      // { value: "three", label: tCommon("taskRepeat.three"), emoji: "3️⃣" },
-      // { value: "five", label: tCommon("taskRepeat.five"), emoji: "5️⃣" },
+      { value: "twice", label: tCommon("taskRepeat.twice"), emoji: "2️⃣" },
+      { value: "three", label: tCommon("taskRepeat.three"), emoji: "3️⃣" },
+      { value: "five", label: tCommon("taskRepeat.five"), emoji: "5️⃣" },
       { value: "weekly", label: tCommon("taskRepeat.weekly"), emoji: "📆" },
       { value: "monthly", label: tCommon("taskRepeat.monthly"), emoji: "🗓️" },
     ];
 
   const getRepeatLabel = (option: RepeatOption) => {
     const found = repeatOptions.find((opt) => opt.value === option);
-    return found ? `${found.emoji} ${found.label}` : tCommon("taskRepeat.selectFrequency");
+    return found
+      ? `${found.emoji} ${found.label}`
+      : tCommon("taskRepeat.selectFrequency");
   };
 
   const handleRepeatSelect = (option: RepeatOption) => {

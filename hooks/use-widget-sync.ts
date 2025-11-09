@@ -28,16 +28,11 @@ export const useWidgetSync = () => {
   const syncRealDataToWidget = useCallback(
     async (date: string) => {
       try {
-        console.log('🔍 Hook Widget - Obteniendo datos para:', date);
-        
         // Obtener tareas normales del día
         const dayTasks = tasksByDate[date] || {};
-        console.log('📋 Tareas normales del día:', Object.keys(dayTasks).length);
 
         // Obtener todos los patrones de repetición
         const allPatterns = getAllRepeatingPatterns();
-        console.log('🔄 Patrones de repetición encontrados:', allPatterns.length);
-        console.log('🔄 Patrones activos:', allPatterns.filter(p => p.isActive).length);
 
         // Crear array de tareas combinadas
         const allTasks = [];
@@ -73,7 +68,10 @@ export const useWidgetSync = () => {
             }
 
             if (originalTask) {
-              const isCompleted = isRepeatingTaskCompleted(pattern.originalTaskId, date);
+              const isCompleted = isRepeatingTaskCompleted(
+                pattern.originalTaskId,
+                date
+              );
               allTasks.push({
                 id: `${originalTask.id}-repeat-${date}`,
                 text: originalTask.text,
@@ -89,11 +87,11 @@ export const useWidgetSync = () => {
         const taskMap = new Map();
         for (const task of allTasks) {
           const key = task.originalTaskId;
-          
+
           // Si ya existe una tarea con este originalTaskId
           if (taskMap.has(key)) {
             const existingTask = taskMap.get(key);
-            
+
             // Priorizar tarea normal sobre repetida
             if (!existingTask.isRepeating && task.isRepeating) {
               // Mantener la tarea normal, ignorar la repetida
@@ -111,9 +109,6 @@ export const useWidgetSync = () => {
 
         // Convertir el mapa a array
         const finalTasks = Array.from(taskMap.values());
-        
-        console.log('📊 Tareas antes de filtrar duplicados:', allTasks.length);
-        console.log('📊 Tareas después de filtrar duplicados:', finalTasks.length);
 
         // Crear array de tareas pendientes para el widget
         const pendingTasksList = [];
@@ -130,9 +125,6 @@ export const useWidgetSync = () => {
           }
         }
 
-        console.log('✅ Tareas completadas:', completedTasks);
-        console.log('⏳ Tareas pendientes:', pendingTasksList.length);
-
         // Actualizar Widget Store con datos reales
         await WidgetStore.updateWidgetData({
           tasks: pendingTasksList,
@@ -148,7 +140,12 @@ export const useWidgetSync = () => {
         console.error("❌ Error sincronizando datos reales:", error);
       }
     },
-    [tasksByDate, getAllRepeatingPatterns, shouldTaskRepeatOnDate, isRepeatingTaskCompleted]
+    [
+      tasksByDate,
+      getAllRepeatingPatterns,
+      shouldTaskRepeatOnDate,
+      isRepeatingTaskCompleted,
+    ]
   );
 
   const forceWidgetUpdate = useCallback(async () => {

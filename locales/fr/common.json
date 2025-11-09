@@ -67,9 +67,9 @@
     "daily": "Quotidien",
     "weekly": "Hebdomadaire",
     "monthly": "Mensuel",
-    "twice": "Deux fois par semaine",
-    "three": "Trois fois par semaine",
-    "five": "Cinq fois par semaine",
+    "twice": "Tous les deux jours",
+    "three": "Tous les trois jours",
+    "five": "Tous les cinq jours",
     "cannotDeleteRepeated": "Vous ne pouvez pas supprimer une tâche récurrente d'ici. Allez dans le calendrier pour la supprimer."
   },
 

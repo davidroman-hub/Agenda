@@ -88,6 +88,15 @@ export class RepeatedTaskNotificationService {
       case "daily":
         return true; // Todos los días desde la fecha inicial
 
+      case "twice":
+        return daysDiff % 3 === 0; // Cada 2 días
+
+      case "three":
+        return daysDiff % 4 === 0; // Cada 3 días
+
+      case "five":
+        return daysDiff % 6 === 0; // Cada 5 días
+
       case "weekly":
         return daysDiff % 7 === 0; // Cada 7 días
 

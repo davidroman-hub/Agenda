@@ -1,7 +1,10 @@
 import PublicRoute from "@/components/public-route";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+
 import useLoginStore from "@/stores/login-store";
+
+
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
@@ -10,6 +13,8 @@ export default function LoginScreen() {
   const { setUserValues, userValues, login, isLoggedIn } = useLoginStore();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -29,6 +34,7 @@ export default function LoginScreen() {
     // Login automático ya que los valores están hardcodeados
     login();
   };
+
 
   return (
     <PublicRoute>
@@ -84,7 +90,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {/* Enlaces adicionales */}
-         
         </ThemedView>
 
         {/* Footer */}
