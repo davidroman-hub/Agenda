@@ -1,5 +1,5 @@
 const esCalendarLocales = {
-  MonthNames: [
+  monthNames: [
     "Enero",
     "Febrero",
     "Marzo",
@@ -13,7 +13,7 @@ const esCalendarLocales = {
     "Noviembre",
     "Diciembre",
   ],
-  MonthNamesShort: [
+  monthNamesShort: [
     "Ene.",
     "Feb.",
     "Mar.",
@@ -27,7 +27,7 @@ const esCalendarLocales = {
     "Nov.",
     "Dic.",
   ],
-  DayNames: [
+  dayNames: [
     "Domingo",
     "Lunes",
     "Martes",
@@ -36,8 +36,8 @@ const esCalendarLocales = {
     "Viernes",
     "Sábado",
   ],
-  DayNamesShort: ["Dom.", "Lun.", "Mar.", "Mié.", "Jue.", "Vie.", "Sáb."],
-  Today: "Hoy",
+  dayNamesShort: ["Dom.", "Lun.", "Mar.", "Mié.", "Jue.", "Vie.", "Sáb."],
+  today: "Hoy",
 };
 
 const enCalendarLocales = {
@@ -167,9 +167,9 @@ const itCalendarLocales = {
 };
 
 export {
-    enCalendarLocales,
-    esCalendarLocales,
-    frCalendarLocales,
-    itCalendarLocales
+  enCalendarLocales,
+  esCalendarLocales,
+  frCalendarLocales,
+  itCalendarLocales
 };
 

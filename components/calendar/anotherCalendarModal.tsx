@@ -41,15 +41,25 @@ CalendarModalProps) {
   const { tAgenda, currentLanguage, tCommon } = useI18n();
 
   React.useEffect(() => {
-    LocaleConfig.locales["es"] = esCalendarLocales;
+    try {
+      // Configurar locales con verificación de estructura
+      LocaleConfig.locales["es"] = esCalendarLocales;
+      LocaleConfig.locales["en"] = enCalendarLocales;
+      LocaleConfig.locales["fr"] = frCalendarLocales;
+      LocaleConfig.locales["it"] = itCalendarLocales;
 
-    LocaleConfig.locales["en"] = enCalendarLocales;
-
-    LocaleConfig.locales["fr"] = frCalendarLocales;
-
-    LocaleConfig.locales["it"] = itCalendarLocales;
-
-    LocaleConfig.defaultLocale = currentLanguage || "en";
+      // Configurar el idioma por defecto con fallback
+      const targetLanguage = currentLanguage || "en";
+      if (LocaleConfig.locales[targetLanguage]) {
+        LocaleConfig.defaultLocale = targetLanguage;
+      } else {
+        LocaleConfig.defaultLocale = "en"; // Fallback seguro
+      }
+    } catch (error) {
+      console.warn("Error configurando localización del calendario:", error);
+      // Fallback a inglés en caso de error
+      LocaleConfig.defaultLocale = "en";
+    }
   }, [currentLanguage]);
 
   // Colores del tema
@@ -294,26 +304,28 @@ CalendarModalProps) {
 
         {/* Calendario */}
         <ThemedView style={styles.calendarContainer}>
-          <Calendar
-            onDayPress={handleDayPress}
-            current={selected}
-            markingType={"multi-dot"}
-            markedDates={markedDates}
-            // Configuración de localización basada en el idioma del usuario
-            firstDay={currentLanguage === "en" ? 0 : 1} // Domingo para inglés, Lunes para otros
-            theme={{
-              backgroundColor: backgroundColor,
-              calendarBackground: backgroundColor,
-              textSectionTitleColor: textColor,
-              dayTextColor: textColor,
-              todayTextColor: tintColor,
-              selectedDayBackgroundColor: tintColor,
-              selectedDayTextColor: "#4ECDC4",
-              monthTextColor: textColor,
-              indicatorColor: tintColor,
-              arrowColor: tintColor,
-            }}
-          />
+          {LocaleConfig.defaultLocale && (
+            <Calendar
+              onDayPress={handleDayPress}
+              current={selected}
+              markingType={"multi-dot"}
+              markedDates={markedDates}
+              // Configuración de localización basada en el idioma del usuario
+              firstDay={currentLanguage === "en" ? 0 : 1} // Domingo para inglés, Lunes para otros
+              theme={{
+                backgroundColor: backgroundColor,
+                calendarBackground: backgroundColor,
+                textSectionTitleColor: textColor,
+                dayTextColor: textColor,
+                todayTextColor: tintColor,
+                selectedDayBackgroundColor: tintColor,
+                selectedDayTextColor: "#4ECDC4",
+                monthTextColor: textColor,
+                indicatorColor: tintColor,
+                arrowColor: tintColor,
+              }}
+            />
+          )}
         </ThemedView>
 
         {/* Preview de tareas */}

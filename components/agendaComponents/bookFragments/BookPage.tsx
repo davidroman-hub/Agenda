@@ -94,8 +94,8 @@ export default function BookPage({
     (state) => state.repeatingTaskCompletions
   );
 
-  // Combinar tareas normales con tareas repetidas usando el nuevo sistema ID-based
-  const allTasks = React.useMemo(() => {
+  // Separar tareas normales y tareas repetidas en estructuras independientes
+  const { allTasks, repeatedTasks } = React.useMemo(() => {
     const allExistingTasks = getAllTasks();
     const allPatterns = getAllRepeatingPatterns();
 
@@ -120,22 +120,22 @@ export default function BookPage({
         .map((pattern) => pattern.originalTaskId)
     );
 
-    // Comenzar con las tareas del día
-    const combined = { ...dayTasks };
+    // Comenzar con las tareas del día (SIEMPRE mantener estas líneas)
+    const normalTasks = { ...dayTasks };
 
     // Solo filtrar tareas que tienen patrones de repetición activos Y NO estamos en su día de creación
-    for (const [line, task] of Object.entries(combined)) {
+    for (const [line, task] of Object.entries(normalTasks)) {
       if (task && tasksWithActivePatterns.has(task.id)) {
         const originalInfo = originalTasksMap.get(task.id);
         // Solo filtrar si NO estamos en el día de creación original
         if (originalInfo && originalInfo.originalDate !== dateKey) {
-          delete combined[Number.parseInt(line, 10)];
+          delete normalTasks[Number.parseInt(line, 10)];
         }
       }
     }
 
-    // Obtener tareas repetidas para hoy (solo si NO es el día original)
-    const repeatedTasks: AgendaTask[] = [];
+    // Crear array independiente de tareas repetidas (no ocupan líneas normales)
+    const repeatedTasksList: AgendaTask[] = [];
     for (const pattern of allPatterns) {
       if (!pattern.isActive) continue;
 
@@ -144,7 +144,7 @@ export default function BookPage({
 
         // Solo agregar como tarea repetida si NO estamos en el día de creación original
         if (originalInfo && originalInfo.originalDate !== dateKey) {
-          repeatedTasks.push({
+          repeatedTasksList.push({
             ...originalInfo.task,
             id: `${originalInfo.task.id}-repeat-${dateKey}`,
             completed: isRepeatingTaskCompleted(originalInfo.task.id, dateKey),
@@ -156,18 +156,10 @@ export default function BookPage({
       }
     }
 
-    // Agregar las tareas repetidas a las líneas disponibles
-    for (const repeatedTask of repeatedTasks) {
-      // Buscar la primera línea disponible para la tarea repetida
-      for (let line = 1; line <= linesPerPage; line++) {
-        if (!combined[line]) {
-          combined[line] = repeatedTask;
-          break;
-        }
-      }
-    }
-
-    return combined;
+    return {
+      allTasks: normalTasks,
+      repeatedTasks: repeatedTasksList
+    };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -190,11 +182,11 @@ export default function BookPage({
 
   // Función personalizada para manejar el toggle de tareas normales y repetidas
   const handleToggleTaskCompletion = (date: string, lineNumber: number) => {
-    const task = allTasks[lineNumber];
+    const task = getTaskForPageLine(lineNumber);
     if (task?.isRepeatingTask) {
       // Es una tarea repetida, usar el store de tareas repetidas
       toggleRepeatingTaskCompletion(task.repeatingTaskId!, date);
-    } else {
+    } else if (task) {
       // Es una tarea normal, usar el store de tareas normales directamente
       originalToggleTaskCompletion(date, lineNumber);
     }
@@ -233,20 +225,48 @@ export default function BookPage({
     };
   };
 
-  // Generar líneas para escritura (como en agenda real)
+  // Generar líneas para escritura (líneas normales + líneas virtuales para tareas repetidas)
   const generateLines = () => {
     const lines = [];
+    
+    // Líneas normales del día (siempre disponibles para el usuario)
     for (let i = 1; i <= linesPerPage; i++) {
-      lines.push(i);
+      lines.push({ lineNumber: i, isVirtual: false });
     }
+    
+    // Líneas virtuales para tareas repetidas
+    for (let i = 0; i < repeatedTasks.length; i++) {
+      lines.push({ 
+        lineNumber: linesPerPage + i + 1, 
+        isVirtual: true,
+        repeatedTaskIndex: i 
+      });
+    }
+    
     return lines;
   };
 
   const dateInfo = formatDate(day);
 
+  // Función para obtener tarea por línea (incluyendo líneas virtuales de tareas repetidas)
+  const getTaskForPageLine = (lineNumber: number): AgendaTask | null => {
+    // Primero verificar tareas normales
+    if (allTasks[lineNumber]) {
+      return allTasks[lineNumber];
+    }
+    
+    // Si la línea está después de linesPerPage, puede ser una tarea repetida virtual
+    const repeatedIndex = lineNumber - linesPerPage - 1;
+    if (repeatedIndex >= 0 && repeatedIndex < repeatedTasks.length) {
+      return repeatedTasks[repeatedIndex];
+    }
+    
+    return null;
+  };
+
   // Funciones para manejar las tareas
   const handleLinePress = (lineNumber: number) => {
-    const existingTask = allTasks[lineNumber];
+    const existingTask = getTaskForPageLine(lineNumber);
     setEditingLine(lineNumber);
     setEditingTask(existingTask?.text || "");
     setModalVisible(true);
@@ -258,7 +278,7 @@ export default function BookPage({
     repeat?: RepeatOption
   ) => {
     if (editingLine !== null) {
-      const existingTask = allTasks[editingLine];
+      const existingTask = getTaskForPageLine(editingLine);
 
       if (existingTask) {
         // Verificar si es una tarea repetida virtual (isRepeatingTask = true)
@@ -268,17 +288,31 @@ export default function BookPage({
             // Mantener como tarea repetida - actualizar SOLO la tarea original
             const allExistingTasks = getAllTasks();
             let foundOriginal = false;
-            
+
             // Buscar la tarea original en todas las fechas
             for (const [date, tasks] of Object.entries(allExistingTasks)) {
               for (const [line, task] of Object.entries(tasks)) {
                 if (task && task.id === existingTask.repeatingTaskId) {
-                  // Actualizar solo la tarea original, no crear nuevas
+                  // Actualizar la tarea original
                   await updateTask(date, Number.parseInt(line, 10), {
                     text,
                     reminder,
                     repeat,
                   });
+                  
+                  // También actualizar el patrón de repetición si cambió la frecuencia
+                  const currentPattern = getRepeatingPatternForTask(task.id);
+                  if (currentPattern && currentPattern.repeatOption !== repeat) {
+                    // Eliminar el patrón actual
+                    removeRepeatingPattern(task.id);
+                    // Crear nuevo patrón con la nueva frecuencia
+                    addRepeatingPattern({
+                      originalTaskId: task.id,
+                      repeatOption: repeat,
+                      startDate: date,
+                    });
+                  }
+                  
                   foundOriginal = true;
                   break;
                 }
@@ -286,16 +320,23 @@ export default function BookPage({
               if (foundOriginal) break;
             }
           } else {
-            // Convertir tarea repetida a tarea normal
+            // Convertir tarea repetida virtual a tarea normal
             // 1. Primero eliminar el patrón de repetición para detener la generación de instancias
             removeRepeatingPattern(existingTask.repeatingTaskId!);
-            // 2. Crear una tarea normal SOLO en esta fecha específica
-            await addTask(dateKey, editingLine, text, reminder, "none");
+            // 2. Encontrar la primera línea disponible del día para crear la tarea normal
+            let availableLine = 1;
+            for (let i = 1; i <= linesPerPage; i++) {
+              if (!allTasks[i]) {
+                availableLine = i;
+                break;
+              }
+            }
+            await addTask(dateKey, availableLine, text, reminder, "none");
           }
         } else {
           // Verificar si es la tarea original de un patrón de repetición
           const existingPattern = getRepeatingPatternForTask(existingTask.id);
-          
+
           if (existingPattern && existingPattern.isActive) {
             // Estamos editando la tarea original de un patrón repetido
             if (repeat && repeat !== "none") {
@@ -349,12 +390,24 @@ export default function BookPage({
         }
       } else if (repeat && repeat !== "none") {
         // Nueva tarea repetida
+        // Si estamos en una línea virtual, encontrar una línea real disponible
+        let targetLine = editingLine;
+        if (editingLine > linesPerPage) {
+          // Buscar primera línea disponible
+          for (let i = 1; i <= linesPerPage; i++) {
+            if (!allTasks[i]) {
+              targetLine = i;
+              break;
+            }
+          }
+        }
+        
         // 1. Crear la tarea normal primero
-        await addTask(dateKey, editingLine, text, reminder, repeat);
+        await addTask(dateKey, targetLine, text, reminder, repeat);
 
         // 2. Obtener la tarea recién creada usando el store directamente
         // Usar un pequeño delay para asegurar que el store se actualice
-        const newTask = getTaskForLine(dateKey, editingLine);
+        const newTask = getTaskForLine(dateKey, targetLine);
         if (newTask) {
           // 3. Crear el patrón de repetición
           addRepeatingPattern({
@@ -365,7 +418,7 @@ export default function BookPage({
         } else {
           // Si no podemos obtener la tarea inmediatamente, intentar después del siguiente render
           setTimeout(() => {
-            const delayedTask = getTaskForLine(dateKey, editingLine);
+            const delayedTask = getTaskForLine(dateKey, targetLine);
             if (delayedTask) {
               addRepeatingPattern({
                 originalTaskId: delayedTask.id,
@@ -377,7 +430,18 @@ export default function BookPage({
         }
       } else {
         // Nueva tarea normal
-        await addTask(dateKey, editingLine, text, reminder, repeat);
+        // Si estamos en una línea virtual, encontrar una línea real disponible
+        let targetLine = editingLine;
+        if (editingLine > linesPerPage) {
+          // Buscar primera línea disponible
+          for (let i = 1; i <= linesPerPage; i++) {
+            if (!allTasks[i]) {
+              targetLine = i;
+              break;
+            }
+          }
+        }
+        await addTask(dateKey, targetLine, text, reminder, repeat);
       }
 
       // Forzar una actualización del componente para asegurar que se vean los cambios
@@ -388,17 +452,17 @@ export default function BookPage({
       // Forzar múltiples actualizaciones para limpiar completamente las instancias virtuales
       const updateTime = Date.now();
       setLastUpdateTime(updateTime);
-      setForceRefresh(prev => prev + 1);
+      setForceRefresh((prev) => prev + 1);
 
       // Para tareas repetidas, forzar limpieza agresiva
       if (existingTask?.isRepeatingTask || (repeat && repeat !== "none")) {
         setTimeout(() => {
           setLastUpdateTime(updateTime + 1);
-          setForceRefresh(prev => prev + 1);
+          setForceRefresh((prev) => prev + 1);
         }, 50);
         setTimeout(() => {
           setLastUpdateTime(updateTime + 2);
-          setForceRefresh(prev => prev + 1);
+          setForceRefresh((prev) => prev + 1);
         }, 150);
       }
     }
@@ -406,7 +470,7 @@ export default function BookPage({
 
   const handleDeleteTask = async () => {
     if (editingLine !== null) {
-      const existingTask = allTasks[editingLine];
+      const existingTask = getTaskForPageLine(editingLine);
 
       if (existingTask?.isRepeatingTask) {
         // Eliminar patrón de repetición del store
@@ -533,16 +597,41 @@ export default function BookPage({
 
       {/* Líneas de escritura como en agenda real */}
       <ThemedView style={styles.linesContainer}>
-        {generateLines().map((lineNumber) => {
+        {generateLines().map((line, index) => {
+          const prevLine = generateLines()[index - 1];
+          const showSeparator = line.isVirtual && !prevLine?.isVirtual;
+          const { lineNumber, isVirtual } = line;
           // Siempre usar el estilo con líneas visibles independientemente del contenido
-          const lineStyle = [dynamicStyles.lineWithTask, styles.expandedLine];
+          // Las líneas virtuales tienen un estilo diferente para indicar que son tareas repetidas
+          const lineStyle = isVirtual 
+            ? [dynamicStyles.lineWithTask, styles.expandedLine, { backgroundColor: 'rgba(255, 215, 0, 0.1)' }]
+            : [dynamicStyles.lineWithTask, styles.expandedLine];
 
           return (
-            <TouchableOpacity
-              key={`${dayIndex}-line-${lineNumber}`}
-              style={lineStyle}
-              onPress={() => handleLinePress(lineNumber)}
-            >
+            <React.Fragment key={`${dayIndex}-line-${lineNumber}-${isVirtual ? 'virtual' : 'normal'}`}>
+              {showSeparator && (
+                <ThemedView style={{
+                  height: 1,
+                  backgroundColor: colorScheme === 'dark' ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255, 215, 0, 0.5)',
+                  marginVertical: 5,
+                  marginHorizontal: 10
+                }}>
+                  <ThemedText style={{
+                    fontSize: 10,
+                    color: colorScheme === 'dark' ? 'rgba(255, 215, 0, 0.7)' : 'rgba(255, 215, 0, 0.8)',
+                    textAlign: 'center',
+                    marginTop: -8,
+                    backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+                    paddingHorizontal: 5
+                  }}>
+                    🔄 Tareas Repetidas
+                  </ThemedText>
+                </ThemedView>
+              )}
+              <TouchableOpacity
+                style={lineStyle}
+                onPress={() => handleLinePress(lineNumber)}
+              >
               <ThemedView
                 style={[
                   styles.lineNumber,
@@ -555,7 +644,7 @@ export default function BookPage({
                 ]}
               >
                 {(() => {
-                  const task = allTasks[lineNumber];
+                  const task = getTaskForPageLine(lineNumber);
                   if (task?.reminder) {
                     // Si hay tarea con reminder, mostrar la hora arriba y minutos abajo
                     const reminderDate = new Date(task.reminder);
@@ -613,7 +702,7 @@ export default function BookPage({
                 style={[styles.writingLine, { backgroundColor: "transparent" }]}
               >
                 {(() => {
-                  const task = allTasks[lineNumber];
+                  const task = getTaskForPageLine(lineNumber);
                   if (task) {
                     return (
                       <ThemedView
@@ -682,12 +771,10 @@ export default function BookPage({
                             textDecorationLine: "underline",
                           }}
                           numberOfLines={undefined}
-                          ellipsizeMode="tail" 
+                          ellipsizeMode="tail"
                         >
                           {`${
-                            task.repeat && task.repeat !== "none"
-                              ? "🔄 "
-                              : ""
+                            task.repeat && task.repeat !== "none" ? "🔄 " : ""
                           }${task.reminder ? "⏰ " : ""}${task.text}`}
                         </LinkableText>
                       </ThemedView>
@@ -706,6 +793,7 @@ export default function BookPage({
                 })()}
               </ThemedView>
             </TouchableOpacity>
+            </React.Fragment>
           );
         })}
       </ThemedView>
@@ -721,14 +809,14 @@ export default function BookPage({
         tCommon={tCommon}
         visible={modalVisible}
         initialText={editingTask}
-        initialReminder={allTasks[editingLine as number]?.reminder}
+        initialReminder={editingLine ? getTaskForPageLine(editingLine)?.reminder : undefined}
         initialRepeat={
-          (allTasks[editingLine as number]?.repeat as RepeatOption) || "none"
+          (editingLine ? getTaskForPageLine(editingLine)?.repeat as RepeatOption : undefined) || "none"
         }
         onSave={handleSaveTask}
         toggleTaskCompletion={handleToggleTaskCompletion}
         date={dateKey}
-        completed={allTasks[editingLine as number]?.completed || false}
+        completed={editingLine ? getTaskForPageLine(editingLine)?.completed ?? false : false}
         lineNumber={editingLine as number}
         onCancel={handleCancelEdit}
         onDelete={editingTask ? handleDeleteTask : undefined}

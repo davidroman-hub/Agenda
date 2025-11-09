@@ -64,7 +64,6 @@ export const useBookPageLogic = () => {
   const goToNextPage = () => {
     // Limpiar patrones huérfanos antes de cambiar de página
     cleanUpOrphanedPatterns();
-
     setShowPageTransition(true);
     setTransitionProgress(0);
 
