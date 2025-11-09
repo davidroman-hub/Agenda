@@ -67,7 +67,8 @@
     "twice": "Every two days",
     "three": "Every three days",
     "five": "Every five days",
-    "cannotDeleteRepeated": "You cannot delete a recurring task from here. Go to the calendar and delete it from there."
+    "cannotDeleteRepeated": "You cannot delete a recurring task from here. Go to the calendar and delete it from there.",
+    "repeatedTasks": "Recurring Tasks"
   },
   "taskReminder": {
     "reminder": "Reminder",

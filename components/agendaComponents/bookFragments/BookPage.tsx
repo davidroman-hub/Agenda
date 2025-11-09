@@ -158,7 +158,7 @@ export default function BookPage({
 
     return {
       allTasks: normalTasks,
-      repeatedTasks: repeatedTasksList
+      repeatedTasks: repeatedTasksList,
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,21 +228,21 @@ export default function BookPage({
   // Generar líneas para escritura (líneas normales + líneas virtuales para tareas repetidas)
   const generateLines = () => {
     const lines = [];
-    
+
     // Líneas normales del día (siempre disponibles para el usuario)
     for (let i = 1; i <= linesPerPage; i++) {
       lines.push({ lineNumber: i, isVirtual: false });
     }
-    
+
     // Líneas virtuales para tareas repetidas
     for (let i = 0; i < repeatedTasks.length; i++) {
-      lines.push({ 
-        lineNumber: linesPerPage + i + 1, 
+      lines.push({
+        lineNumber: linesPerPage + i + 1,
         isVirtual: true,
-        repeatedTaskIndex: i 
+        repeatedTaskIndex: i,
       });
     }
-    
+
     return lines;
   };
 
@@ -254,13 +254,13 @@ export default function BookPage({
     if (allTasks[lineNumber]) {
       return allTasks[lineNumber];
     }
-    
+
     // Si la línea está después de linesPerPage, puede ser una tarea repetida virtual
     const repeatedIndex = lineNumber - linesPerPage - 1;
     if (repeatedIndex >= 0 && repeatedIndex < repeatedTasks.length) {
       return repeatedTasks[repeatedIndex];
     }
-    
+
     return null;
   };
 
@@ -299,10 +299,13 @@ export default function BookPage({
                     reminder,
                     repeat,
                   });
-                  
+
                   // También actualizar el patrón de repetición si cambió la frecuencia
                   const currentPattern = getRepeatingPatternForTask(task.id);
-                  if (currentPattern && currentPattern.repeatOption !== repeat) {
+                  if (
+                    currentPattern &&
+                    currentPattern.repeatOption !== repeat
+                  ) {
                     // Eliminar el patrón actual
                     removeRepeatingPattern(task.id);
                     // Crear nuevo patrón con la nueva frecuencia
@@ -312,7 +315,7 @@ export default function BookPage({
                       startDate: date,
                     });
                   }
-                  
+
                   foundOriginal = true;
                   break;
                 }
@@ -401,7 +404,7 @@ export default function BookPage({
             }
           }
         }
-        
+
         // 1. Crear la tarea normal primero
         await addTask(dateKey, targetLine, text, reminder, repeat);
 
@@ -603,196 +606,215 @@ export default function BookPage({
           const { lineNumber, isVirtual } = line;
           // Siempre usar el estilo con líneas visibles independientemente del contenido
           // Las líneas virtuales tienen un estilo diferente para indicar que son tareas repetidas
-          const lineStyle = isVirtual 
-            ? [dynamicStyles.lineWithTask, styles.expandedLine, { backgroundColor: 'rgba(255, 215, 0, 0.1)' }]
+          const lineStyle = isVirtual
+            ? [
+                dynamicStyles.lineWithTask,
+                styles.expandedLine,
+                { backgroundColor: "rgba(255, 215, 0, 0.1)" },
+              ]
             : [dynamicStyles.lineWithTask, styles.expandedLine];
 
           return (
-            <React.Fragment key={`${dayIndex}-line-${lineNumber}-${isVirtual ? 'virtual' : 'normal'}`}>
+            <React.Fragment
+              key={`${dayIndex}-line-${lineNumber}-${
+                isVirtual ? "virtual" : "normal"
+              }`}
+            >
               {showSeparator && (
-                <ThemedView style={{
-                  height: 1,
-                  backgroundColor: colorScheme === 'dark' ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255, 215, 0, 0.5)',
-                  marginVertical: 5,
-                  marginHorizontal: 10
-                }}>
-                  <ThemedText style={{
-                    fontSize: 10,
-                    color: colorScheme === 'dark' ? 'rgba(255, 215, 0, 0.7)' : 'rgba(255, 215, 0, 0.8)',
-                    textAlign: 'center',
-                    marginTop: -8,
-                    backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
-                    paddingHorizontal: 5
-                  }}>
-                    🔄 Tareas Repetidas
+                <ThemedView
+                  style={{
+                    height: 12,
+                    marginVertical: 5,
+                    marginHorizontal: 10,
+                  }}
+                >
+                  <ThemedText
+                    style={{
+                      fontSize: 10,
+                      color:
+                        colorScheme === "dark"
+                          ? "rgba(255, 215, 0, 0.7)"
+                          : "#1976D2",
+                      textAlign: "center",
+                      marginTop: -5,
+                      backgroundColor:
+                        colorScheme === "dark" ? "transparent" : "#fff",
+                      paddingHorizontal: 5,
+                    }}
+                  >
+                    🔄 {tCommon("taskRepeat.repeatedTasks")}
                   </ThemedText>
                 </ThemedView>
               )}
+
               <TouchableOpacity
                 style={lineStyle}
                 onPress={() => handleLinePress(lineNumber)}
               >
-              <ThemedView
-                style={[
-                  styles.lineNumber,
-                  styles.expandedLineNumber,
-                  {
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "transparent",
-                  },
-                ]}
-              >
-                {(() => {
-                  const task = getTaskForPageLine(lineNumber);
-                  if (task?.reminder) {
-                    // Si hay tarea con reminder, mostrar la hora arriba y minutos abajo
-                    const reminderDate = new Date(task.reminder);
+                <ThemedView
+                  style={[
+                    styles.lineNumber,
+                    styles.expandedLineNumber,
+                    {
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "transparent",
+                    },
+                  ]}
+                >
+                  {(() => {
+                    const task = getTaskForPageLine(lineNumber);
+                    if (task?.reminder) {
+                      // Si hay tarea con reminder, mostrar la hora arriba y minutos abajo
+                      const reminderDate = new Date(task.reminder);
 
-                    // Debug: verificar la fecha del reminder
+                      // Debug: verificar la fecha del reminder
 
-                    const hours = reminderDate
-                      .getHours()
-                      .toString()
-                      .padStart(2, "0");
-                    const minutes = reminderDate
-                      .getMinutes()
-                      .toString()
-                      .padStart(2, "0");
+                      const hours = reminderDate
+                        .getHours()
+                        .toString()
+                        .padStart(2, "0");
+                      const minutes = reminderDate
+                        .getMinutes()
+                        .toString()
+                        .padStart(2, "0");
 
-                    return (
-                      <>
+                      return (
+                        <>
+                          <ThemedText
+                            style={{
+                              fontSize: 9,
+                              lineHeight: 12,
+                              textAlign: "center",
+                            }}
+                          >
+                            {hours}
+                          </ThemedText>
+                          <ThemedText
+                            style={{
+                              fontSize: 9,
+                              lineHeight: 12,
+                              textAlign: "center",
+                            }}
+                          >
+                            {minutes}
+                          </ThemedText>
+                        </>
+                      );
+                    } else {
+                      // Si no hay tarea o no tiene reminder, mostrar viñeta
+                      return (
                         <ThemedText
                           style={{
-                            fontSize: 9,
-                            lineHeight: 12,
+                            fontSize: 16,
+                            backgroundColor: "transparent",
                             textAlign: "center",
                           }}
                         >
-                          {hours}
+                          •
                         </ThemedText>
-                        <ThemedText
+                      );
+                    }
+                  })()}
+                </ThemedView>
+                <ThemedView
+                  style={[
+                    styles.writingLine,
+                    { backgroundColor: "transparent" },
+                  ]}
+                >
+                  {(() => {
+                    const task = getTaskForPageLine(lineNumber);
+                    if (task) {
+                      return (
+                        <ThemedView
                           style={{
-                            fontSize: 9,
-                            lineHeight: 12,
-                            textAlign: "center",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            flex: 1,
+                            backgroundColor: "transparent", // Fondo transparente explícito
                           }}
                         >
-                          {minutes}
-                        </ThemedText>
-                      </>
-                    );
-                  } else {
-                    // Si no hay tarea o no tiene reminder, mostrar viñeta
+                          <TouchableOpacity
+                            style={(() => {
+                              let borderColor;
+                              if (task.completed) {
+                                borderColor = "#4CAF50";
+                              } else if (colorScheme === "dark") {
+                                borderColor = "#888";
+                              } else {
+                                borderColor = "#666";
+                              }
+
+                              return {
+                                marginRight: 8,
+                                width: 20,
+                                height: 25,
+                                borderWidth: 2,
+                                borderColor,
+                                backgroundColor: task.completed
+                                  ? "#4CAF50"
+                                  : "transparent",
+                                borderRadius: 3,
+                                justifyContent: "center",
+                                alignItems: "center",
+                              };
+                            })()}
+                            onPress={() =>
+                              handleToggleTaskCompletion(dateKey, lineNumber)
+                            }
+                          >
+                            {task.completed && (
+                              <ThemedText
+                                style={{
+                                  fontSize: 16,
+                                  color: "white",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                ✓
+                              </ThemedText>
+                            )}
+                          </TouchableOpacity>
+                          <LinkableText
+                            style={{
+                              ...(viewMode === "expanded"
+                                ? dynamicStyles.expandedTaskText
+                                : dynamicStyles.taskText),
+                              flex: 1,
+                              ...(task.completed && {
+                                textDecorationLine: "line-through",
+                                opacity: 0.6,
+                              }),
+                            }}
+                            linkStyle={{
+                              color:
+                                colorScheme === "dark" ? "#64B5F6" : "#1976D2",
+                              textDecorationLine: "underline",
+                            }}
+                            numberOfLines={undefined}
+                            ellipsizeMode="tail"
+                          >
+                            {`${
+                              task.repeat && task.repeat !== "none" ? "🔄 " : ""
+                            }${task.reminder ? "⏰ " : ""}${task.text}`}
+                          </LinkableText>
+                        </ThemedView>
+                      );
+                    }
                     return (
                       <ThemedText
-                        style={{
-                          fontSize: 16,
-                          backgroundColor: "transparent",
-                          textAlign: "center",
-                        }}
-                      >
-                        •
-                      </ThemedText>
+                        style={[
+                          viewMode === "expanded"
+                            ? dynamicStyles.expandedTaskText
+                            : dynamicStyles.taskText,
+                          { opacity: 0.4, fontStyle: "italic" },
+                        ]}
+                      ></ThemedText>
                     );
-                  }
-                })()}
-              </ThemedView>
-              <ThemedView
-                style={[styles.writingLine, { backgroundColor: "transparent" }]}
-              >
-                {(() => {
-                  const task = getTaskForPageLine(lineNumber);
-                  if (task) {
-                    return (
-                      <ThemedView
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          flex: 1,
-                          backgroundColor: "transparent", // Fondo transparente explícito
-                        }}
-                      >
-                        <TouchableOpacity
-                          style={(() => {
-                            let borderColor;
-                            if (task.completed) {
-                              borderColor = "#4CAF50";
-                            } else if (colorScheme === "dark") {
-                              borderColor = "#888";
-                            } else {
-                              borderColor = "#666";
-                            }
-
-                            return {
-                              marginRight: 8,
-                              width: 20,
-                              height: 25,
-                              borderWidth: 2,
-                              borderColor,
-                              backgroundColor: task.completed
-                                ? "#4CAF50"
-                                : "transparent",
-                              borderRadius: 3,
-                              justifyContent: "center",
-                              alignItems: "center",
-                            };
-                          })()}
-                          onPress={() =>
-                            handleToggleTaskCompletion(dateKey, lineNumber)
-                          }
-                        >
-                          {task.completed && (
-                            <ThemedText
-                              style={{
-                                fontSize: 16,
-                                color: "white",
-                                fontWeight: "bold",
-                              }}
-                            >
-                              ✓
-                            </ThemedText>
-                          )}
-                        </TouchableOpacity>
-                        <LinkableText
-                          style={{
-                            ...(viewMode === "expanded"
-                              ? dynamicStyles.expandedTaskText
-                              : dynamicStyles.taskText),
-                            flex: 1,
-                            ...(task.completed && {
-                              textDecorationLine: "line-through",
-                              opacity: 0.6,
-                            }),
-                          }}
-                          linkStyle={{
-                            color:
-                              colorScheme === "dark" ? "#64B5F6" : "#1976D2",
-                            textDecorationLine: "underline",
-                          }}
-                          numberOfLines={undefined}
-                          ellipsizeMode="tail"
-                        >
-                          {`${
-                            task.repeat && task.repeat !== "none" ? "🔄 " : ""
-                          }${task.reminder ? "⏰ " : ""}${task.text}`}
-                        </LinkableText>
-                      </ThemedView>
-                    );
-                  }
-                  return (
-                    <ThemedText
-                      style={[
-                        viewMode === "expanded"
-                          ? dynamicStyles.expandedTaskText
-                          : dynamicStyles.taskText,
-                        { opacity: 0.4, fontStyle: "italic" },
-                      ]}
-                    ></ThemedText>
-                  );
-                })()}
-              </ThemedView>
-            </TouchableOpacity>
+                  })()}
+                </ThemedView>
+              </TouchableOpacity>
             </React.Fragment>
           );
         })}
@@ -809,14 +831,22 @@ export default function BookPage({
         tCommon={tCommon}
         visible={modalVisible}
         initialText={editingTask}
-        initialReminder={editingLine ? getTaskForPageLine(editingLine)?.reminder : undefined}
+        initialReminder={
+          editingLine ? getTaskForPageLine(editingLine)?.reminder : undefined
+        }
         initialRepeat={
-          (editingLine ? getTaskForPageLine(editingLine)?.repeat as RepeatOption : undefined) || "none"
+          (editingLine
+            ? (getTaskForPageLine(editingLine)?.repeat as RepeatOption)
+            : undefined) || "none"
         }
         onSave={handleSaveTask}
         toggleTaskCompletion={handleToggleTaskCompletion}
         date={dateKey}
-        completed={editingLine ? getTaskForPageLine(editingLine)?.completed ?? false : false}
+        completed={
+          editingLine
+            ? getTaskForPageLine(editingLine)?.completed ?? false
+            : false
+        }
         lineNumber={editingLine as number}
         onCancel={handleCancelEdit}
         onDelete={editingTask ? handleDeleteTask : undefined}

@@ -70,7 +70,8 @@
     "twice": "Ogni due giorni",
     "three": "Ogni tre giorni",
     "five": "Ogni cinque giorni",
-    "cannotDeleteRepeated": "Non puoi eliminare un'attività ricorrente da qui. Vai al calendario e cancellala da lì."
+    "cannotDeleteRepeated": "Non puoi eliminare un'attività ricorrente da qui. Vai al calendario e cancellala da lì.",  
+    "repeatedTasks": "Attività Ricorrenti"
   },
 
   "taskReminder": {
