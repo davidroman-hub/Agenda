@@ -49,18 +49,40 @@ const useRepeatingTasksStore = create<RepeatingTasksState>()(
       repeatingTaskCompletions: {},
 
       addRepeatingPattern: (patternData) => {
-        const newPattern: RepeatingTaskPattern = {
-          ...patternData,
-          id: `pattern-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 11)}`,
-          createdAt: new Date().toISOString(),
-          isActive: true,
-        };
+        // Verificar si ya existe un patrón para esta tarea
+        const existingPattern = get().repeatingPatterns.find(
+          (pattern) => pattern.originalTaskId === patternData.originalTaskId
+        );
 
-        set((state) => ({
-          repeatingPatterns: [...state.repeatingPatterns, newPattern],
-        }));
+        if (existingPattern) {
+          // Si ya existe, actualizar el patrón existente en lugar de crear uno nuevo
+          set((state) => ({
+            repeatingPatterns: state.repeatingPatterns.map((pattern) =>
+              pattern.originalTaskId === patternData.originalTaskId
+                ? {
+                    ...pattern,
+                    repeatOption: patternData.repeatOption,
+                    startDate: patternData.startDate,
+                    isActive: true,
+                  }
+                : pattern
+            ),
+          }));
+        } else {
+          // Si no existe, crear uno nuevo
+          const newPattern: RepeatingTaskPattern = {
+            ...patternData,
+            id: `pattern-${Date.now()}-${Math.random()
+              .toString(36)
+              .substring(2, 11)}`,
+            createdAt: new Date().toISOString(),
+            isActive: true,
+          };
+
+          set((state) => ({
+            repeatingPatterns: [...state.repeatingPatterns, newPattern],
+          }));
+        }
       },
 
       removeRepeatingPattern: (originalTaskId) => {

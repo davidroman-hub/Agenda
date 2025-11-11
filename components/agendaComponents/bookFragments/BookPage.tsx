@@ -307,21 +307,12 @@ export default function BookPage({
                     repeat,
                   });
 
-                  // También actualizar el patrón de repetición si cambió la frecuencia
-                  const currentPattern = getRepeatingPatternForTask(task.id);
-                  if (
-                    currentPattern &&
-                    currentPattern.repeatOption !== repeat
-                  ) {
-                    // Eliminar el patrón actual
-                    removeRepeatingPattern(task.id);
-                    // Crear nuevo patrón con la nueva frecuencia
-                    addRepeatingPattern({
-                      originalTaskId: task.id,
-                      repeatOption: repeat,
-                      startDate: date,
-                    });
-                  }
+                  // Actualizar el patrón de repetición (la función ya maneja duplicados)
+                  addRepeatingPattern({
+                    originalTaskId: task.id,
+                    repeatOption: repeat,
+                    startDate: date,
+                  });
 
                   foundOriginal = true;
                   break;
@@ -350,11 +341,18 @@ export default function BookPage({
           if (existingPattern && existingPattern.isActive) {
             // Estamos editando la tarea original de un patrón repetido
             if (repeat && repeat !== "none") {
-              // Mantener como tarea repetida - solo actualizar la tarea original
+              // Actualizar la tarea primero
               await updateTask(dateKey, editingLine, {
                 text,
                 reminder,
                 repeat,
+              });
+              
+              // Agregar/actualizar patrón de repetición (la función ya maneja duplicados)
+              addRepeatingPattern({
+                originalTaskId: existingTask.id,
+                repeatOption: repeat,
+                startDate: dateKey,
               });
             } else {
               // Convertir de repetida a normal - eliminar patrón
