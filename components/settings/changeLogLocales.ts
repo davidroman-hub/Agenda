@@ -1,6 +1,38 @@
 export const changeLogLocales = {
   en: {
-    changes: `� **Version 1.8.1 - Widget Translations & Repeating Tasks Fix**
+    changes: `🚀 **Version 1.9.0 - Enhanced Line Management & Smart UI**
+
+📝 **Major Line Management Improvements:**
+• **Extra Lines per Page**: Enhanced linesPerPage functionality to include extraLines in available lines calculation
+• **Dynamic Line Availability**: Book pages now properly calculate totalLines = linesPerPage + extraLines for better space utilization
+• **Smart Line Distribution**: Improved line management system for better task organization and user experience
+
+🔄 **Advanced Repeating Tasks System:**
+• **Duplicate Prevention**: Fixed critical issue where modifying repeat patterns created duplicate virtual tasks
+• **Pattern Update Logic**: Enhanced addRepeatingPattern to detect existing patterns and update instead of creating duplicates
+• **Original Task Preservation**: Original repeated tasks now properly maintain completion status in their creation day
+• **Virtual Task Management**: Improved virtual task generation with better filtering and state management
+
+📱 **Calendar Integration Fixes:**
+• **Quick Task Creation**: Added ability to create tasks directly from calendar with QuickAddTaskButton integration
+• **Task Visibility Enhancement**: Fixed tasks not appearing in book after creation from calendar
+• **Force Refresh Mechanisms**: Added automatic state updates for better UI reactivity
+• **Timezone Handling**: Resolved critical timezone issue causing tasks to save one day before selected date
+• **Local Date Processing**: Implemented proper local date string conversion to prevent UTC offset issues
+
+🎨 **Smart UI & UX Enhancements:**
+• **Scroll-Responsive Floating Button**: Floating menu button now intelligently scales down and disappears based on scroll position
+• **Progressive Button Animation**: Smooth animations with button reducing from 100% to 30% scale during scroll
+• **Auto-Close on Scroll**: Menu automatically closes when button becomes too small (scrollProgress > 0.153104)
+• **Disabled State Management**: Button becomes non-interactive when scaled down significantly
+
+🔧 **Technical Infrastructure:**
+• **Enhanced State Management**: Improved Zustand store interactions for better data consistency
+• **Date Utility Improvements**: Better handling of local vs UTC date conversions throughout the app
+• **Performance Optimizations**: Reduced unnecessary re-renders and improved component efficiency
+• **Error Prevention**: Added validation layers to prevent common task management edge cases
+
+� **Version 1.8.1 - Widget Translations & Repeating Tasks Fix**
 
 📱 **New Features:**
 • **5-Language Widget Support**: Android widget now fully supports Spanish, English, French, Portuguese, and Italian
@@ -28,7 +60,39 @@ export const changeLogLocales = {
 • **Seamless Language Switching**: Both app and widget update language without restart`,
   },
   es: {
-    changes: `🎯 **Versión 1.8.1 - Traducciones del Widget y Corrección de Tareas Repetidas**
+    changes: `🚀 **Versión 1.9.0 - Gestión Avanzada de Líneas e Interfaz Inteligente**
+
+📝 **Mejoras Importantes en Gestión de Líneas:**
+• **Líneas Extra por Página**: Funcionalidad linesPerPage mejorada para incluir líneas extra en el cálculo de líneas disponibles
+• **Disponibilidad Dinámica de Líneas**: Las páginas del libro ahora calculan correctamente totalLines = linesPerPage + extraLines para mejor utilización del espacio
+• **Distribución Inteligente de Líneas**: Sistema mejorado de gestión de líneas para mejor organización de tareas y experiencia de usuario
+
+🔄 **Sistema Avanzado de Tareas Repetidas:**
+• **Prevención de Duplicados**: Corregido problema crítico donde modificar patrones de repetición creaba tareas virtuales duplicadas
+• **Lógica de Actualización de Patrones**: Mejorado addRepeatingPattern para detectar patrones existentes y actualizar en lugar de crear duplicados
+• **Preservación de Tareas Originales**: Las tareas repetidas originales ahora mantienen correctamente el estado de completado en su día de creación
+• **Gestión de Tareas Virtuales**: Mejorada la generación de tareas virtuales con mejor filtrado y gestión de estado
+
+📱 **Correcciones de Integración del Calendario:**
+• **Creación Rápida de Tareas**: Agregada capacidad de crear tareas directamente desde el calendario con integración de QuickAddTaskButton
+• **Mejora de Visibilidad de Tareas**: Corregido problema donde las tareas no aparecían en el libro después de crearlas desde el calendario
+• **Mecanismos de Actualización Forzada**: Agregadas actualizaciones automáticas de estado para mejor reactividad de la interfaz
+• **Manejo de Zona Horaria**: Resuelto problema crítico de zona horaria que causaba que las tareas se guardaran un día antes de la fecha seleccionada
+• **Procesamiento de Fecha Local**: Implementada conversión correcta de cadenas de fecha local para prevenir problemas de offset UTC
+
+🎨 **Mejoras Inteligentes de UI y UX:**
+• **Botón Flotante Responsivo al Scroll**: El botón del menú flotante ahora se reduce y desaparece inteligentemente según la posición del scroll
+• **Animación Progresiva del Botón**: Animaciones suaves con el botón reduciéndose del 100% al 30% de escala durante el scroll
+• **Auto-Cierre en Scroll**: El menú se cierra automáticamente cuando el botón se vuelve muy pequeño (scrollProgress > 0.153104)
+• **Gestión de Estado Deshabilitado**: El botón se vuelve no interactivo cuando se reduce significativamente
+
+🔧 **Infraestructura Técnica:**
+• **Gestión de Estado Mejorada**: Mejoradas las interacciones del store Zustand para mejor consistencia de datos
+• **Mejoras en Utilidades de Fecha**: Mejor manejo de conversiones de fecha local vs UTC en toda la aplicación
+• **Optimizaciones de Rendimiento**: Reducidos re-renders innecesarios y mejorada la eficiencia de componentes
+• **Prevención de Errores**: Agregadas capas de validación para prevenir casos límite comunes en gestión de tareas
+
+🎯 **Versión 1.8.1 - Traducciones del Widget y Corrección de Tareas Repetidas**
 
 📱 **Nuevas Funcionalidades:**
 • **Soporte Widget 5 Idiomas**: El widget de Android ahora soporta completamente Español, Inglés, Francés, Portugués e Italiano
@@ -56,7 +120,39 @@ export const changeLogLocales = {
 • **Cambio de Idioma Fluido**: Tanto la app como el widget actualizan el idioma sin reiniciar`,
   },
   fr: {
-    changes: `🎯 **Version 1.8.1 - Traductions Widget et Correction Tâches Répétitives**
+    changes: `🚀 **Version 1.9.0 - Gestion Avancée des Lignes et Interface Intelligente**
+
+📝 **Améliorations Majeures de Gestion des Lignes:**
+• **Lignes Supplémentaires par Page**: Fonctionnalité linesPerPage améliorée pour inclure les lignes extra dans le calcul des lignes disponibles
+• **Disponibilité Dynamique des Lignes**: Les pages du livre calculent maintenant correctement totalLines = linesPerPage + extraLines pour une meilleure utilisation de l'espace
+• **Distribution Intelligente des Lignes**: Système amélioré de gestion des lignes pour une meilleure organisation des tâches et expérience utilisateur
+
+🔄 **Système Avancé de Tâches Répétitives:**
+• **Prévention des Doublons**: Corrigé le problème critique où modifier les motifs de répétition créait des tâches virtuelles dupliquées
+• **Logique de Mise à Jour des Motifs**: Amélioré addRepeatingPattern pour détecter les motifs existants et mettre à jour au lieu de créer des doublons
+• **Préservation des Tâches Originales**: Les tâches répétitives originales maintiennent maintenant correctement l'état d'achèvement dans leur jour de création
+• **Gestion des Tâches Virtuelles**: Améliorée la génération de tâches virtuelles avec un meilleur filtrage et gestion d'état
+
+📱 **Corrections d'Intégration du Calendrier:**
+• **Création Rapide de Tâches**: Ajoutée la capacité de créer des tâches directement depuis le calendrier avec intégration QuickAddTaskButton
+• **Amélioration de Visibilité des Tâches**: Corrigé le problème où les tâches n'apparaissaient pas dans le livre après création depuis le calendrier
+• **Mécanismes de Rafraîchissement Forcé**: Ajoutées des mises à jour automatiques d'état pour une meilleure réactivité de l'interface
+• **Gestion du Fuseau Horaire**: Résolu le problème critique de fuseau horaire causant la sauvegarde des tâches un jour avant la date sélectionnée
+• **Traitement de Date Locale**: Implémentée la conversion correcte des chaînes de date locale pour prévenir les problèmes d'offset UTC
+
+🎨 **Améliorations Intelligentes UI et UX:**
+• **Bouton Flottant Réactif au Défilement**: Le bouton du menu flottant se réduit et disparaît intelligemment selon la position du défilement
+• **Animation Progressive du Bouton**: Animations fluides avec le bouton se réduisant de 100% à 30% d'échelle pendant le défilement
+• **Fermeture Automatique au Défilement**: Le menu se ferme automatiquement quand le bouton devient trop petit (scrollProgress > 0.153104)
+• **Gestion d'État Désactivé**: Le bouton devient non interactif quand il est considérablement réduit
+
+🔧 **Infrastructure Technique:**
+• **Gestion d'État Améliorée**: Améliorées les interactions du store Zustand pour une meilleure consistance des données
+• **Améliorations des Utilitaires de Date**: Meilleure gestion des conversions de date locale vs UTC dans toute l'application
+• **Optimisations de Performance**: Réduits les re-renders inutiles et améliorée l'efficacité des composants
+• **Prévention d'Erreurs**: Ajoutées des couches de validation pour prévenir les cas limites communs en gestion de tâches
+
+🎯 **Version 1.8.1 - Traductions Widget et Correction Tâches Répétitives**
 
 📱 **Nouvelles Fonctionnalités:**
 • **Support Widget 5 Langues**: Le widget Android supporte maintenant complètement l'Espagnol, l'Anglais, le Français, le Portugais et l'Italien
@@ -84,7 +180,39 @@ export const changeLogLocales = {
 • **Changement de Langue Fluide**: L'app et le widget mettent à jour la langue sans redémarrage`,
   },
   it: {
-    changes: `🎯 **Versione 1.8.1 - Traduzioni Widget e Correzione Attività Ripetute**
+    changes: `🚀 **Versione 1.9.0 - Gestione Avanzata Righe e Interfaccia Intelligente**
+
+📝 **Miglioramenti Maggiori Gestione Righe:**
+• **Righe Extra per Pagina**: Funzionalità linesPerPage migliorata per includere righe extra nel calcolo delle righe disponibili
+• **Disponibilità Dinamica Righe**: Le pagine del libro ora calcolano correttamente totalLines = linesPerPage + extraLines per migliore utilizzo dello spazio
+• **Distribuzione Intelligente Righe**: Sistema migliorato di gestione righe per migliore organizzazione attività ed esperienza utente
+
+🔄 **Sistema Avanzato Attività Ripetute:**
+• **Prevenzione Duplicati**: Corretto problema critico dove modificare schemi di ripetizione creava attività virtuali duplicate
+• **Logica Aggiornamento Schemi**: Migliorato addRepeatingPattern per rilevare schemi esistenti e aggiornare invece di creare duplicati
+• **Preservazione Attività Originali**: Le attività ripetute originali ora mantengono correttamente lo stato di completamento nel loro giorno di creazione
+• **Gestione Attività Virtuali**: Migliorata la generazione di attività virtuali con migliore filtraggio e gestione stato
+
+📱 **Correzioni Integrazione Calendario:**
+• **Creazione Rapida Attività**: Aggiunta capacità di creare attività direttamente dal calendario con integrazione QuickAddTaskButton
+• **Miglioramento Visibilità Attività**: Corretto problema dove le attività non apparivano nel libro dopo creazione dal calendario
+• **Meccanismi Aggiornamento Forzato**: Aggiunti aggiornamenti automatici di stato per migliore reattività dell'interfaccia
+• **Gestione Fuso Orario**: Risolto problema critico di fuso orario che causava il salvataggio delle attività un giorno prima della data selezionata
+• **Elaborazione Data Locale**: Implementata conversione corretta di stringhe data locale per prevenire problemi offset UTC
+
+🎨 **Miglioramenti Intelligenti UI e UX:**
+• **Pulsante Flottante Reattivo allo Scorrimento**: Il pulsante del menu flottante ora si ridimensiona e scompare intelligentemente basato sulla posizione di scorrimento
+• **Animazione Progressiva Pulsante**: Animazioni fluide con il pulsante che si riduce dal 100% al 30% di scala durante lo scorrimento
+• **Chiusura Automatica allo Scorrimento**: Il menu si chiude automaticamente quando il pulsante diventa troppo piccolo (scrollProgress > 0.153104)
+• **Gestione Stato Disabilitato**: Il pulsante diventa non interattivo quando viene ridotto significativamente
+
+🔧 **Infrastruttura Tecnica:**
+• **Gestione Stato Migliorata**: Migliorate le interazioni dello store Zustand per migliore consistenza dati
+• **Miglioramenti Utilità Data**: Migliore gestione delle conversioni data locale vs UTC in tutta l'applicazione
+• **Ottimizzazioni Performance**: Ridotti re-render non necessari e migliorata l'efficienza dei componenti
+• **Prevenzione Errori**: Aggiunti livelli di validazione per prevenire casi limite comuni nella gestione attività
+
+🎯 **Versione 1.8.1 - Traduzioni Widget e Correzione Attività Ripetute**
 
 📱 **Nuove Funzionalità:**
 • **Supporto Widget 5 Lingue**: Il widget Android ora supporta completamente Spagnolo, Inglese, Francese, Portoghese e Italiano
