@@ -12,6 +12,7 @@ import AnotherCalendarModal from "@/components/calendar/anotherCalendarModal";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { styles } from "../bookStyles";
+import AddExtraLine from "./BookAddExtraLine";
 import TaskEditModal from "./TaskEditModal";
 import { RepeatOption } from "./TaskRepeat";
 
@@ -52,7 +53,10 @@ export default function BookPage({
   const [forceRefresh, setForceRefresh] = useState(0);
 
   // Obtener configuración de líneas por página
-  const { linesPerPage } = useBookSettingsStore();
+  const { linesPerPage, } = useBookSettingsStore();
+    const {  linesStatus } = useAgendaTasksStore();
+
+    const extraLines = linesStatus[dateKey]?.extraLines || 0;
 
   // Suscribirse directamente a las tareas de esta fecha específica
   const dayTasks = useAgendaTasksStore(
@@ -172,6 +176,7 @@ export default function BookPage({
     repeatingCompletions,
     linesPerPage,
     forceRefresh,
+    extraLines
   ]);
   const {
     addTask,
@@ -225,19 +230,20 @@ export default function BookPage({
     };
   };
 
-  // Generar líneas para escritura (líneas normales + líneas virtuales para tareas repetidas)
+  // Generar líneas para escritura (líneas normales + líneas extra + líneas virtuales para tareas repetidas)
   const generateLines = () => {
     const lines = [];
 
-    // Líneas normales del día (siempre disponibles para el usuario)
-    for (let i = 1; i <= linesPerPage; i++) {
+    // Líneas normales del día + líneas extra (siempre disponibles para el usuario)
+    const totalUserLines = linesPerPage + extraLines;
+    for (let i = 1; i <= totalUserLines; i++) {
       lines.push({ lineNumber: i, isVirtual: false });
     }
 
-    // Líneas virtuales para tareas repetidas
+    // Líneas virtuales para tareas repetidas (después de las líneas normales + extra)
     for (let i = 0; i < repeatedTasks.length; i++) {
       lines.push({
-        lineNumber: linesPerPage + i + 1,
+        lineNumber: totalUserLines + i + 1,
         isVirtual: true,
         repeatedTaskIndex: i,
       });
@@ -250,13 +256,14 @@ export default function BookPage({
 
   // Función para obtener tarea por línea (incluyendo líneas virtuales de tareas repetidas)
   const getTaskForPageLine = (lineNumber: number): AgendaTask | null => {
-    // Primero verificar tareas normales
+    // Primero verificar tareas normales (líneas normales + extra)
     if (allTasks[lineNumber]) {
       return allTasks[lineNumber];
     }
 
-    // Si la línea está después de linesPerPage, puede ser una tarea repetida virtual
-    const repeatedIndex = lineNumber - linesPerPage - 1;
+    // Si la línea está después de (linesPerPage + extraLines), puede ser una tarea repetida virtual
+    const totalUserLines = linesPerPage + extraLines;
+    const repeatedIndex = lineNumber - totalUserLines - 1;
     if (repeatedIndex >= 0 && repeatedIndex < repeatedTasks.length) {
       return repeatedTasks[repeatedIndex];
     }
@@ -328,7 +335,7 @@ export default function BookPage({
             removeRepeatingPattern(existingTask.repeatingTaskId!);
             // 2. Encontrar la primera línea disponible del día para crear la tarea normal
             let availableLine = 1;
-            for (let i = 1; i <= linesPerPage; i++) {
+            for (let i = 1; i <= linesPerPage + extraLines; i++) {
               if (!allTasks[i]) {
                 availableLine = i;
                 break;
@@ -395,9 +402,10 @@ export default function BookPage({
         // Nueva tarea repetida
         // Si estamos en una línea virtual, encontrar una línea real disponible
         let targetLine = editingLine;
-        if (editingLine > linesPerPage) {
+        const totalUserLines = linesPerPage + extraLines;
+        if (editingLine > totalUserLines) {
           // Buscar primera línea disponible
-          for (let i = 1; i <= linesPerPage; i++) {
+          for (let i = 1; i <= totalUserLines; i++) {
             if (!allTasks[i]) {
               targetLine = i;
               break;
@@ -435,9 +443,10 @@ export default function BookPage({
         // Nueva tarea normal
         // Si estamos en una línea virtual, encontrar una línea real disponible
         let targetLine = editingLine;
-        if (editingLine > linesPerPage) {
+        const totalUserLines = linesPerPage + extraLines;
+        if (editingLine > totalUserLines) {
           // Buscar primera línea disponible
-          for (let i = 1; i <= linesPerPage; i++) {
+          for (let i = 1; i <= totalUserLines; i++) {
             if (!allTasks[i]) {
               targetLine = i;
               break;
@@ -853,6 +862,8 @@ export default function BookPage({
         colorScheme={colorScheme as "light" | "dark"}
         colors={colors}
       />
+
+      <AddExtraLine linesPerPage={linesPerPage} date={dateKey} />
     </ThemedView>
   );
 }

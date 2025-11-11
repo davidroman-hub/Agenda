@@ -30,6 +30,11 @@ export interface DayTasks {
 export interface AgendaTasksState {
   // Almacena tareas por fecha en formato YYYY-MM-DD
   tasksByDate: Record<string, DayTasks>;
+  // Cache de líneas ocupadas y disponibles por fecha
+  linesStatus: Record<
+    string,
+    { occupiedLines: number[]; availableLines: number[]; extraLines?: number }
+  >;
 
   // Acciones
   addTask: (
@@ -49,6 +54,12 @@ export interface AgendaTasksState {
   getTasksForDate: (date: string) => DayTasks;
   getTaskForLine: (date: string, lineNumber: number) => AgendaTask | null;
   getAllTasks: () => Record<string, DayTasks>;
+  // Nuevas funciones para manejar líneas
+  getOccupiedLinesForDate: (date: string) => number[];
+  getAvailableLinesForDate: (date: string) => number[];
+  getAdditionalLinesForDate: (date: string) => number;
+  setAdditionalLinesForDate: (date: string, count: number) => number;
+  updateLinesStatus: (date: string) => void;
   // Nueva función para migrar datos existentes
   migrateTaskDates: () => void;
 }
@@ -57,6 +68,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
   persist(
     (set, get) => ({
       tasksByDate: {},
+      linesStatus: {},
 
       addTask: async (
         date: string,
@@ -103,6 +115,9 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
             },
           },
         }));
+
+        // Actualizar estado de líneas
+        get().updateLinesStatus(date);
       },
 
       updateTask: async (
@@ -173,6 +188,9 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
             },
           };
         });
+
+        // Actualizar estado de líneas
+        get().updateLinesStatus(date);
       },
 
       toggleTaskCompletion: (date: string, lineNumber: number) => {
@@ -192,6 +210,84 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
 
       getAllTasks: () => {
         return get().tasksByDate;
+      },
+
+      // Nuevas funciones para manejar líneas ocupadas y disponibles
+      updateLinesStatus: (date: string) => {
+        const linesPerPage = 12;
+        const normalTasks = get().tasksByDate[date] || {};
+        const currentExtraLines = get().linesStatus[date]?.extraLines || 0;
+        const totalLines = linesPerPage + currentExtraLines;
+
+        const occupiedLines = Object.keys(normalTasks)
+          .filter((line) => normalTasks[Number.parseInt(line, 10)] !== null)
+          .map((line) => Number.parseInt(line, 10))
+          .sort((a, b) => a - b);
+
+        const availableLines: number[] = [];
+        for (let i = 1; i <= totalLines; i++) {
+          if (!normalTasks[i]) {
+            availableLines.push(i);
+          }
+        }
+
+        set((state) => ({
+          linesStatus: {
+            ...state.linesStatus,
+            [date]: {
+              occupiedLines,
+              availableLines,
+              extraLines: currentExtraLines,
+            },
+          },
+        }));
+      },
+
+      getOccupiedLinesForDate: (date: string): number[] => {
+        const state = get();
+        if (!state.linesStatus[date]) {
+          state.updateLinesStatus(date);
+        }
+        return state.linesStatus[date]?.occupiedLines || [];
+      },
+
+      getAvailableLinesForDate: (date: string): number[] => {
+        const state = get();
+        if (!state.linesStatus[date]) {
+          state.updateLinesStatus(date);
+        }
+        return state.linesStatus[date]?.availableLines  || [];
+      },
+
+      getAdditionalLinesForDate: (date: string): number => {
+        const state = get();
+        if (!state.linesStatus[date]) {
+          state.updateLinesStatus(date);
+        }
+        return state.linesStatus[date]?.extraLines || 0;
+      },
+
+      setAdditionalLinesForDate: (date: string, count: number): number => {
+        const state = get();
+        if (!state.linesStatus[date]) {
+          state.updateLinesStatus(date);
+        }
+
+        // Actualizar las líneas adicionales en el estado
+        set((currentState) => ({
+          linesStatus: {
+            ...currentState.linesStatus,
+            [date]: {
+              ...currentState.linesStatus[date],
+              extraLines: count,
+            },
+          },
+        }));
+
+        // Recalcular el estado de líneas para incluir las nuevas líneas extra en availableLines
+        get().updateLinesStatus(date);
+
+        return count;
       },
 
       // Función para migrar tareas existentes a formato de fecha normalizado

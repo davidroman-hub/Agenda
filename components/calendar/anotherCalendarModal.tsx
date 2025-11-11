@@ -41,7 +41,7 @@ CalendarModalProps) {
   // Hooks de internacionalización
   const { tAgenda, currentLanguage, tCommon } = useI18n();
 
-  const linesPerPage = 12;
+
 
   React.useEffect(() => {
     try {
@@ -69,6 +69,8 @@ CalendarModalProps) {
   const { dateSelected, selectDate } = useCalendarSettingsStore();
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
   const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
+
+  const getAvailableLinesForDate = useAgendaTasksStore((state) => state.getAvailableLinesForDate);
   const getAllRepeatingPatterns = useRepeatingTasksStore(
     (state) => state.getAllRepeatingPatterns
   );
@@ -79,21 +81,6 @@ CalendarModalProps) {
     (state) => state.isRepeatingTaskCompleted
   );
 
-  // Función separada para obtener líneas disponibles
-  const getAvailableLinesForDate = React.useCallback(
-    (dateString: string) => {
-      const normalTasks = tasksByDate[dateString] || {};
-      const availableLines = [];
-      for (let i = 1; i <= linesPerPage; i++) {
-        if (!normalTasks[i]) {
-          availableLines.push(i);
-        }
-      }
-      return availableLines;
-    },
-    [tasksByDate, linesPerPage]
-  );
-
   const getTasksForDate = React.useCallback(
     (dateString: string) => {
       const allExistingTasks = getAllTasks();
@@ -102,40 +89,6 @@ CalendarModalProps) {
       // Comenzar con las tareas normales del día
       const normalTasks = tasksByDate[dateString] || {};
       const combined = { ...normalTasks };
-
-      // Console log de análisis de líneas
-      console.log(`📅 === ANÁLISIS DE LÍNEAS PARA ${dateString} ===`);
-
-      // Analizar líneas ocupadas en el día original
-      const occupiedLines = Object.keys(normalTasks)
-        .filter((line) => normalTasks[Number.parseInt(line, 10)] !== null)
-        .map((line) => Number.parseInt(line, 10))
-        .sort((a, b) => a - b);
-
-      const availableLines = getAvailableLinesForDate(dateString);
-
-      console.log(
-        `📝 Líneas ocupadas (${occupiedLines.length}):`,
-        occupiedLines
-      );
-      console.log(
-        `✅ Líneas disponibles (${availableLines.length}):`,
-        availableLines
-      );
-
-      // Mostrar detalles de cada tarea en línea ocupada
-      for (const line of occupiedLines) {
-        const task = normalTasks[line];
-        if (task) {
-          console.log(
-            `  📍 Línea ${line}: "${task.text}" ${
-              task.completed ? "✅" : "⏳"
-            } ${task.repeat && task.repeat !== "none" ? "🔄" : ""}${
-              task.reminder ? "⏰" : ""
-            }`
-          );
-        }
-      }
 
       // Crear un Set de IDs de tareas que tienen patrones de repetición activos
       const tasksWithActivePatterns = new Set(
@@ -179,30 +132,6 @@ CalendarModalProps) {
         }
       }
 
-      // Console log de tareas repetidas
-      if (repeatedTasks.length > 0) {
-        console.log(`🔄 Tareas repetidas virtuales (${repeatedTasks.length}):`);
-        for (let index = 0; index < repeatedTasks.length; index++) {
-          const task = repeatedTasks[index];
-          console.log(
-            `  🔄 Virtual ${index + 1}: "${task.text}" ${
-              task.completed ? "✅" : "⏳"
-            }`
-          );
-        }
-      }
-
-      // Resumen final
-      const finalTaskCount = [
-        ...Object.values(combined),
-        ...repeatedTasks,
-      ].filter((task) => task !== null).length;
-      console.log(
-        `📊 RESUMEN: ${occupiedLines.length} líneas ocupadas, ${availableLines.length} disponibles, ${repeatedTasks.length} tareas repetidas virtuales`
-      );
-      console.log(`📋 Total de tareas mostradas: ${finalTaskCount}`);
-      console.log(`=====================================`);
-
       // Retornar todas las tareas (normales + repetidas)
       return [...Object.values(combined), ...repeatedTasks].filter(
         (task) => task !== null
@@ -215,7 +144,6 @@ CalendarModalProps) {
       shouldTaskRepeatOnDate,
       isRepeatingTaskCompleted,
       localRepeatingCompletions,
-      getAvailableLinesForDate,
     ]
   );
 

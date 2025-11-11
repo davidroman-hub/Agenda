@@ -28,7 +28,8 @@ export default function BookPagesContent({
   tAgenda,
   tCommon,
 }: BookPagesContentProps) {
-  // Número de anillos del resorte según el tamaño de pantalla
+  // Número de anillos del resorte según el tamaño de pantalla\
+  
   let spiralRingsCount = 12; // default
   if (isSmallScreen) {
     spiralRingsCount = 8;
