@@ -17,6 +17,7 @@ import {
   itCalendarLocales,
 } from "./calendarLocales";
 import DayDetailModal from "./DayDetailModal";
+import QuickAddTaskButton from "./QuickAddTaskButton";
 
 interface CalendarModalProps {
   readonly visible: boolean;
@@ -39,6 +40,8 @@ CalendarModalProps) {
 
   // Hooks de internacionalización
   const { tAgenda, currentLanguage, tCommon } = useI18n();
+
+  const linesPerPage = 12;
 
   React.useEffect(() => {
     try {
@@ -76,6 +79,21 @@ CalendarModalProps) {
     (state) => state.isRepeatingTaskCompleted
   );
 
+  // Función separada para obtener líneas disponibles
+  const getAvailableLinesForDate = React.useCallback(
+    (dateString: string) => {
+      const normalTasks = tasksByDate[dateString] || {};
+      const availableLines = [];
+      for (let i = 1; i <= linesPerPage; i++) {
+        if (!normalTasks[i]) {
+          availableLines.push(i);
+        }
+      }
+      return availableLines;
+    },
+    [tasksByDate, linesPerPage]
+  );
+
   const getTasksForDate = React.useCallback(
     (dateString: string) => {
       const allExistingTasks = getAllTasks();
@@ -84,6 +102,40 @@ CalendarModalProps) {
       // Comenzar con las tareas normales del día
       const normalTasks = tasksByDate[dateString] || {};
       const combined = { ...normalTasks };
+
+      // Console log de análisis de líneas
+      console.log(`📅 === ANÁLISIS DE LÍNEAS PARA ${dateString} ===`);
+
+      // Analizar líneas ocupadas en el día original
+      const occupiedLines = Object.keys(normalTasks)
+        .filter((line) => normalTasks[Number.parseInt(line, 10)] !== null)
+        .map((line) => Number.parseInt(line, 10))
+        .sort((a, b) => a - b);
+
+      const availableLines = getAvailableLinesForDate(dateString);
+
+      console.log(
+        `📝 Líneas ocupadas (${occupiedLines.length}):`,
+        occupiedLines
+      );
+      console.log(
+        `✅ Líneas disponibles (${availableLines.length}):`,
+        availableLines
+      );
+
+      // Mostrar detalles de cada tarea en línea ocupada
+      for (const line of occupiedLines) {
+        const task = normalTasks[line];
+        if (task) {
+          console.log(
+            `  📍 Línea ${line}: "${task.text}" ${
+              task.completed ? "✅" : "⏳"
+            } ${task.repeat && task.repeat !== "none" ? "🔄" : ""}${
+              task.reminder ? "⏰" : ""
+            }`
+          );
+        }
+      }
 
       // Crear un Set de IDs de tareas que tienen patrones de repetición activos
       const tasksWithActivePatterns = new Set(
@@ -127,6 +179,30 @@ CalendarModalProps) {
         }
       }
 
+      // Console log de tareas repetidas
+      if (repeatedTasks.length > 0) {
+        console.log(`🔄 Tareas repetidas virtuales (${repeatedTasks.length}):`);
+        for (let index = 0; index < repeatedTasks.length; index++) {
+          const task = repeatedTasks[index];
+          console.log(
+            `  🔄 Virtual ${index + 1}: "${task.text}" ${
+              task.completed ? "✅" : "⏳"
+            }`
+          );
+        }
+      }
+
+      // Resumen final
+      const finalTaskCount = [
+        ...Object.values(combined),
+        ...repeatedTasks,
+      ].filter((task) => task !== null).length;
+      console.log(
+        `📊 RESUMEN: ${occupiedLines.length} líneas ocupadas, ${availableLines.length} disponibles, ${repeatedTasks.length} tareas repetidas virtuales`
+      );
+      console.log(`📋 Total de tareas mostradas: ${finalTaskCount}`);
+      console.log(`=====================================`);
+
       // Retornar todas las tareas (normales + repetidas)
       return [...Object.values(combined), ...repeatedTasks].filter(
         (task) => task !== null
@@ -139,6 +215,7 @@ CalendarModalProps) {
       shouldTaskRepeatOnDate,
       isRepeatingTaskCompleted,
       localRepeatingCompletions,
+      getAvailableLinesForDate,
     ]
   );
 
@@ -175,11 +252,6 @@ CalendarModalProps) {
     selectDate(day.dateString);
   };
 
-  const handleGoToDate = () => {
-    // Abrir el modal de detalle del día
-    setShowDayDetail(true);
-  };
-
   // Función para obtener el texto "sin tareas" según el idioma
   const getNoTasksText = () => {
     switch (currentLanguage) {
@@ -191,20 +263,6 @@ CalendarModalProps) {
         return "Nessuna attività in questo giorno";
       default:
         return "No hay tareas este día";
-    }
-  };
-
-  // Función para obtener el texto del botón según el idioma
-  const getButtonText = () => {
-    switch (currentLanguage) {
-      case "en":
-        return "👁 View tasks for this day";
-      case "fr":
-        return "👁 Voir les tâches de ce jour";
-      case "it":
-        return "👁 Vedi attività di questo giorno";
-      default:
-        return "👁 Ver tareas de este día";
     }
   };
 
@@ -407,12 +465,40 @@ CalendarModalProps) {
 
         {/* Botones */}
         <ThemedView style={styles.buttons}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: "#007bff" }]}
-            onPress={handleGoToDate}
-          >
-            <ThemedText style={styles.buttonText}>{getButtonText()}</ThemedText>
-          </TouchableOpacity>
+          <ThemedView style={styles.mainButtons}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: backgroundColor }]}
+              onPress={() => {
+                setShowDayDetail(false);
+                onNavigateToDate?.(selected);
+                onClose();
+              }}
+            >
+              <ThemedText style={styles.buttonText}>
+                {tAgenda("calendar.bookPages")}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: backgroundColor }]}
+              onPress={() => setShowDayDetail(false)}
+            >
+              <ThemedText style={styles.buttonText}>
+                {tCommon("close")}
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+
+          {/* Botón QuickAdd centrado */}
+          <ThemedView style={styles.quickAddContainer}>
+            <QuickAddTaskButton
+              selectedDate={selected}
+              availableLines={getAvailableLinesForDate(selected)}
+              onTaskAdded={() => {
+                // Task will be automatically reflected due to Zustand reactivity
+              }}
+            />
+          </ThemedView>
         </ThemedView>
       </ThemedView>
 
@@ -537,7 +623,14 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 30,
   },
+  mainButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    gap: 10,
+  },
   button: {
+    flex: 1,
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
@@ -546,5 +639,10 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  quickAddContainer: {
+    marginTop: "-20%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
