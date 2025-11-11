@@ -21,7 +21,10 @@ export default function ExpandoButton() {
   const optiones = [
     {
       id: 1,
-      label: daysToShow === 6 ? `3 ${tCommon("general.days")}` : `6 ${tCommon("general.days")}`,
+      label:
+        daysToShow === 6
+          ? `3 ${tCommon("general.days")}`
+          : `6 ${tCommon("general.days")}`,
     },
     { id: 2, label: "•  •\n•  •\n•  •" },
     { id: 3, label: "•" },
@@ -31,20 +34,10 @@ export default function ExpandoButton() {
     if (optionId === 1) {
       const newDays = daysToShow === 6 ? 3 : 6;
       setDaysToShow(newDays);
-    } else if (optionId === 2 && daysToShow === 6) {
+    } else if (optionId === 2) {
       setViewMode("expanded");
-    } else if (optionId === 2 && daysToShow === 1) {
-      setViewMode("expanded");
-      setDaysToShow(6);
     } else if (optionId === 3) {
-      setDaysToShow(1);
       setViewMode("single");
-    } else if (optionId === 4) {
-      // Ciclar entre diferentes números de líneas
-      const lineOptions = [12];
-      const currentIndex = lineOptions.indexOf(linesPerPage);
-      const nextIndex = (currentIndex + 1) % lineOptions.length;
-      setLinesPerPage(lineOptions[nextIndex]);
     }
     setIsExpanded(false);
   };
