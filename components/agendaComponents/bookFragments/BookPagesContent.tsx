@@ -17,6 +17,7 @@ interface BookPagesContentProps {
   readonly dynamicStyles: any;
   tAgenda: (key: string, options?: any) => string;
   tCommon: (key: string, options?: any) => string;
+  onScrollChange?: (scrollProgress: number, isAtBottom: boolean) => void;
 }
 
 export default function BookPagesContent({
@@ -27,7 +28,23 @@ export default function BookPagesContent({
   dynamicStyles,
   tAgenda,
   tCommon,
+  onScrollChange,
 }: BookPagesContentProps) {
+  const handleScroll = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const scrollY = contentOffset.y;
+    const totalHeight = contentSize.height;
+    const containerHeight = layoutMeasurement.height;
+
+    // Calcular progreso del scroll (0 = top, 1 = bottom)
+    const maxScrollY = totalHeight - containerHeight;
+    const scrollProgress = maxScrollY > 0 ? Math.min(scrollY / maxScrollY, 1) : 0;
+
+    // Determinar si está en el fondo (con un pequeño margen)
+    const isAtBottom = scrollY >= maxScrollY - 50;
+
+    onScrollChange?.(scrollProgress, isAtBottom);
+  };
   // Número de anillos del resorte según el tamaño de pantalla\
   
   let spiralRingsCount = 12; // default
@@ -41,6 +58,8 @@ export default function BookPagesContent({
     <ScrollView
       style={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
     >
       {/* Páginas de la agenda */}
       {viewMode === "expanded" ? (

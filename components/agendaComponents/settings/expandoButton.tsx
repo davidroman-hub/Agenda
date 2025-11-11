@@ -1,18 +1,75 @@
 import { useI18n } from "@/hooks/use-i18n";
 import useBookSettingsStore from "@/stores/boook-settings";
-import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-export default function ExpandoButton() {
+interface ExpandoButtonProps {
+  scrollProgress?: number; // 0 = top, 1 = bottom
+  isAtBottom?: boolean;
+}
+
+export default function ExpandoButton({
+  scrollProgress = 0,
+  isAtBottom = false,
+}: ExpandoButtonProps) {
   const { tCommon } = useI18n();
-  const {
-    setDaysToShow,
-    daysToShow,
-    setViewMode,
-    linesPerPage,
-    setLinesPerPage,
-  } = useBookSettingsStore();
+
+  console.group("ExpandoButton Render", scrollProgress);
+  const { setDaysToShow, daysToShow, setViewMode } = useBookSettingsStore();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Animaciones
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+
+  // Efecto para animar el botón basado en el scroll
+  useEffect(() => {
+    if (isAtBottom) {
+      // Al llegar al fondo, hacer que desaparezca
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      // Cuando no está en el fondo, calcular la escala basada en scrollProgress
+      const targetScale = Math.max(0.3, 1 - scrollProgress * 0.7);
+      const targetOpacity = Math.max(0.3, 1 - scrollProgress * 0.7);
+
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: targetScale,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: targetOpacity,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [scrollProgress, isAtBottom, scaleAnim, opacityAnim]);
+
+  // Efecto para cerrar el botón cuando se hace muy pequeño
+  useEffect(() => {
+    if (scrollProgress > 0.153104 && isExpanded) {
+      setIsExpanded(false);
+    }
+  }, [scrollProgress, isExpanded]);
 
   const handlePress = () => {
     setIsExpanded(!isExpanded);
@@ -43,7 +100,15 @@ export default function ExpandoButton() {
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          transform: [{ scale: scaleAnim }],
+          opacity: opacityAnim,
+        },
+      ]}
+    >
       {isExpanded && (
         <View style={styles.optionsContainer}>
           {optiones.map((option) => (
@@ -57,10 +122,14 @@ export default function ExpandoButton() {
           ))}
         </View>
       )}
-      <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
+      <TouchableOpacity
+        disabled={scrollProgress > 0.153104}
+        style={styles.floatingButton}
+        onPress={handlePress}
+      >
         <Text style={styles.floatingButtonText}>☰</Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 }
 

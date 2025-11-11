@@ -15,7 +15,7 @@ import {
   testDateUtils,
   testMidnightTransition,
 } from "@/utils/date-testing";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   BookPagesContent,
@@ -32,6 +32,15 @@ export default function Book() {
   const { taskFontSize } = useFontSettingsStore(); // Suscribirse al valor directamente para trigger re-render
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+  
+  // Estado para el scroll del book
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+
+  const handleScrollChange = (progress: number, atBottom: boolean) => {
+    setScrollProgress(progress);
+    setIsAtBottom(atBottom);
+  };
 
   // Activar el sistema de notificaciones automáticas para tareas repetidas
   useRepeatedTaskNotifications();
@@ -117,6 +126,7 @@ export default function Book() {
           colorScheme={colorScheme ?? "light"}
           colors={colors}
           dynamicStyles={dynamicStyles}
+          onScrollChange={handleScrollChange}
         />
 
         {/* Controles de navegación */}
@@ -129,7 +139,10 @@ export default function Book() {
           goToPrevPage={goToPrevPage}
           goToNextPage={goToNextPage}
         />
-        <BookActions />
+        <BookActions 
+          scrollProgress={scrollProgress}
+          isAtBottom={isAtBottom}
+        />
       </ThemedView>
     </View>
   );
