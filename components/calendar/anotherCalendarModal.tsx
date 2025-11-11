@@ -37,11 +37,10 @@ CalendarModalProps) {
   const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<
     Record<string, boolean>
   >({});
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Hooks de internacionalización
   const { tAgenda, currentLanguage, tCommon } = useI18n();
-
-
 
   React.useEffect(() => {
     try {
@@ -69,8 +68,13 @@ CalendarModalProps) {
   const { dateSelected, selectDate } = useCalendarSettingsStore();
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
   const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
+  const updateLinesStatus = useAgendaTasksStore(
+    (state) => state.updateLinesStatus
+  );
 
-  const getAvailableLinesForDate = useAgendaTasksStore((state) => state.getAvailableLinesForDate);
+  const getAvailableLinesForDate = useAgendaTasksStore(
+    (state) => state.getAvailableLinesForDate
+  );
   const getAllRepeatingPatterns = useRepeatingTasksStore(
     (state) => state.getAllRepeatingPatterns
   );
@@ -92,7 +96,9 @@ CalendarModalProps) {
 
       // Crear un mapa de tareas originales y sus fechas de creación
       const originalTasksMap = new Map();
-      for (const [dateKeyMap, dayTasksMap] of Object.entries(allExistingTasks)) {
+      for (const [dateKeyMap, dayTasksMap] of Object.entries(
+        allExistingTasks
+      )) {
         for (const [line, task] of Object.entries(dayTasksMap)) {
           if (task) {
             originalTasksMap.set(task.id, {
@@ -136,8 +142,9 @@ CalendarModalProps) {
               ...originalInfo.task,
               id: `${originalInfo.task.id}-repeat-${dateString}`,
               completed:
-                localRepeatingCompletions[`${originalInfo.task.id}-${dateString}`] ??
-                isRepeatingTaskCompleted(originalInfo.task.id, dateString),
+                localRepeatingCompletions[
+                  `${originalInfo.task.id}-${dateString}`
+                ] ?? isRepeatingTaskCompleted(originalInfo.task.id, dateString),
               isRepeatingTask: true,
               repeatingTaskId: originalInfo.task.id,
               repeatingPatternId: pattern.id,
@@ -158,6 +165,7 @@ CalendarModalProps) {
       shouldTaskRepeatOnDate,
       isRepeatingTaskCompleted,
       localRepeatingCompletions,
+      refreshKey,
     ]
   );
 
@@ -165,15 +173,16 @@ CalendarModalProps) {
   const textColor = useThemeColor({}, "text");
   const tintColor = useThemeColor({}, "tint");
 
-  // Obtener fecha actual como fallback
+  // Obtener fecha actual como fallback (en zona horaria local)
   const getCurrentDateString = () => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
-  const [selected, setSelected] = useState(
-    dateSelected || getCurrentDateString()
-  );
+  const [selected, setSelected] = useState(dateSelected as any);
 
   // Efecto para sincronizar el estado local con el store
   React.useEffect(() => {
@@ -188,8 +197,13 @@ CalendarModalProps) {
     }
   }, [showDayDetail]);
 
+  // Efecto para forzar actualización cuando cambian las tareas de la fecha seleccionada
+  React.useEffect(() => {
+    // Forzar re-render cuando cambien las tareas del día seleccionado
+    setRefreshKey((prev) => prev + 1);
+  }, [tasksByDate, selected]);
+
   const handleDayPress = (day: any) => {
-    console.log("📅 Día seleccionado:", day.dateString);
     setSelected(day.dateString);
     selectDate(day.dateString);
   };
@@ -437,7 +451,16 @@ CalendarModalProps) {
               selectedDate={selected}
               availableLines={getAvailableLinesForDate(selected)}
               onTaskAdded={() => {
-                // Task will be automatically reflected due to Zustand reactivity
+                // Forzar actualización del estado local para reflejar la nueva tarea
+                setLocalRepeatingCompletions({});
+
+                // Usar un pequeño delay para asegurar que la tarea se haya guardado
+                setTimeout(() => {
+                  // Actualizar el estado de líneas para la fecha seleccionada
+                  updateLinesStatus(selected);
+                  // Forzar re-render del callback
+                  setRefreshKey((prev) => prev + 1);
+                }, 100);
               }}
             />
           </ThemedView>

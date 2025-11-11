@@ -553,7 +553,7 @@ export default function BookPage({
             <TouchableOpacity
               onPress={() => {
                 setCalendarIsOpen(!calendarIsopen);
-                selectDate(day.toISOString().split("T")[0]);
+                selectDate(dateToLocalDateString(day));
               }}
             >
               <ThemedText
@@ -582,8 +582,9 @@ export default function BookPage({
                 },
               ]}
               onPress={() => {
+                console.log(dateToLocalDateString(day), "day local date");
                 setCalendarIsOpen(!calendarIsopen);
-                selectDate(day.toISOString().split("T")[0]);
+                selectDate(dateToLocalDateString(day));
               }}
             >
               <Icon

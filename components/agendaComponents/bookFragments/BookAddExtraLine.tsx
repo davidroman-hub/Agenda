@@ -29,7 +29,6 @@ const AddExtraLine = ({
       onPress={() => {
         setAdditionalLinesForDate(date, 1 + additionalLine);
       }}
-      //   disabled={availableLines.length === 0 || isCreatingTask}
     >
       {editing ? (
         <ActivityIndicator size="small" color="white" />
