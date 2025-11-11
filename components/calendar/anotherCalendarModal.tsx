@@ -90,6 +90,20 @@ CalendarModalProps) {
       const normalTasks = tasksByDate[dateString] || {};
       const combined = { ...normalTasks };
 
+      // Crear un mapa de tareas originales y sus fechas de creación
+      const originalTasksMap = new Map();
+      for (const [dateKeyMap, dayTasksMap] of Object.entries(allExistingTasks)) {
+        for (const [line, task] of Object.entries(dayTasksMap)) {
+          if (task) {
+            originalTasksMap.set(task.id, {
+              task,
+              originalDate: dateKeyMap,
+              line: Number.parseInt(line, 10),
+            });
+          }
+        }
+      }
+
       // Crear un Set de IDs de tareas que tienen patrones de repetición activos
       const tasksWithActivePatterns = new Set(
         allPatterns
@@ -97,35 +111,35 @@ CalendarModalProps) {
           .map((pattern) => pattern.originalTaskId)
       );
 
-      // Filtrar tareas normales que tienen patrones de repetición activos
+      // Solo filtrar tareas que tienen patrones de repetición activos Y NO estamos en su día de creación
       for (const [line, task] of Object.entries(combined)) {
         if (task && tasksWithActivePatterns.has(task.id)) {
-          delete combined[Number.parseInt(line, 10)];
+          const originalInfo = originalTasksMap.get(task.id);
+          // Solo filtrar si NO estamos en el día de creación original
+          if (originalInfo && originalInfo.originalDate !== dateString) {
+            delete combined[Number.parseInt(line, 10)];
+          }
         }
       }
 
-      // Agregar tareas repetidas para esta fecha
+      // Agregar tareas repetidas para esta fecha (solo si NO es el día original)
       const repeatedTasks: any[] = [];
       for (const pattern of allPatterns) {
         if (!pattern.isActive) continue;
 
         if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateString)) {
-          const originalTask = Object.values(allExistingTasks)
-            .flatMap((dayTasks) => Object.values(dayTasks))
-            .find(
-              (task): task is any =>
-                task !== null && task.id === pattern.originalTaskId
-            );
+          const originalInfo = originalTasksMap.get(pattern.originalTaskId);
 
-          if (originalTask) {
+          // Solo agregar como tarea repetida si NO estamos en el día de creación original
+          if (originalInfo && originalInfo.originalDate !== dateString) {
             repeatedTasks.push({
-              ...originalTask,
-              id: `${originalTask.id}-repeat-${dateString}`,
+              ...originalInfo.task,
+              id: `${originalInfo.task.id}-repeat-${dateString}`,
               completed:
-                localRepeatingCompletions[`${originalTask.id}-${dateString}`] ??
-                isRepeatingTaskCompleted(originalTask.id, dateString),
+                localRepeatingCompletions[`${originalInfo.task.id}-${dateString}`] ??
+                isRepeatingTaskCompleted(originalInfo.task.id, dateString),
               isRepeatingTask: true,
-              repeatingTaskId: originalTask.id,
+              repeatingTaskId: originalInfo.task.id,
               repeatingPatternId: pattern.id,
             });
           }
