@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import useThemeStore from "@/stores/theme-store";
 import React, { useState } from "react";
 import { Alert, Modal, TextInput, TouchableOpacity, View } from "react-native";
 import { modalStyles } from "./TaskEditionModalStyles";
@@ -18,8 +19,7 @@ interface TaskEditModalProps {
   ) => void;
   readonly onCancel: () => void;
   readonly onDelete?: () => void;
-  readonly colorScheme: "light" | "dark";
-  readonly colors: any;
+
   readonly toggleTaskCompletion: (date: string, lineNumber: number) => void;
   readonly date: string;
   readonly lineNumber: number;
@@ -35,8 +35,6 @@ export default function TaskEditModal({
   onSave,
   onCancel,
   onDelete,
-  colorScheme,
-  colors,
   toggleTaskCompletion,
   date,
   lineNumber,
@@ -48,6 +46,8 @@ export default function TaskEditModal({
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [repeatOption, setRepeatOption] = useState<RepeatOption>(initialRepeat);
   const [repeatEnabled, setRepeatEnabled] = useState(initialRepeat !== "none");
+
+  const { colorScheme } = useThemeStore();
 
   React.useEffect(() => {
     setTaskText(initialText);
@@ -137,16 +137,16 @@ export default function TaskEditModal({
       animationType="fade"
       onRequestClose={handleCancel}
     >
-      <ThemedView style={modalStyles(colorScheme, colors).overlay}>
-        <ThemedView style={modalStyles(colorScheme, colors).container}>
-          <ThemedText style={modalStyles(colorScheme, colors).title}>
+      <ThemedView style={modalStyles(colorScheme).overlay}>
+        <ThemedView style={modalStyles(colorScheme).container}>
+          <ThemedText style={modalStyles(colorScheme).title}>
             {initialText
               ? tCommon("taskEditModal.taskEdit")
               : tCommon("taskEditModal.taskCreate")}
           </ThemedText>
 
           <TextInput
-            style={modalStyles(colorScheme, colors).input}
+            style={modalStyles(colorScheme).input}
             value={taskText}
             onChangeText={setTaskText}
             placeholder={tCommon("taskEditModal.writeTaskHere")}
@@ -173,18 +173,18 @@ export default function TaskEditModal({
             taskDate={date}
           />
 
-          <View style={modalStyles(colorScheme, colors).buttonsContainer}>
+          <View style={modalStyles(colorScheme).buttonsContainer}>
             <TouchableOpacity
               style={[
-                modalStyles(colorScheme, colors).button,
-                modalStyles(colorScheme, colors).cancelButton,
+                modalStyles(colorScheme).button,
+                modalStyles(colorScheme).cancelButton,
               ]}
               onPress={handleCancel}
             >
               <ThemedText
                 style={[
-                  modalStyles(colorScheme, colors).buttonText,
-                  modalStyles(colorScheme, colors).cancelButtonText,
+                  modalStyles(colorScheme).buttonText,
+                  modalStyles(colorScheme).cancelButtonText,
                 ]}
               >
                 {tCommon("buttons.cancel")}
@@ -194,15 +194,15 @@ export default function TaskEditModal({
             {Boolean(initialText && onDelete) && (
               <TouchableOpacity
                 style={[
-                  modalStyles(colorScheme, colors).button,
-                  modalStyles(colorScheme, colors).deleteButton,
+                  modalStyles(colorScheme).button,
+                  modalStyles(colorScheme).deleteButton,
                 ]}
                 onPress={handleDelete}
               >
                 <ThemedText
                   style={[
-                    modalStyles(colorScheme, colors).buttonText,
-                    modalStyles(colorScheme, colors).deleteButtonText,
+                    modalStyles(colorScheme).buttonText,
+                    modalStyles(colorScheme).deleteButtonText,
                   ]}
                 >
                   {tCommon("buttons.delete")}
@@ -213,17 +213,17 @@ export default function TaskEditModal({
             {taskText.length > 0 && initialText === taskText && (
               <TouchableOpacity
                 style={[
-                  modalStyles(colorScheme, colors).button,
+                  modalStyles(colorScheme).button,
                   completed
-                    ? modalStyles(colorScheme, colors).incompleteButton
-                    : modalStyles(colorScheme, colors).completedButton,
+                    ? modalStyles(colorScheme).incompleteButton
+                    : modalStyles(colorScheme).completedButton,
                 ]}
                 onPress={handleCompleted}
               >
                 <ThemedText
                   style={[
-                    modalStyles(colorScheme, colors).buttonTextSmall,
-                    modalStyles(colorScheme, colors).saveButtonText,
+                    modalStyles(colorScheme).buttonTextSmall,
+                    modalStyles(colorScheme).saveButtonText,
                   ]}
                 >
                   {completed
@@ -234,15 +234,15 @@ export default function TaskEditModal({
             )}
             <TouchableOpacity
               style={[
-                modalStyles(colorScheme, colors).button,
-                modalStyles(colorScheme, colors).saveButton,
+                modalStyles(colorScheme).button,
+                modalStyles(colorScheme).saveButton,
               ]}
               onPress={handleSave}
             >
               <ThemedText
                 style={[
-                  modalStyles(colorScheme, colors).buttonText,
-                  modalStyles(colorScheme, colors).saveButtonText,
+                  modalStyles(colorScheme).buttonText,
+                  modalStyles(colorScheme).saveButtonText,
                 ]}
               >
                 {tCommon("buttons.save")}

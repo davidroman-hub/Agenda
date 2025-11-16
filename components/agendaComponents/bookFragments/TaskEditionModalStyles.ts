@@ -1,4 +1,4 @@
-export const modalStyles = (colorScheme: "light" | "dark", colors: any) => ({
+export const modalStyles = (colorScheme: "light" | "dark") => ({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",

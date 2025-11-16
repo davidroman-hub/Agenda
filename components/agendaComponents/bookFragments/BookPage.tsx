@@ -53,10 +53,10 @@ export default function BookPage({
   const [forceRefresh, setForceRefresh] = useState(0);
 
   // Obtener configuración de líneas por página
-  const { linesPerPage, } = useBookSettingsStore();
-    const {  linesStatus } = useAgendaTasksStore();
+  const { linesPerPage } = useBookSettingsStore();
+  const { linesStatus } = useAgendaTasksStore();
 
-    const extraLines = linesStatus[dateKey]?.extraLines || 0;
+  const extraLines = linesStatus[dateKey]?.extraLines || 0;
 
   // Suscribirse directamente a las tareas de esta fecha específica
   const dayTasks = useAgendaTasksStore(
@@ -176,7 +176,7 @@ export default function BookPage({
     repeatingCompletions,
     linesPerPage,
     forceRefresh,
-    extraLines
+    extraLines,
   ]);
   const {
     addTask,
@@ -347,7 +347,7 @@ export default function BookPage({
                 reminder,
                 repeat,
               });
-              
+
               // Agregar/actualizar patrón de repetición (la función ya maneja duplicados)
               addRepeatingPattern({
                 originalTaskId: existingTask.id,
@@ -858,8 +858,6 @@ export default function BookPage({
         lineNumber={editingLine as number}
         onCancel={handleCancelEdit}
         onDelete={editingTask ? handleDeleteTask : undefined}
-        colorScheme={colorScheme as "light" | "dark"}
-        colors={colors}
       />
 
       <AddExtraLine linesPerPage={linesPerPage} date={dateKey} />

@@ -5,7 +5,13 @@ import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useMemo, useState } from "react";
-import { Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
 import TaskEditModal from "../agendaComponents/bookFragments/TaskEditModal";
@@ -34,7 +40,9 @@ export default function AnotherCalendarModal({
 //   currentDate,
 CalendarModalProps) {
   // Estados para el modal de día
+
   const [showDayDetail, setShowDayDetail] = useState(false);
+
   const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<
     Record<string, boolean>
   >({});
@@ -103,9 +111,6 @@ CalendarModalProps) {
   );
   const toggleRepeatingTaskCompletion = useRepeatingTasksStore(
     (state) => state.toggleRepeatingTaskCompletion
-  );
-  const getRepeatingPatternForTask = useRepeatingTasksStore(
-    (state) => state.getRepeatingPatternForTask
   );
 
   const getTasksForDate = React.useCallback(
@@ -192,10 +197,31 @@ CalendarModalProps) {
     ]
   );
 
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const tintColor = useThemeColor({}, "tint");
-  const colorScheme = backgroundColor === "#000000" ? "dark" : "light";
+  const backgroundColor = useThemeColor(
+    {
+      light: "#FFFFFF",
+    },
+    "background"
+  );
+  const textColor = useThemeColor(
+    {
+      light: "#000000",
+      dark: "#FFFFFF",
+    },
+    "text"
+  );
+  const tintColor = useThemeColor(
+    {
+      light: "#007AFF",
+      dark: "#007AFF",
+    },
+    "tint"
+  );
+
+  // Detectar si es pantalla grande (teléfono plegable o tablet)
+  const { width } = Dimensions.get("window");
+  const isLargeScreen = width > 600; // Pantallas más anchas que 600px se consideran grandes
+  const scrollHeight = isLargeScreen ? 180 : 230;
 
   // Obtener fecha actual como fallback (en zona horaria local)
   const getCurrentDateString = () => {
@@ -505,21 +531,21 @@ CalendarModalProps) {
         if (normalTasks > 0) {
           dots.push({
             key: "normal",
-            color: tintColor,
+            color: "#007AFF",
             selectedDotColor: "white",
           });
         }
         if (repeatingTasks > 0) {
           dots.push({
             key: "repeating",
-            color: "#FF6B6B",
+            color: "#rgb(255, 215, 0)",
             selectedDotColor: "white",
           });
         }
         if (completedTasks > 0) {
           dots.push({
             key: "completed",
-            color: "#4ECDC4",
+            color: "#22C55E",
             selectedDotColor: "white",
           });
         }
@@ -579,7 +605,7 @@ CalendarModalProps) {
                 dayTextColor: textColor,
                 todayTextColor: tintColor,
                 selectedDayBackgroundColor: tintColor,
-                selectedDayTextColor: "#4ECDC4",
+                selectedDayTextColor: "#fff",
                 monthTextColor: textColor,
                 indicatorColor: tintColor,
                 arrowColor: tintColor,
@@ -595,7 +621,12 @@ CalendarModalProps) {
           </ThemedText>
 
           {/* Botón QuickAdd debajo de la fecha */}
-          <ThemedView style={styles.quickAddContainer}>
+          <ThemedView
+            style={[
+              styles.quickAddContainer,
+              { display: getCurrentDateString() <= selected ? "flex" : "none" },
+            ]}
+          >
             <QuickAddTaskButton
               selectedDate={selected}
               availableLines={getAvailableLinesForDate(selected)}
@@ -625,7 +656,7 @@ CalendarModalProps) {
             return selectedDayTasks.length > 0 ? (
               <ScrollView
                 showsVerticalScrollIndicator={true}
-                style={{ height: 230 }}
+                style={{ height: scrollHeight }}
               >
                 <ThemedView style={styles.tasksContainer}>
                   {selectedDayTasks.map((task, index) => (
@@ -694,33 +725,6 @@ CalendarModalProps) {
         </ThemedView>
 
         {/* Botones */}
-        <ThemedView style={styles.buttons}>
-          <ThemedView style={styles.mainButtons}>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: backgroundColor }]}
-              onPress={() => {
-                setShowDayDetail(false);
-                onNavigateToDate?.(selected);
-                onClose();
-              }}
-            >
-              <ThemedText style={styles.buttonText}>
-                {tAgenda("calendar.bookPages")}
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: backgroundColor }]}
-              onPress={() => setShowDayDetail(false)}
-            >
-              <ThemedText style={styles.buttonText}>
-                {tCommon("close")}
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-
-          {/* Botón QuickAdd centrado */}
-        </ThemedView>
       </ThemedView>
 
       {/* Modal de detalle del día */}
@@ -751,12 +755,6 @@ CalendarModalProps) {
             setSelectedTaskLine(null);
           }}
           onDelete={selectedTask.text ? handleDeleteTask : undefined}
-          colorScheme={colorScheme}
-          colors={{
-            background: backgroundColor,
-            text: textColor,
-            tint: tintColor,
-          }}
         />
       )}
     </Modal>
@@ -827,8 +825,8 @@ const styles = StyleSheet.create({
   },
   taskCardRepeating: {
     backgroundColor: "transparent",
-    borderLeftColor: "#007AFF",
-    borderColor: "rgba(0, 122, 255, 0.2)",
+    borderLeftColor: "#rgb(255, 215, 0)",
+    borderColor: "#rgb(255, 215, 0, 0.1)",
   },
   taskCheckbox: {
     fontSize: 16,

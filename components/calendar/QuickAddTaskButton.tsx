@@ -26,7 +26,13 @@ export default function QuickAddTaskButton({
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   const { tCommon } = useI18n();
-  const tintColor = useThemeColor({}, "tint");
+  const tintColor = useThemeColor(
+    {
+      light: "#000000",
+      dark: "#FFFFFF",
+    },
+    "tint"
+  );
   const { addTask, toggleTaskCompletion } = useAgendaTasksStore();
   const { addRepeatingPattern } = useRepeatingTasksStore();
 
@@ -98,7 +104,7 @@ export default function QuickAddTaskButton({
         style={[
           styles.addButton,
           {
-            backgroundColor: availableLines.length > 0 ? tintColor : "#ccc",
+            backgroundColor: availableLines.length > 0 ? "#007AFF" : "#ccc",
           },
         ]}
         onPress={handleOpenModal}
@@ -121,8 +127,6 @@ export default function QuickAddTaskButton({
             initialRepeat="none"
             onSave={handleSaveTask}
             onCancel={handleCancelTask}
-            colorScheme="light"
-            colors={{}}
             toggleTaskCompletion={toggleTaskCompletion}
             date={selectedDate}
             lineNumber={availableLines[0]}
@@ -146,4 +150,3 @@ export default function QuickAddTaskButton({
     </>
   );
 }
-
