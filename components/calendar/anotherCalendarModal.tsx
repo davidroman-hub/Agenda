@@ -8,6 +8,7 @@ import React, { useMemo, useState } from "react";
 import { Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
+import TaskEditModal from "../agendaComponents/bookFragments/TaskEditModal";
 import { ThemedText } from "../themed-text";
 import { ThemedView } from "../themed-view";
 import {
@@ -38,6 +39,11 @@ CalendarModalProps) {
     Record<string, boolean>
   >({});
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Estados para el modal de edición de tareas
+  const [showTaskEditModal, setShowTaskEditModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTaskLine, setSelectedTaskLine] = useState<number | null>(null);
 
   // Hooks de internacionalización
   const { tAgenda, currentLanguage, tCommon } = useI18n();
@@ -75,6 +81,11 @@ CalendarModalProps) {
   const getAvailableLinesForDate = useAgendaTasksStore(
     (state) => state.getAvailableLinesForDate
   );
+  const updateTask = useAgendaTasksStore((state) => state.updateTask);
+  const deleteTask = useAgendaTasksStore((state) => state.deleteTask);
+  const toggleTaskCompletion = useAgendaTasksStore(
+    (state) => state.toggleTaskCompletion
+  );
   const getAllRepeatingPatterns = useRepeatingTasksStore(
     (state) => state.getAllRepeatingPatterns
   );
@@ -83,6 +94,18 @@ CalendarModalProps) {
   );
   const isRepeatingTaskCompleted = useRepeatingTasksStore(
     (state) => state.isRepeatingTaskCompleted
+  );
+  const addRepeatingPattern = useRepeatingTasksStore(
+    (state) => state.addRepeatingPattern
+  );
+  const removeRepeatingPattern = useRepeatingTasksStore(
+    (state) => state.removeRepeatingPattern
+  );
+  const toggleRepeatingTaskCompletion = useRepeatingTasksStore(
+    (state) => state.toggleRepeatingTaskCompletion
+  );
+  const getRepeatingPatternForTask = useRepeatingTasksStore(
+    (state) => state.getRepeatingPatternForTask
   );
 
   const getTasksForDate = React.useCallback(
@@ -172,6 +195,7 @@ CalendarModalProps) {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const tintColor = useThemeColor({}, "tint");
+  const colorScheme = backgroundColor === "#000000" ? "dark" : "light";
 
   // Obtener fecha actual como fallback (en zona horaria local)
   const getCurrentDateString = () => {
@@ -206,6 +230,226 @@ CalendarModalProps) {
   const handleDayPress = (day: any) => {
     setSelected(day.dateString);
     selectDate(day.dateString);
+  };
+
+  // Función para manejar la selección de una tarea
+  const handleTaskSelect = (task: any, taskIndex: number) => {
+    setSelectedTask(task);
+    // Para tareas repetidas virtuales, usar un line number ficticio
+    setSelectedTaskLine(task.isRepeatingTask ? 999 + taskIndex : taskIndex + 1);
+    setShowTaskEditModal(true);
+  };
+
+  // Función para manejar la edición/guardado de tareas
+  const handleSaveTask = async (
+    text: string,
+    reminder?: string | null,
+    repeat?: any
+  ) => {
+    if (!selectedTask) return;
+
+    try {
+      if (selectedTask.isRepeatingTask) {
+        // Manejar tareas repetidas
+        const allExistingTasks = getAllTasks();
+        let foundOriginal = false;
+
+        // Buscar la tarea original en todas las fechas
+        for (const [dateKey, tasks] of Object.entries(allExistingTasks)) {
+          for (const [line, task] of Object.entries(tasks)) {
+            if (task && task.id === selectedTask.repeatingTaskId) {
+              // Actualizar la tarea original
+              await updateTask(dateKey, Number.parseInt(line, 10), {
+                text,
+                reminder,
+                repeat,
+              });
+
+              // Si cambia el patrón de repetición
+              if (repeat && repeat !== "none") {
+                // Actualizar el patrón de repetición
+                addRepeatingPattern({
+                  originalTaskId: task.id,
+                  repeatOption: repeat,
+                  startDate: dateKey,
+                });
+              } else {
+                // Eliminar patrón si se cambia a "none"
+                removeRepeatingPattern(selectedTask.repeatingTaskId);
+              }
+
+              foundOriginal = true;
+              break;
+            }
+          }
+          if (foundOriginal) break;
+        }
+      } else {
+        // Manejar tareas normales - buscar la línea correcta por ID
+        const allExistingTasks = getAllTasks();
+        const dayTasks = allExistingTasks[selected] || {};
+
+        let actualLineNumber: number | null = null;
+        for (const [line, task] of Object.entries(dayTasks)) {
+          if (task && task.id === selectedTask.id) {
+            actualLineNumber = Number.parseInt(line, 10);
+            break;
+          }
+        }
+
+        if (actualLineNumber !== null) {
+          await updateTask(selected, actualLineNumber, {
+            text,
+            reminder,
+            repeat: repeat || "none",
+          });
+
+          // Si se agregó repetición a una tarea normal
+          if (repeat && repeat !== "none") {
+            addRepeatingPattern({
+              originalTaskId: selectedTask.id,
+              repeatOption: repeat,
+              startDate: selected,
+            });
+          }
+        } else {
+          return;
+        }
+      }
+
+      // Refrescar datos
+      setRefreshKey((prev) => prev + 1);
+      setShowTaskEditModal(false);
+      setSelectedTask(null);
+      setSelectedTaskLine(null);
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
+
+  // Función para eliminar tarea
+  const handleDeleteTask = async () => {
+    if (!selectedTask) return;
+
+    try {
+      if (selectedTask.isRepeatingTask) {
+        // Eliminar patrón de repetición completo
+        removeRepeatingPattern(selectedTask.repeatingTaskId);
+
+        // También eliminar la tarea original si existe
+        const allExistingTasks = getAllTasks();
+        for (const [dateKey, tasks] of Object.entries(allExistingTasks)) {
+          for (const [line, task] of Object.entries(tasks)) {
+            if (task && task.id === selectedTask.repeatingTaskId) {
+              await deleteTask(dateKey, Number.parseInt(line, 10));
+              break;
+            }
+          }
+        }
+      } else {
+        // Para tareas normales, necesitamos encontrar la línea correcta en el día actual
+        const allExistingTasks = getAllTasks();
+        const dayTasks = allExistingTasks[selected] || {};
+
+        // Buscar la línea correcta por ID de tarea
+        let actualLineNumber: number | null = null;
+        for (const [line, task] of Object.entries(dayTasks)) {
+          if (task && task.id === selectedTask.id) {
+            actualLineNumber = Number.parseInt(line, 10);
+            break;
+          }
+        }
+
+        if (actualLineNumber !== null) {
+          await deleteTask(selected, actualLineNumber);
+        } else {
+          return;
+        }
+      }
+
+      // Refrescar datos
+      setRefreshKey((prev) => prev + 1);
+      setShowTaskEditModal(false);
+      setSelectedTask(null);
+      setSelectedTaskLine(null);
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
+
+  // Función para toggle completion desde el modal
+  const handleToggleCompletion = (dateKey: string, lineNumber: number) => {
+    if (selectedTask?.isRepeatingTask) {
+      toggleRepeatingTaskCompletion(selectedTask.repeatingTaskId, dateKey);
+
+      // Actualizar el estado local para reflejar el cambio inmediatamente
+      setLocalRepeatingCompletions((prev) => ({
+        ...prev,
+        [`${selectedTask.repeatingTaskId}-${dateKey}`]: !selectedTask.completed,
+      }));
+
+      // Refrescar la vista
+      setRefreshKey((prev) => prev + 1);
+    } else {
+      // Para tareas normales, buscar la línea real de la tarea
+      const dayTasks = tasksByDate[dateKey] || {};
+
+      let realLineNumber: number | null = null;
+      for (const [line, existingTask] of Object.entries(dayTasks)) {
+        if (existingTask && existingTask.id === selectedTask?.id) {
+          realLineNumber = Number.parseInt(line, 10);
+          break;
+        }
+      }
+
+      if (realLineNumber !== null) {
+        toggleTaskCompletion(dateKey, realLineNumber);
+      } else {
+        // Fallback: usar el lineNumber que viene del modal (aunque puede ser ficticio)
+        toggleTaskCompletion(dateKey, lineNumber);
+      }
+    }
+
+    setRefreshKey((prev) => prev + 1);
+  };
+
+  // Función para toggle completion desde la vista de calendario
+  const handleTaskToggleFromList = (task: any) => {
+    if (task.isRepeatingTask) {
+      toggleRepeatingTaskCompletion(task.repeatingTaskId, selected);
+      setLocalRepeatingCompletions((prev) => ({
+        ...prev,
+        [`${task.repeatingTaskId}-${selected}`]: !task.completed,
+      }));
+    } else {
+      // Para tareas normales, usar directamente tasksByDate que tiene la estructura correcta
+      const dayTasks = tasksByDate[selected] || {};
+
+      let found = false;
+      // Buscar la línea donde está la tarea
+      for (const [lineNumber, existingTask] of Object.entries(dayTasks)) {
+        if (existingTask && existingTask.id === task.id) {
+          toggleTaskCompletion(selected, Number.parseInt(lineNumber, 10));
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // Intentar buscar en getAllTasks como respaldo
+        const allTasks = getAllTasks();
+        const allDayTasks = allTasks[selected] || {};
+
+        for (const [lineNumber, existingTask] of Object.entries(allDayTasks)) {
+          if (existingTask && existingTask.id === task.id) {
+            toggleTaskCompletion(selected, Number.parseInt(lineNumber, 10));
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+    setRefreshKey((prev) => prev + 1);
   };
 
   // Función para obtener el texto "sin tareas" según el idioma
@@ -302,7 +546,7 @@ CalendarModalProps) {
 
     return marked;
   }, [getTasksForDate, tasksByDate, selected, tintColor]);
-
+  const selectedDayTasks = getTasksForDate(selected);
   return (
     <Modal visible={visible} animationType="slide">
       <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -327,7 +571,7 @@ CalendarModalProps) {
               // Configuración de localización basada en el idioma del usuario
               firstDay={currentLanguage === "en" ? 0 : 1} // Domingo para inglés, Lunes para otros
               // Deshabilitar fechas anteriores al día actual
-              minDate={getCurrentDateString()}
+              // minDate={getCurrentDateString()}
               theme={{
                 backgroundColor: backgroundColor,
                 calendarBackground: backgroundColor,
@@ -350,23 +594,42 @@ CalendarModalProps) {
             {formatDateWithI18n(new Date(selected))}
           </ThemedText>
 
+          {/* Botón QuickAdd debajo de la fecha */}
+          <ThemedView style={styles.quickAddContainer}>
+            <QuickAddTaskButton
+              selectedDate={selected}
+              availableLines={getAvailableLinesForDate(selected)}
+              onTaskAdded={() => {
+                // Forzar actualización del estado local para reflejar la nueva tarea
+                setLocalRepeatingCompletions({});
+
+                // Usar un pequeño delay para asegurar que la tarea se haya guardado
+                setTimeout(() => {
+                  // Actualizar el estado de líneas para la fecha seleccionada
+                  updateLinesStatus(selected);
+                  // Forzar re-render del callback
+                  setRefreshKey((prev) => prev + 1);
+                }, 100);
+              }}
+            />
+            <ThemedText style={styles.taskCount}>
+              {selectedDayTasks.length}{" "}
+              {selectedDayTasks.length === 1
+                ? tAgenda("tasks.taskCount")
+                : tAgenda("tasks.taskCount_plural")}
+            </ThemedText>
+          </ThemedView>
+
           {(() => {
             const selectedDayTasks = getTasksForDate(selected);
             return selectedDayTasks.length > 0 ? (
               <ScrollView
                 showsVerticalScrollIndicator={true}
-                style={{ height: 300 }}
+                style={{ height: 230 }}
               >
-                <ThemedText style={styles.taskCount}>
-                  {selectedDayTasks.length}{" "}
-                  {selectedDayTasks.length === 1
-                    ? tAgenda("tasks.taskCount")
-                    : tAgenda("tasks.taskCount_plural")}
-                </ThemedText>
-
                 <ThemedView style={styles.tasksContainer}>
                   {selectedDayTasks.map((task, index) => (
-                    <ThemedView
+                    <TouchableOpacity
                       key={task.id || `task-${index}`}
                       style={[
                         styles.taskCard,
@@ -375,10 +638,19 @@ CalendarModalProps) {
                           !task.completed &&
                           styles.taskCardRepeating,
                       ]}
+                      onPress={() => handleTaskSelect(task, index)}
                     >
-                      <ThemedText style={styles.taskCheckbox}>
-                        {task.completed ? "✅" : ""}
-                      </ThemedText>
+                      <TouchableOpacity
+                        style={styles.taskCheckbox}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleTaskToggleFromList(task);
+                        }}
+                      >
+                        <ThemedText style={styles.checkboxText}>
+                          {task.completed ? "✅" : "⭕"}
+                        </ThemedText>
+                      </TouchableOpacity>
 
                       <ThemedView
                         style={[
@@ -411,7 +683,7 @@ CalendarModalProps) {
                           )}
                         </ThemedView>
                       </ThemedView>
-                    </ThemedView>
+                    </TouchableOpacity>
                   ))}
                 </ThemedView>
               </ScrollView>
@@ -445,24 +717,6 @@ CalendarModalProps) {
                 {tCommon("close")}
               </ThemedText>
             </TouchableOpacity>
-            <ThemedView style={styles.quickAddContainer}>
-              <QuickAddTaskButton
-                selectedDate={selected}
-                availableLines={getAvailableLinesForDate(selected)}
-                onTaskAdded={() => {
-                  // Forzar actualización del estado local para reflejar la nueva tarea
-                  setLocalRepeatingCompletions({});
-
-                  // Usar un pequeño delay para asegurar que la tarea se haya guardado
-                  setTimeout(() => {
-                    // Actualizar el estado de líneas para la fecha seleccionada
-                    updateLinesStatus(selected);
-                    // Forzar re-render del callback
-                    setRefreshKey((prev) => prev + 1);
-                  }, 100);
-                }}
-              />
-            </ThemedView>
           </ThemedView>
 
           {/* Botón QuickAdd centrado */}
@@ -477,6 +731,34 @@ CalendarModalProps) {
         onClose={() => setShowDayDetail(false)}
         selectedDate={selected}
       />
+
+      {/* Modal de edición de tareas */}
+      {selectedTask && (
+        <TaskEditModal
+          tCommon={tCommon}
+          visible={showTaskEditModal}
+          initialText={selectedTask.text}
+          initialReminder={selectedTask.reminder}
+          initialRepeat={selectedTask.repeat || "none"}
+          onSave={handleSaveTask}
+          toggleTaskCompletion={handleToggleCompletion}
+          date={selected}
+          completed={selectedTask.completed}
+          lineNumber={selectedTaskLine!}
+          onCancel={() => {
+            setShowTaskEditModal(false);
+            setSelectedTask(null);
+            setSelectedTaskLine(null);
+          }}
+          onDelete={selectedTask.text ? handleDeleteTask : undefined}
+          colorScheme={colorScheme}
+          colors={{
+            background: backgroundColor,
+            text: textColor,
+            tint: tintColor,
+          }}
+        />
+      )}
     </Modal>
   );
 }
@@ -517,9 +799,11 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   taskCount: {
-    fontSize: 14,
+    fontSize: 12,
     opacity: 0.7,
     marginBottom: 10,
+    position: "sticky",
+    top: 0,
   },
   tasksContainer: {
     gap: 8,
@@ -608,8 +892,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   quickAddContainer: {
-    //marginTop: "-2%",
+    marginTop: 10,
+    marginBottom: 0,
     alignItems: "center",
     justifyContent: "center",
+    width: "100%",
+  },
+  checkboxText: {
+    fontSize: 16,
   },
 });
