@@ -328,7 +328,6 @@ CalendarModalProps) {
               firstDay={currentLanguage === "en" ? 0 : 1} // Domingo para inglés, Lunes para otros
               // Deshabilitar fechas anteriores al día actual
               minDate={getCurrentDateString()}
-            
               theme={{
                 backgroundColor: backgroundColor,
                 calendarBackground: backgroundColor,
@@ -446,27 +445,27 @@ CalendarModalProps) {
                 {tCommon("close")}
               </ThemedText>
             </TouchableOpacity>
+            <ThemedView style={styles.quickAddContainer}>
+              <QuickAddTaskButton
+                selectedDate={selected}
+                availableLines={getAvailableLinesForDate(selected)}
+                onTaskAdded={() => {
+                  // Forzar actualización del estado local para reflejar la nueva tarea
+                  setLocalRepeatingCompletions({});
+
+                  // Usar un pequeño delay para asegurar que la tarea se haya guardado
+                  setTimeout(() => {
+                    // Actualizar el estado de líneas para la fecha seleccionada
+                    updateLinesStatus(selected);
+                    // Forzar re-render del callback
+                    setRefreshKey((prev) => prev + 1);
+                  }, 100);
+                }}
+              />
+            </ThemedView>
           </ThemedView>
 
           {/* Botón QuickAdd centrado */}
-          <ThemedView style={styles.quickAddContainer}>
-            <QuickAddTaskButton
-              selectedDate={selected}
-              availableLines={getAvailableLinesForDate(selected)}
-              onTaskAdded={() => {
-                // Forzar actualización del estado local para reflejar la nueva tarea
-                setLocalRepeatingCompletions({});
-
-                // Usar un pequeño delay para asegurar que la tarea se haya guardado
-                setTimeout(() => {
-                  // Actualizar el estado de líneas para la fecha seleccionada
-                  updateLinesStatus(selected);
-                  // Forzar re-render del callback
-                  setRefreshKey((prev) => prev + 1);
-                }, 100);
-              }}
-            />
-          </ThemedView>
         </ThemedView>
       </ThemedView>
 
@@ -609,7 +608,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   quickAddContainer: {
-    marginTop: "-20%",
+    //marginTop: "-2%",
     alignItems: "center",
     justifyContent: "center",
   },
