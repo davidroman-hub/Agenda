@@ -326,6 +326,9 @@ CalendarModalProps) {
               markedDates={markedDates}
               // Configuración de localización basada en el idioma del usuario
               firstDay={currentLanguage === "en" ? 0 : 1} // Domingo para inglés, Lunes para otros
+              // Deshabilitar fechas anteriores al día actual
+              minDate={getCurrentDateString()}
+            
               theme={{
                 backgroundColor: backgroundColor,
                 calendarBackground: backgroundColor,
