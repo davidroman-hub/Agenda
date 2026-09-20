@@ -1,4 +1,4 @@
-package com.david_roman_a.david_roman_aapp
+package com.davidroman.justanagenda
 
 import android.app.Application
 import android.content.res.Configuration

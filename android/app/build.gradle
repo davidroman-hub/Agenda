@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.david_roman_a.david_roman_aapp'
+    namespace 'com.davidroman.justanagenda'
     defaultConfig {
-        applicationId 'com.david_roman_a.david_roman_aapp'
+        applicationId 'com.davidroman.justanagenda'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

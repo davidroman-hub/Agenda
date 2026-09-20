@@ -25,8 +25,8 @@
         // ... existing
       },
       "versionCode": 1, // REQUIRED - increment for each build
-      "package": "com.david_roman_a.justagenda", // Consider renaming
-      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.david_roman_a.justagenda"
+      "package": "com.davidroman.justanagenda", // Consider renaming
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.davidroman.justanagenda"
     }
   }
 }
