@@ -46,7 +46,8 @@ export default function QuickAddTaskButton({
   const handleSaveTask = async (
     text: string,
     reminder?: string | null,
-    repeat?: RepeatOption
+    repeat?: RepeatOption,
+    typeId?: string | null
   ) => {
     if (availableLines.length === 0) return;
 
@@ -56,7 +57,7 @@ export default function QuickAddTaskButton({
       const targetLine = availableLines[0];
 
       // Agregar la tarea primero
-      await addTask(selectedDate, targetLine, text, reminder, repeat || "none");
+      await addTask(selectedDate, targetLine, text, reminder, repeat || "none", typeId);
 
       // Si tiene repetición, necesitamos encontrar la tarea que acabamos de crear
       // para obtener su ID real y crear el patrón de repetición

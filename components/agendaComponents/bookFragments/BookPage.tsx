@@ -4,11 +4,13 @@ import LinkableText from "@/components/ui/linkable-text";
 import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
 import useBookNavigationStore from "@/stores/book-navigation-store";
 import useBookSettingsStore from "@/stores/boook-settings";
+import useTaskTypesStore from "@/stores/task-types-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { dateToLocalDateString } from "@/utils/date-utils";
 import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import { getTotalLines } from "@/utils/book-lines";
 import { findTaskLine } from "@/utils/book-navigation";
+import { filterVisibleLines, resolveFilter } from "@/utils/task-types";
 import { buildDayTasks } from "@/utils/day-tasks";
 import {
   promptDeleteRepeatingOccurrence,
@@ -33,6 +35,9 @@ interface BookPageProps {
   readonly colorScheme: string;
   readonly colors: any;
   readonly dynamicStyles: any;
+  // Copia solo para dibujar (la hoja que gira durante el cambio de página): no abre tareas
+  // por una notificación ni monta los modales, para no duplicarlos ni cargar la animación
+  readonly inert?: boolean;
   tAgenda: (key: string, options?: any) => string;
   tCommon: (key: string, options?: any) => string;
 }
@@ -45,6 +50,7 @@ export default function BookPage({
   colorScheme,
   colors,
   dynamicStyles,
+  inert = false,
   tAgenda,
   tCommon,
 }: BookPageProps) {
@@ -92,6 +98,21 @@ export default function BookPage({
   // Store de tareas para acceder a todas las tareas por su ID
   const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
   const getTaskForLine = useAgendaTasksStore((state) => state.getTaskForLine);
+
+  // Tipos de tarea y pestaña activa. El filtro solo decide qué filas se dibujan: qué líneas están
+  // ocupadas se sigue calculando con TODAS las tareas del día (allTasks), así una tarea nueva
+  // nunca puede pisar una que está oculta por el filtro
+  const taskTypes = useTaskTypesStore((state) => state.types);
+  const activeTypeFilter = useTaskTypesStore((state) => state.activeFilter);
+  const knownTypeIds = React.useMemo(
+    () => new Set(taskTypes.map((type) => type.id)),
+    [taskTypes]
+  );
+  const typeColorById = React.useMemo(
+    () => new Map(taskTypes.map((type) => [type.id, type.color])),
+    [taskTypes]
+  );
+  const typeFilter = resolveFilter(activeTypeFilter, knownTypeIds);
 
   // Separar tareas normales y tareas repetidas en estructuras independientes.
   // La lógica vive en utils/day-tasks.ts (compartida con el calendario y el widget)
@@ -208,7 +229,7 @@ export default function BookPage({
   const bookTarget = useBookNavigationStore((state) => state.target);
   const clearBookTarget = useBookNavigationStore((state) => state.clearTarget);
   React.useEffect(() => {
-    if (!bookTarget || bookTarget.date !== dateKey) return;
+    if (inert || !bookTarget || bookTarget.date !== dateKey) return;
 
     clearBookTarget();
     const line = findTaskLine(bookTarget.taskId, allTasks, repeatedTasks, totalUserLines);
@@ -218,7 +239,8 @@ export default function BookPage({
   const handleSaveTask = async (
     text: string,
     reminder?: string | null,
-    repeat?: RepeatOption
+    repeat?: RepeatOption,
+    typeId?: string | null
   ) => {
     if (editingLine !== null) {
       const existingTask = getTaskForPageLine(editingLine);
@@ -241,6 +263,7 @@ export default function BookPage({
                     text,
                     reminder,
                     repeat,
+                    typeId,
                   });
 
                   // Actualizar el patrón de repetición (la función ya maneja duplicados)
@@ -268,7 +291,7 @@ export default function BookPage({
                 break;
               }
             }
-            await addTask(dateKey, availableLine, text, reminder, "none");
+            await addTask(dateKey, availableLine, text, reminder, "none", typeId);
           }
         } else {
           // Verificar si es la tarea original de un patrón de repetición
@@ -282,6 +305,7 @@ export default function BookPage({
                 text,
                 reminder,
                 repeat,
+                typeId,
               });
 
               // Agregar/actualizar patrón de repetición (la función ya maneja duplicados)
@@ -297,6 +321,7 @@ export default function BookPage({
                 text,
                 reminder,
                 repeat: "none",
+                typeId,
               });
             }
           } else if (repeat && repeat !== "none") {
@@ -308,7 +333,12 @@ export default function BookPage({
               startDate: dateKey,
             });
             // 2. Actualizar la tarea para incluir la info de repetición
-            await updateTask(dateKey, editingLine, { text, reminder, repeat });
+            await updateTask(dateKey, editingLine, {
+              text,
+              reminder,
+              repeat,
+              typeId,
+            });
           } else {
             // Actualizar tarea normal usando la línea directamente
             const allExistingTasks = getAllTasks();
@@ -328,6 +358,7 @@ export default function BookPage({
                 text,
                 reminder,
                 repeat,
+                typeId,
               });
             }
           }
@@ -347,7 +378,7 @@ export default function BookPage({
         }
 
         // 1. Crear la tarea normal primero
-        await addTask(dateKey, targetLine, text, reminder, repeat);
+        await addTask(dateKey, targetLine, text, reminder, repeat, typeId);
 
         // 2. Obtener la tarea recién creada usando el store directamente
         // Usar un pequeño delay para asegurar que el store se actualice
@@ -385,7 +416,7 @@ export default function BookPage({
             }
           }
         }
-        await addTask(dateKey, targetLine, text, reminder, repeat);
+        await addTask(dateKey, targetLine, text, reminder, repeat, typeId);
       }
 
       // No hace falta forzar nada más: la página se recalcula sola porque está
@@ -462,6 +493,14 @@ export default function BookPage({
     setEditingLine(null);
     setEditingTask("");
   };
+
+  // Líneas que se dibujan: las libres, y las escritas que cumplen el filtro por tipo
+  const visibleLines = filterVisibleLines(
+    generateLines(),
+    getTaskForPageLine,
+    typeFilter,
+    knownTypeIds
+  );
 
   // Determinar estilo de página según el modo de vista
   let pageStyle;
@@ -553,8 +592,8 @@ export default function BookPage({
 
       {/* Líneas de escritura como en agenda real */}
       <ThemedView style={styles.linesContainer}>
-        {generateLines().map((line, index) => {
-          const prevLine = generateLines()[index - 1];
+        {visibleLines.map((line, index) => {
+          const prevLine = visibleLines[index - 1];
           const showSeparator = line.isVirtual && !prevLine?.isVirtual;
           const { lineNumber, isVirtual } = line;
           // Siempre usar el estilo con líneas visibles independientemente del contenido
@@ -686,6 +725,14 @@ export default function BookPage({
                             alignItems: "center",
                             flex: 1,
                             backgroundColor: "transparent", // Fondo transparente explícito
+                            // Franja del color del tipo (si la tarea tiene un tipo que existe)
+                            ...(typeColorById.get(task.typeId ?? "")
+                              ? {
+                                  borderLeftWidth: 3,
+                                  borderLeftColor: typeColorById.get(task.typeId ?? ""),
+                                  paddingLeft: 6,
+                                }
+                              : {}),
                           }}
                         >
                           <TouchableOpacity
@@ -773,40 +820,47 @@ export default function BookPage({
         })}
       </ThemedView>
 
-      {/* Modal del calendario */}
-      <AnotherCalendarModal
-        visible={calendarIsopen}
-        onClose={() => setCalendarIsOpen(false)}
-      />
+      {!inert && (
+        <>
+          {/* Modal del calendario */}
+          <AnotherCalendarModal
+            visible={calendarIsopen}
+            onClose={() => setCalendarIsOpen(false)}
+          />
 
-      {/* Modal para editar tareas */}
-      <TaskEditModal
-        tCommon={tCommon}
-        visible={modalVisible}
-        initialText={editingTask}
-        initialReminder={
-          editingLine ? getTaskForPageLine(editingLine)?.reminder : undefined
-        }
-        initialRepeat={
-          (editingLine
-            ? (getTaskForPageLine(editingLine)?.repeat as RepeatOption)
-            : undefined) || "none"
-        }
-        onSave={handleSaveTask}
-        toggleTaskCompletion={handleToggleTaskCompletion}
-        date={dateKey}
-        completed={
-          editingLine
-            ? getTaskForPageLine(editingLine)?.completed ?? false
-            : false
-        }
-        lineNumber={editingLine as number}
-        onCancel={handleCancelEdit}
-        onDelete={editingTask ? handleDeleteTask : undefined}
-        confirmDelete={
-          !isPartOfSeries(editingLine ? getTaskForPageLine(editingLine) : null)
-        }
-      />
+          {/* Modal para editar tareas */}
+          <TaskEditModal
+            tCommon={tCommon}
+            visible={modalVisible}
+            initialText={editingTask}
+            initialReminder={
+              editingLine ? getTaskForPageLine(editingLine)?.reminder : undefined
+            }
+            initialTypeId={
+              editingLine ? getTaskForPageLine(editingLine)?.typeId : undefined
+            }
+            initialRepeat={
+              (editingLine
+                ? (getTaskForPageLine(editingLine)?.repeat as RepeatOption)
+                : undefined) || "none"
+            }
+            onSave={handleSaveTask}
+            toggleTaskCompletion={handleToggleTaskCompletion}
+            date={dateKey}
+            completed={
+              editingLine
+                ? getTaskForPageLine(editingLine)?.completed ?? false
+                : false
+            }
+            lineNumber={editingLine as number}
+            onCancel={handleCancelEdit}
+            onDelete={editingTask ? handleDeleteTask : undefined}
+            confirmDelete={
+              !isPartOfSeries(editingLine ? getTaskForPageLine(editingLine) : null)
+            }
+          />
+        </>
+      )}
 
       <AddExtraLine linesPerPage={linesPerPage} date={dateKey} />
     </ThemedView>

@@ -20,15 +20,18 @@ import {
 } from "@/utils/date-testing";
 import React, { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { useSharedValue } from "react-native-reanimated";
 import {
   BookPagesContent,
+  BookSpread,
   calculateDays,
   NavigationControls,
-  PageFoldEffect,
+  PageTurn,
   useBookPageLogic,
 } from "./bookFragments";
 import BookActions from "./bookSettings";
-import { createDynamicStyles } from "./bookStyles";
+import TypeTabs from "./typeTabs/TypeTabs";
+import { createDynamicStyles, getBookBackground } from "./bookStyles";
 
 export default function Book() {
   const { daysToShow, viewMode } = useBookSettingsStore();
@@ -40,7 +43,17 @@ export default function Book() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(false);
 
-  const handleScrollChange = (progress: number, atBottom: boolean) => {
+  // Scroll vertical del libro: en un ref para que la hoja que gira se dibuje igual de desplazada,
+  // y en un valor compartido para que los aros del lomo se muevan con las páginas
+  const scrollOffsetRef = useRef(0);
+  const scrollY = useSharedValue(0);
+
+  const handleScrollChange = (
+    progress: number,
+    atBottom: boolean,
+    offsetY: number
+  ) => {
+    scrollOffsetRef.current = offsetY;
     setScrollProgress(progress);
     setIsAtBottom(atBottom);
   };
@@ -74,15 +87,15 @@ export default function Book() {
   const {
     currentPageIndex,
     isFlipping,
-    showPageTransition,
-    transitionProgress,
+    turn,
+    endTurn,
     goToNextPage,
     goToPrevPage,
     goToPage,
     goToToday,
     panResponder,
     getTranslateX,
-  } = useBookPageLogic();
+  } = useBookPageLogic({ getScrollOffset: () => scrollOffsetRef.current });
 
   // Petición de mostrar un día concreto (p. ej. al tocar una notificación): se lleva el libro a la
   // página de ese día; la propia página del día abre la tarea. Se atiende una sola vez por petición
@@ -121,30 +134,42 @@ export default function Book() {
         ]}
         {...panResponder.panHandlers}
       >
-        {/* Efecto de página doblándose */}
-        <PageFoldEffect
-          tCommon={tCommon}
-          showPageTransition={showPageTransition}
-          transitionProgress={transitionProgress}
-          dynamicStyles={dynamicStyles}
-          days={days}
-          viewMode={viewMode}
-          tAgenda={tAgenda}
-          colorScheme={colorScheme ?? "light"}
-          colors={colors}
-        />
+        {/* Pestañas de tipos de tarea (solo se ven si existe algún tipo) */}
+        <TypeTabs />
 
-        {/* Contenido principal de páginas */}
-        <BookPagesContent
-          tCommon={tCommon}
-          days={days}
-          tAgenda={tAgenda}
-          viewMode={viewMode}
+        {/* Contenido principal de páginas, con el giro de hoja y el lomo con aros al cambiar de página */}
+        <PageTurn
+          turn={turn}
+          onTurnEnd={endTurn}
+          twoPages={viewMode === "expanded"}
+          backgroundColor={getBookBackground(colorScheme ?? "light")}
           colorScheme={colorScheme ?? "light"}
-          colors={colors}
-          dynamicStyles={dynamicStyles}
-          onScrollChange={handleScrollChange}
-        />
+          scrollY={scrollY}
+          renderSpread={(pageIndex) => (
+            <BookSpread
+              inert
+              tCommon={tCommon}
+              days={calculateDays(pageIndex, daysToShow)}
+              tAgenda={tAgenda}
+              viewMode={viewMode}
+              colorScheme={colorScheme ?? "light"}
+              colors={colors}
+              dynamicStyles={dynamicStyles}
+            />
+          )}
+        >
+          <BookPagesContent
+            tCommon={tCommon}
+            days={days}
+            tAgenda={tAgenda}
+            viewMode={viewMode}
+            colorScheme={colorScheme ?? "light"}
+            colors={colors}
+            dynamicStyles={dynamicStyles}
+            scrollY={scrollY}
+            onScrollChange={handleScrollChange}
+          />
+        </PageTurn>
 
         {/* Controles de navegación */}
         <NavigationControls

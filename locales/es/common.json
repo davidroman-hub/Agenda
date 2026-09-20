@@ -218,6 +218,27 @@
     "notNow": "Ahora no",
     "settingsHint": "Abre los ajustes de Android para permitir alarmas exactas"
   },
+  "taskTypes": {
+    "tabAll": "Todas",
+    "tabNone": "Sin tipo",
+    "typeLabel": "Tipo",
+    "noType": "Sin tipo",
+    "chooseType": "Elige un tipo para esta tarea (o «Sin tipo»)",
+    "manageTitle": "Tipos de tarea",
+    "manageButton": "Tipos",
+    "manageHint": "Crea pestañas para filtrar tus tareas",
+    "newTypePlaceholder": "Nombre del nuevo tipo",
+    "add": "Añadir",
+    "rename": "Renombrar",
+    "emptyList": "Aún no tienes tipos. Crea el primero para filtrar tus tareas por pestañas.",
+    "errorEmpty": "Escribe un nombre para el tipo.",
+    "errorTaken": "Ya existe un tipo con ese nombre.",
+    "errorLimit": "Has llegado al máximo de {{max}} tipos.",
+    "deleteTitle": "Eliminar tipo",
+    "deleteMessageWithTasks": "Se eliminará el tipo «{{name}}». Las {{count}} tareas que lo usan no se borran: pasarán a «Sin tipo».",
+    "deleteMessageNoTasks": "Se eliminará el tipo «{{name}}». Ninguna tarea lo usa.",
+    "colorLabel": "Color"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Eliminar tarea repetida",
     "occurrenceMessage": "Esta tarea se repite. ¿Qué quieres eliminar? «Toda la serie» incluye la tarea original.",

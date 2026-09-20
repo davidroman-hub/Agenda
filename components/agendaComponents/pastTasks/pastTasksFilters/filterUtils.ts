@@ -1,5 +1,6 @@
 import { AgendaTask, DayTasks } from "@/stores/agenda-tasks-store";
 import { createLocalDateFromString } from "@/utils/date-utils";
+import { matchesTypeFilter, TypeFilter } from "@/utils/task-types";
 import { FilteredTask, FilterStats, TaskStatusFilter } from "./usePastTasksFilters";
 
 // Función auxiliar para procesar tareas de una fecha
@@ -23,7 +24,9 @@ export const processTasksForDate = (dayTasks: DayTasks) => {
 export const getFilteredPastTasks = (
   tasksByDate: Record<string, DayTasks>,
   dateMatchesFilters: (date: Date) => boolean,
-  statusFilter: TaskStatusFilter = 'all'
+  statusFilter: TaskStatusFilter = 'all',
+  typeFilter: TypeFilter = 'all',
+  knownTypeIds?: ReadonlySet<string>
 ): FilteredTask[] => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -40,6 +43,7 @@ export const getFilteredPastTasks = (
       
       // Filtrar por estado de la tarea
       const filteredTasksForDate = allTasksForDate.filter(({ task }) => {
+        if (!matchesTypeFilter(task, typeFilter, knownTypeIds)) return false;
         if (statusFilter === 'completed') return task.completed;
         if (statusFilter === 'pending') return !task.completed;
         return true; // 'all'

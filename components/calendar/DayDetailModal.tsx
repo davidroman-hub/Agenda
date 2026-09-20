@@ -2,6 +2,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import useTaskTypesStore from "@/stores/task-types-store";
 import { createLocalDateFromString } from "@/utils/date-utils";
 import { buildDayTasks } from "@/utils/day-tasks";
 import {
@@ -9,6 +10,7 @@ import {
   promptDeleteRepeatingSeries,
 } from "@/utils/repeat-delete-prompts";
 import { formatDateWithI18n } from "@/utils/locale-config";
+import { matchesTypeFilter, resolveFilter } from "@/utils/task-types";
 import React, { useState } from "react";
 import {
   Alert,
@@ -69,8 +71,17 @@ export default function DayDetailModal({
     [repeatingCompletions, localRepeatingCompletions]
   );
 
+  // Pestaña de tipo activa: el detalle solo enseña las tareas que la cumplen
+  const taskTypes = useTaskTypesStore((state) => state.types);
+  const activeTypeFilter = useTaskTypesStore((state) => state.activeFilter);
+  const knownTypeIds = React.useMemo(
+    () => new Set(taskTypes.map((type) => type.id)),
+    [taskTypes]
+  );
+  const typeFilter = resolveFilter(activeTypeFilter, knownTypeIds);
+
   // Tareas del día (normales + instancias de repetidas). La lógica vive en utils/day-tasks.ts
-  const dayTasks = React.useMemo(() => {
+  const allDayTasks = React.useMemo(() => {
     const { normalTasks, repeatedTasks } = buildDayTasks(
       selectedDate,
       tasksByDate,
@@ -94,6 +105,15 @@ export default function DayDetailModal({
     ];
   }, [selectedDate, tasksByDate, repeatingPatterns, completions]);
 
+  // Las que se enseñan, según el filtro por tipo
+  const dayTasks = React.useMemo(
+    () =>
+      allDayTasks.filter((task) =>
+        matchesTypeFilter(task, typeFilter, knownTypeIds)
+      ),
+    [allDayTasks, typeFilter, knownTypeIds]
+  );
+
   // Efecto para forzar re-render cuando cambien las tareas repetidas
   React.useEffect(() => {
     // Sincronizar estado local con el store cuando cambie el modal
@@ -111,7 +131,8 @@ export default function DayDetailModal({
   const MAX_TASKS = 12;
 
   // Verificar si se ha alcanzado el límite de tareas
-  const isTaskLimitReached = dayTasks.length >= MAX_TASKS;
+  // El límite cuenta todas las tareas del día, no solo las que deja ver el filtro
+  const isTaskLimitReached = allDayTasks.length >= MAX_TASKS;
 
   const handleToggleComplete = (task: any) => {
     if (task.isRepeatingTask) {

@@ -3,6 +3,7 @@ import BugReportButton from "@/components/settings/BugReportButton";
 import ExactAlarmButton from "@/components/settings/ExactAlarmButton";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
 import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
+import TaskTypesButton from "@/components/settings/TaskTypesButton";
 import VersionInfoButton from "@/components/settings/versionInfoButton";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -63,6 +64,7 @@ export default function SettingsPage() {
 
         <ChangeThemeButton />
         <TaskFontSizeButton />
+        <TaskTypesButton />
         <VersionInfoButton />
         <ExactAlarmButton />
         <BugReportButton />

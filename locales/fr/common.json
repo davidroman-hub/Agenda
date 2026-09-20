@@ -222,6 +222,27 @@
     "notNow": "Pas maintenant",
     "settingsHint": "Ouvre les paramètres Android pour autoriser les alarmes exactes"
   },
+  "taskTypes": {
+    "tabAll": "Toutes",
+    "tabNone": "Sans type",
+    "typeLabel": "Type",
+    "noType": "Sans type",
+    "chooseType": "Choisissez un type pour cette tâche (ou « Sans type »)",
+    "manageTitle": "Types de tâche",
+    "manageButton": "Types",
+    "manageHint": "Créez des onglets pour filtrer vos tâches",
+    "newTypePlaceholder": "Nom du nouveau type",
+    "add": "Ajouter",
+    "rename": "Renommer",
+    "emptyList": "Vous n'avez pas encore de types. Créez le premier pour filtrer vos tâches par onglets.",
+    "errorEmpty": "Saisissez un nom pour le type.",
+    "errorTaken": "Un type portant ce nom existe déjà.",
+    "errorLimit": "Vous avez atteint le maximum de {{max}} types.",
+    "deleteTitle": "Supprimer le type",
+    "deleteMessageWithTasks": "Le type « {{name}} » sera supprimé. Les {{count}} tâches qui l'utilisent ne sont pas supprimées : elles passent à « Sans type ».",
+    "deleteMessageNoTasks": "Le type « {{name}} » sera supprimé. Aucune tâche ne l'utilise.",
+    "colorLabel": "Couleur"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Supprimer la tâche récurrente",
     "occurrenceMessage": "Cette tâche se répète. Que voulez-vous supprimer ? « Toute la série » inclut la tâche d'origine.",

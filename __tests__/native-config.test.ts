@@ -78,7 +78,7 @@ describe("identificador de la app", () => {
 describe("permisos de Android", () => {
   // Cada permiso nuevo levanta preguntas en la revisión de Play Store y en la Data safety.
   // Si añades uno a propósito: ponlo aquí, en app.json (android.permissions) y en el manifest,
-  // y actualiza app-store-assets/privacy-policy.html y .md.
+  // y actualiza app-store-assets/privacy-policy-multilang.html (los 4 idiomas).
   const ALLOWED = [
     "INTERNET", // reporte de bugs opcional y enlaces
     "POST_NOTIFICATIONS", // recordatorios
@@ -128,23 +128,13 @@ describe("permisos de Android", () => {
 
 describe("política de privacidad", () => {
   // La política afirma que la app no tiene analítica ni reportes de fallos automáticos.
-  // Si añades un SDK así, actualiza la política (privacy-policy.html/.md) y la Data safety
+  // Si añades un SDK así, actualiza la política (privacy-policy-multilang.html) y la Data safety
   // de Play Console, y después ajusta esta lista.
   const TRACKING_SDKS = /sentry|crashlytics|firebase|analytics|amplitude|mixpanel|segment|bugsnag|datadog|posthog|appsflyer|adjust|clarity|instabug/i;
 
   it("no hay dependencias de analítica ni de reporte de fallos", () => {
     const dependencies = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
     expect(dependencies.filter((name) => TRACKING_SDKS.test(name))).toEqual([]);
-  });
-
-  it("la versión HTML (la que se publica) y la de Markdown llevan la misma fecha de vigencia", () => {
-    const html = read("app-store-assets/privacy-policy.html");
-    const markdown = read("app-store-assets/privacy-policy.md");
-    const htmlDate = /<strong>Effective Date:<\/strong>\s*([^<]+)</.exec(html)?.[1].trim();
-    const markdownDate = /\*\*Effective Date:\*\*\s*(.+)/.exec(markdown)?.[1].trim();
-
-    expect(htmlDate).toBeTruthy();
-    expect(markdownDate).toBe(htmlDate);
   });
 });
 
@@ -172,6 +162,21 @@ describe("política de privacidad multilingüe (la que se publica)", () => {
     for (const language of LANGUAGES) {
       expect(article(language)).not.toBe("");
       expect([language, shapeOf(article(language))]).toEqual([language, english]);
+    }
+  });
+
+  it("los cuatro idiomas llevan la misma fecha de vigencia", () => {
+    // Cada idioma la escribe a su manera ("20 de septiembre de 2026" / "September 20, 2026"),
+    // así que se compara el día y el año; si cambias la fecha, cámbiala en los cuatro.
+    const dayAndYear = (language: string) => {
+      const meta = /<p class="meta">([^<]*)</.exec(article(language))?.[1] ?? "";
+      return [/\b(\d{1,2})\b/.exec(meta)?.[1], /\b(20\d{2})\b/.exec(meta)?.[1]];
+    };
+    const english = dayAndYear("en");
+    expect(english.every(Boolean)).toBe(true);
+
+    for (const language of LANGUAGES) {
+      expect([language, dayAndYear(language)]).toEqual([language, english]);
     }
   });
 

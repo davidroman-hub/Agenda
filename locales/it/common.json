@@ -222,6 +222,27 @@
     "notNow": "Non ora",
     "settingsHint": "Apre le impostazioni di Android per consentire le sveglie esatte"
   },
+  "taskTypes": {
+    "tabAll": "Tutte",
+    "tabNone": "Senza tipo",
+    "typeLabel": "Tipo",
+    "noType": "Senza tipo",
+    "chooseType": "Scegli un tipo per questa attività (o «Senza tipo»)",
+    "manageTitle": "Tipi di attività",
+    "manageButton": "Tipi",
+    "manageHint": "Crea schede per filtrare le tue attività",
+    "newTypePlaceholder": "Nome del nuovo tipo",
+    "add": "Aggiungi",
+    "rename": "Rinomina",
+    "emptyList": "Non hai ancora nessun tipo. Crea il primo per filtrare le tue attività con le schede.",
+    "errorEmpty": "Scrivi un nome per il tipo.",
+    "errorTaken": "Esiste già un tipo con questo nome.",
+    "errorLimit": "Hai raggiunto il massimo di {{max}} tipi.",
+    "deleteTitle": "Elimina tipo",
+    "deleteMessageWithTasks": "Il tipo «{{name}}» verrà eliminato. Le {{count}} attività che lo usano non vengono eliminate: passano a «Senza tipo».",
+    "deleteMessageNoTasks": "Il tipo «{{name}}» verrà eliminato. Nessuna attività lo usa.",
+    "colorLabel": "Colore"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Elimina attività ripetuta",
     "occurrenceMessage": "Questa attività si ripete. Cosa vuoi eliminare? «Tutta la serie» include l'attività originale.",

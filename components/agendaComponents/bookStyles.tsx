@@ -19,6 +19,17 @@ const getFontSize = (
   return normalSize;
 };
 
+// Lomo del libro (vista expandida): una franja continua entre las dos páginas con los aros
+// de la anilla. Se dibuja una sola vez por encima de todo (ver BookSpine), así que las filas
+// solo dejan el hueco: el ancho del lomo menos lo que ya separan el gap y los márgenes.
+const ROW_GAP = isSmallScreen ? 1 : 2;
+const PAGE_MARGIN = 1;
+export const SPINE_WIDTH = isSmallScreen ? 14 : 22;
+export const RING_WIDTH = SPINE_WIDTH + (isSmallScreen ? 8 : 12);
+export const RING_HEIGHT = isSmallScreen ? 8 : 11;
+export const RING_PITCH = isSmallScreen ? 30 : 42; // distancia entre aros
+export const SCROLL_PADDING = isSmallScreen ? 2 : 20;
+
 // Estilos base para el componente Book
 export const styles = StyleSheet.create({
   container: {
@@ -30,7 +41,7 @@ export const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    paddingHorizontal: isSmallScreen ? 2 : 20,
+    paddingHorizontal: SCROLL_PADDING,
   },
   page: {
     marginVertical: isSmallScreen ? 2 : 10,
@@ -136,67 +147,20 @@ export const styles = StyleSheet.create({
   expandedContainer: {
     flexDirection: "row",
     marginVertical: isSmallScreen ? 2 : 10,
-    gap: isSmallScreen ? 1 : 2,
+    gap: ROW_GAP,
     paddingHorizontal: isSmallScreen ? 1 : 0,
   },
   leftPage: {
     flex: 1,
-    marginRight: 1,
+    marginRight: PAGE_MARGIN,
   },
   rightPage: {
     flex: 1,
-    marginLeft: 1,
+    marginLeft: PAGE_MARGIN,
   },
-  centerBinding: {
-    width: isSmallScreen ? 8 : 20,
-    borderRadius: isSmallScreen ? 2 : 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: isSmallScreen ? 1 : 2,
-    },
-    shadowOpacity: isSmallScreen ? 0.1 : 0.3,
-    shadowRadius: isSmallScreen ? 1 : 3,
-    elevation: isSmallScreen ? 1 : 5,
-    justifyContent: "space-evenly",
-    alignItems: "center",
-    paddingVertical: isSmallScreen ? 3 : 10,
-  },
-  // Elementos individuales del resorte
-  spiralRing: {
-    width: isSmallScreen ? 4 : 12,
-    height: isSmallScreen ? 3 : 8,
-    borderWidth: isSmallScreen ? 0.5 : 2,
-    borderColor: isSmallScreen ? "#E0E0E0" : "#C0C0C0", // Color más sutil para pantallas pequeñas
-    borderRadius: isSmallScreen ? 2 : 6,
-    backgroundColor: isSmallScreen ? "#F8F8F8" : "#F0F0F0", // Fondo más sutil
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: isSmallScreen ? 0.5 : 1,
-    },
-    shadowOpacity: isSmallScreen ? 0.1 : 0.3,
-    shadowRadius: isSmallScreen ? 0.5 : 1,
-    elevation: isSmallScreen ? 0.5 : 2,
-    marginVertical: isSmallScreen ? 0.5 : 1,
-  },
-  // Variante alternativa para crear efecto de profundidad
-  spiralRingAlt: {
-    width: isSmallScreen ? 3 : 10,
-    height: isSmallScreen ? 2 : 6,
-    borderWidth: isSmallScreen ? 0.3 : 1.5,
-    borderColor: isSmallScreen ? "#D0D0D0" : "#A8A8A8", // Color más sutil
-    borderRadius: isSmallScreen ? 1.5 : 5,
-    backgroundColor: isSmallScreen ? "#F5F5F5" : "#E8E8E8",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: isSmallScreen ? 0.5 : 1,
-      height: isSmallScreen ? 0.5 : 1,
-    },
-    shadowOpacity: isSmallScreen ? 0.05 : 0.2,
-    shadowRadius: isSmallScreen ? 0.5 : 1,
-    elevation: isSmallScreen ? 0.3 : 1,
-    marginVertical: isSmallScreen ? 0.5 : 1,
+  // Hueco del lomo dentro de cada fila; los aros los dibuja BookSpine por encima
+  spineGap: {
+    width: SPINE_WIDTH - 2 * (ROW_GAP + PAGE_MARGIN),
   },
   // Estilos específicos para elementos en modo expandido
   expandedPageHeader: {
@@ -271,6 +235,10 @@ export const styles = StyleSheet.create({
   },
 });
 
+// Fondo del libro (detrás de las páginas); también lo usa la hoja que gira para tapar lo de debajo
+export const getBookBackground = (colorScheme: "light" | "dark") =>
+  colorScheme === "dark" ? "#1a1a1a" : "#f5f4f0";
+
 // Función para crear estilos dinámicos basados en el tema y configuraciones de fuente
 export const createDynamicStyles = (
   colorScheme: "light" | "dark",
@@ -280,7 +248,7 @@ export const createDynamicStyles = (
   return StyleSheet.create({
     container: {
       ...styles.container,
-      backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#f5f4f0",
+      backgroundColor: getBookBackground(colorScheme),
     },
     page: {
       ...styles.page,
@@ -306,22 +274,9 @@ export const createDynamicStyles = (
           ? "rgba(100,100,100,0.1)"
           : "rgba(200,200,200,0.1)", // Fondo gris muy claro para líneas con tareas
     },
-    centerBinding: {
-      ...styles.centerBinding,
-      backgroundColor: colorScheme === "dark" ? "#000000" : "#ffffff",
-    },
     navigationControls: {
       ...styles.navigationControls,
       borderTopColor: colorScheme === "dark" ? "#404040" : "#e0e0e0",
-    },
-    pageTransition: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: "center",
-      alignItems: "center",
     },
     // Estilos de texto de tareas con multiplicador de fuente personalizable
     taskText: {

@@ -1,16 +1,25 @@
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
-import { useState } from "react";
+import { PageTurnState, TurnDirection } from "@/utils/page-turn";
+import { useCallback, useRef, useState } from "react";
 import { PanResponder } from "react-native";
 
-export const useBookPageLogic = () => {
+interface BookPageLogicOptions {
+  // Scroll vertical actual del libro, para que la hoja que gira se dibuje igual de desplazada
+  readonly getScrollOffset?: () => number;
+}
+
+export const useBookPageLogic = ({
+  getScrollOffset,
+}: BookPageLogicOptions = {}) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(
     null
   );
-  const [showPageTransition, setShowPageTransition] = useState(false);
-  const [transitionProgress, setTransitionProgress] = useState(0);
+  // Hoja girando ahora mismo (null si el libro está quieto). Ver PageTurn
+  const [turn, setTurn] = useState<PageTurnState | null>(null);
+  const lastTurnId = useRef(0);
 
   const { repeatingPatterns, removeRepeatingPattern } = useRepeatingTasksStore(
     (state) => state
@@ -61,66 +70,42 @@ export const useBookPageLogic = () => {
     }
   };
 
-  const goToNextPage = () => {
-    // Limpiar patrones huérfanos antes de cambiar de página
-    cleanUpOrphanedPatterns();
-    setShowPageTransition(true);
-    setTransitionProgress(0);
+  // Pasa de página con el giro de la hoja. El libro cambia ya a la página nueva y PageTurn
+  // dibuja encima la hoja girando; mientras gira no se admite otro giro
+  const turnPage = (direction: TurnDirection) => {
+    if (turn) return;
 
-    // Efecto más rápido y suave
-    const duration = 250;
-    const steps = 10;
-
-    for (let i = 1; i <= steps; i++) {
-      setTimeout(() => {
-        setTransitionProgress((i / steps) * 100);
-        if (i === Math.floor(steps / 2)) {
-          // Cambiar contenido en la mitad de la animación
-          setCurrentPageIndex((prev) => prev + 1);
-        }
-        if (i === steps) {
-          // Terminar efecto
-          setShowPageTransition(false);
-          setTransitionProgress(0);
-        }
-      }, (duration / steps) * i);
-    }
-  };
-
-  const goToPrevPage = () => {
     // Limpiar patrones huérfanos antes de cambiar de página
     cleanUpOrphanedPatterns();
 
-    setShowPageTransition(true);
-    setTransitionProgress(0);
-
-    // Efecto más rápido y suave para página anterior
-    const duration = 250;
-    const steps = 10;
-
-    for (let i = 1; i <= steps; i++) {
-      setTimeout(() => {
-        setTransitionProgress((i / steps) * 100);
-        if (i === Math.floor(steps / 2)) {
-          // Cambiar contenido en la mitad de la animación
-          // Sin límite: también se puede ir a días anteriores a hoy (índices negativos)
-          setCurrentPageIndex((prev) => prev - 1);
-        }
-        if (i === steps) {
-          // Terminar efecto
-          setShowPageTransition(false);
-          setTransitionProgress(0);
-        }
-      }, (duration / steps) * i);
-    }
+    // Sin límite: también se puede ir a días anteriores a hoy (índices negativos)
+    const to = currentPageIndex + (direction === "next" ? 1 : -1);
+    lastTurnId.current += 1;
+    setTurn({
+      id: lastTurnId.current,
+      from: currentPageIndex,
+      to,
+      direction,
+      scrollOffset: getScrollOffset?.() ?? 0,
+    });
+    setCurrentPageIndex(to);
   };
+
+  const goToNextPage = () => turnPage("next");
+  const goToPrevPage = () => turnPage("prev");
+
+  const endTurn = useCallback((id: number) => {
+    setTurn((current) => (current?.id === id ? null : current));
+  }, []);
 
   // Salto directo a una página (sin la animación de pasar página), p. ej. al abrir una notificación
   const goToPage = (pageIndex: number) => {
+    setTurn(null);
     setCurrentPageIndex(pageIndex);
   };
 
   const goToToday = () => {
+    setTurn(null);
     setCurrentPageIndex(0);
   };
 
@@ -180,8 +165,8 @@ export const useBookPageLogic = () => {
     currentPageIndex,
     isFlipping,
     swipeDirection,
-    showPageTransition,
-    transitionProgress,
+    turn,
+    endTurn,
     goToNextPage,
     goToPrevPage,
     goToPage,

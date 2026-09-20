@@ -2,8 +2,10 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useI18n } from "@/hooks/use-i18n";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
+import useTaskTypesStore from "@/stores/task-types-store";
 import { createLocalDateFromString } from "@/utils/date-utils";
 import { formatDateWithI18n } from "@/utils/locale-config";
+import { resolveFilter } from "@/utils/task-types";
 import { useMemo } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import {
@@ -17,6 +19,15 @@ import {
 
 export default function PastTasks() {
   const { tasksByDate, toggleTaskCompletion } = useAgendaTasksStore();
+
+  // La pestaña de tipo activa también filtra las tareas pasadas (y sus estadísticas)
+  const taskTypes = useTaskTypesStore((state) => state.types);
+  const activeTypeFilter = useTaskTypesStore((state) => state.activeFilter);
+  const knownTypeIds = useMemo(
+    () => new Set(taskTypes.map((type) => type.id)),
+    [taskTypes]
+  );
+  const typeFilter = resolveFilter(activeTypeFilter, knownTypeIds);
   const { tAgenda, currentLanguage, tCommon } = useI18n();
 
   // Usar el hook de filtros refactorizado
@@ -49,14 +60,16 @@ export default function PastTasks() {
 
   // Obtener tareas pasadas filtradas solo por fecha (sin filtro de estado para estadísticas)
   const tasksFilteredByDate = useMemo(
-    () => getFilteredPastTasks(tasksByDate, dateMatchesFilters, "all"),
-    [tasksByDate, dateMatchesFilters]
+    () =>
+      getFilteredPastTasks(tasksByDate, dateMatchesFilters, "all", typeFilter, knownTypeIds),
+    [tasksByDate, dateMatchesFilters, typeFilter, knownTypeIds]
   );
 
   // Obtener tareas pasadas filtradas con filtro de estado para la vista
   const filteredTasks = useMemo(
-    () => getFilteredPastTasks(tasksByDate, dateMatchesFilters, statusFilter),
-    [tasksByDate, dateMatchesFilters, statusFilter]
+    () =>
+      getFilteredPastTasks(tasksByDate, dateMatchesFilters, statusFilter, typeFilter, knownTypeIds),
+    [tasksByDate, dateMatchesFilters, statusFilter, typeFilter, knownTypeIds]
   );
 
   // Calcular estadísticas basándose en todas las tareas que coinciden con filtros de fecha

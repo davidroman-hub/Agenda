@@ -1,6 +1,7 @@
 # Changelog
 
 **Sin publicar**
+- ✨ ADD **Tipos de tarea** dinámicos: creas tipos (nombre y color) desde el calendario (🏷️ Tipos), desde Ajustes o con el ＋ de las pestañas, y aparece una pestaña por tipo encima del libro. La pestaña activa filtra el libro, el calendario, el detalle del día y las tareas pasadas (con sus estadísticas); el filtro es solo visual y nunca cambia qué líneas están ocupadas, así que no puede pisar tareas ocultas. Al crear una tarea se elige su tipo (por defecto el de la pestaña activa); las tareas antiguas no tienen tipo y, si las editas, se te pide elegir uno o "Sin tipo" al guardar. Al borrar un tipo sus tareas pasan a "Sin tipo" (no se borran). Las tareas repetidas heredan el tipo
 - 🐛 FIX Fechas calculadas en UTC en vez de hora local: el widget mostraba las tareas de mañana por la tarde-noche, el chequeo diario de notificaciones repetidas se saltaba la mañana siguiente, y los marcadores del calendario, las cabeceras y los filtros de "Tareas pasadas" se desplazaban un día según la zona horaria
 - 🐛 FIX "Cada 2/3/5 días" daba días distintos en el libro y en las notificaciones; ahora hay una única regla en `utils/repeat-utils.ts`
 - 🐛 FIX Repetición mensual desde el día 1 no aparecía algunos meses en zonas UTC-

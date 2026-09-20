@@ -21,6 +21,7 @@ export interface AgendaTask {
   reminder?: string | null; // ISO string for reminder date/time
   notificationId?: string | null; // ID de la notificación programada
   repeat?: string; // 'none' | 'daily' | 'weekly' | 'monthly'
+  typeId?: string | null; // Tipo de tarea (null o ausente en las tareas antiguas: sin tipo)
   isRepeatingTask?: boolean; // Flag para identificar tareas repetidas
   repeatingTaskId?: string; // ID de la tarea repetida original
   repeatingPatternId?: string; // ID del patrón de repetición
@@ -45,7 +46,8 @@ export interface AgendaTasksState {
     lineNumber: number,
     text: string,
     reminder?: string | null,
-    repeat?: string
+    repeat?: string,
+    typeId?: string | null
   ) => Promise<void>;
   updateTask: (
     date: string,
@@ -53,6 +55,8 @@ export interface AgendaTasksState {
     updates: Partial<AgendaTask>
   ) => Promise<void>;
   deleteTask: (date: string, lineNumber: number) => Promise<void>;
+  // Quita el tipo de todas las tareas que lo tienen (al borrar un tipo)
+  clearTaskType: (typeId: string) => void;
   toggleTaskCompletion: (date: string, lineNumber: number) => void;
   getTasksForDate: (date: string) => DayTasks;
   getTaskForLine: (date: string, lineNumber: number) => AgendaTask | null;
@@ -78,7 +82,8 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
         lineNumber: number,
         text: string,
         reminder?: string | null,
-        repeat?: string
+        repeat?: string,
+        typeId?: string | null
       ) => {
         // Normalizar fechas para evitar problemas de zona horaria
         const normalizedDate = normalizeToLocalMidnight(
@@ -94,6 +99,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           reminder: reminder || null,
           notificationId: null,
           repeat: repeat || "none",
+          typeId: typeId ?? null,
         };
 
         // Programar notificación si hay recordatorio
@@ -194,6 +200,32 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
 
         // Actualizar estado de líneas
         get().updateLinesStatus(date);
+      },
+
+      clearTaskType: (typeId: string) => {
+        set((state) => {
+          const tasksByDate: Record<string, DayTasks> = {};
+          let changed = false;
+
+          for (const [date, dayTasks] of Object.entries(state.tasksByDate)) {
+            const updatedDay: DayTasks = {};
+            let dayChanged = false;
+
+            for (const [line, task] of Object.entries(dayTasks)) {
+              if (task?.typeId === typeId) {
+                updatedDay[Number(line)] = { ...task, typeId: null };
+                dayChanged = true;
+              } else {
+                updatedDay[Number(line)] = task;
+              }
+            }
+
+            tasksByDate[date] = dayChanged ? updatedDay : dayTasks;
+            changed ||= dayChanged;
+          }
+
+          return changed ? { tasksByDate } : {};
+        });
       },
 
       toggleTaskCompletion: (date: string, lineNumber: number) => {

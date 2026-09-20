@@ -217,6 +217,27 @@
     "notNow": "Not now",
     "settingsHint": "Opens Android settings to allow exact alarms"
   },
+  "taskTypes": {
+    "tabAll": "All",
+    "tabNone": "No type",
+    "typeLabel": "Type",
+    "noType": "No type",
+    "chooseType": "Choose a type for this task (or “No type”)",
+    "manageTitle": "Task types",
+    "manageButton": "Types",
+    "manageHint": "Create tabs to filter your tasks",
+    "newTypePlaceholder": "New type name",
+    "add": "Add",
+    "rename": "Rename",
+    "emptyList": "You don't have any types yet. Create the first one to filter your tasks with tabs.",
+    "errorEmpty": "Type a name for the type.",
+    "errorTaken": "A type with that name already exists.",
+    "errorLimit": "You've reached the maximum of {{max}} types.",
+    "deleteTitle": "Delete type",
+    "deleteMessageWithTasks": "The type “{{name}}” will be deleted. The {{count}} tasks that use it are not deleted: they become “No type”.",
+    "deleteMessageNoTasks": "The type “{{name}}” will be deleted. No tasks use it.",
+    "colorLabel": "Color"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Delete repeating task",
     "occurrenceMessage": "This task repeats. What do you want to delete? \"The whole series\" includes the original task.",

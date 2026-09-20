@@ -4,6 +4,7 @@ import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-servi
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import useTaskTypesStore from "@/stores/task-types-store";
 import {
   createLocalDateFromString,
   dateToLocalDateString,
@@ -14,6 +15,7 @@ import {
   promptDeleteRepeatingSeries,
 } from "@/utils/repeat-delete-prompts";
 import { formatDateWithI18n } from "@/utils/locale-config";
+import { matchesTypeFilter, resolveFilter } from "@/utils/task-types";
 import React, { useMemo, useState } from "react";
 import {
   Dimensions,
@@ -25,6 +27,7 @@ import {
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import Icon from "react-native-vector-icons/FontAwesome";
 import TaskEditModal from "../agendaComponents/bookFragments/TaskEditModal";
+import TaskTypesManager from "../agendaComponents/typeTabs/TaskTypesManager";
 import { ThemedText } from "../themed-text";
 import { ThemedView } from "../themed-view";
 import {
@@ -56,6 +59,8 @@ CalendarModalProps) {
   const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<
     Record<string, boolean>
   >({});
+
+  const [showTypesManager, setShowTypesManager] = useState(false);
 
   // Estados para el modal de edición de tareas
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
@@ -125,6 +130,20 @@ CalendarModalProps) {
     [repeatingCompletions, localRepeatingCompletions]
   );
 
+  // Tipos de tarea y pestaña activa: el calendario (marcadores y lista del día) solo cuenta
+  // las tareas que cumplen el filtro
+  const taskTypes = useTaskTypesStore((state) => state.types);
+  const activeTypeFilter = useTaskTypesStore((state) => state.activeFilter);
+  const knownTypeIds = React.useMemo(
+    () => new Set(taskTypes.map((type) => type.id)),
+    [taskTypes]
+  );
+  const typeColorById = React.useMemo(
+    () => new Map(taskTypes.map((type) => [type.id, type.color])),
+    [taskTypes]
+  );
+  const typeFilter = resolveFilter(activeTypeFilter, knownTypeIds);
+
   // Tareas de un día (normales + instancias de repetidas). La lógica vive en utils/day-tasks.ts
   const getTasksForDate = React.useCallback(
     (dateString: string) => {
@@ -136,10 +155,10 @@ CalendarModalProps) {
       );
 
       return [...Object.values(normalTasks), ...repeatedTasks].filter(
-        (task) => task !== null
+        (task) => task !== null && matchesTypeFilter(task, typeFilter, knownTypeIds)
       );
     },
-    [tasksByDate, repeatingPatterns, completions]
+    [tasksByDate, repeatingPatterns, completions, typeFilter, knownTypeIds]
   );
 
   const backgroundColor = useThemeColor(
@@ -209,7 +228,8 @@ CalendarModalProps) {
   const handleSaveTask = async (
     text: string,
     reminder?: string | null,
-    repeat?: any
+    repeat?: any,
+    typeId?: string | null
   ) => {
     if (!selectedTask) return;
 
@@ -228,6 +248,7 @@ CalendarModalProps) {
                 text,
                 reminder,
                 repeat,
+                typeId,
               });
 
               // Si cambia el patrón de repetición
@@ -267,6 +288,7 @@ CalendarModalProps) {
             text,
             reminder,
             repeat: repeat || "none",
+            typeId,
           });
 
           // Si se agregó repetición a una tarea normal
@@ -532,9 +554,22 @@ CalendarModalProps) {
           <ThemedText style={styles.title}>
             {tAgenda("calendar.title")}
           </ThemedText>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="times" size={20} color={textColor} />
-          </TouchableOpacity>
+          <ThemedView style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            {/* Crear y gestionar los tipos de tarea: cada uno aparece como pestaña en la agenda */}
+            <TouchableOpacity
+              onPress={() => setShowTypesManager(true)}
+              accessibilityRole="button"
+              accessibilityLabel={tCommon("taskTypes.manageTitle")}
+              style={styles.closeButton}
+            >
+              <ThemedText style={{ fontSize: 14, fontWeight: "600" }}>
+                🏷️ {tCommon("taskTypes.manageButton")}
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Icon name="times" size={20} color={textColor} />
+            </TouchableOpacity>
+          </ThemedView>
         </ThemedView>
 
         {/* Calendario */}
@@ -617,6 +652,10 @@ CalendarModalProps) {
                         task.isRepeatingTask &&
                           !task.completed &&
                           styles.taskCardRepeating,
+                        typeColorById.get(task.typeId ?? "") && {
+                          borderLeftWidth: 4,
+                          borderLeftColor: typeColorById.get(task.typeId ?? ""),
+                        },
                       ]}
                       onPress={() => handleTaskSelect(task, index)}
                     >
@@ -685,6 +724,11 @@ CalendarModalProps) {
         selectedDate={selected}
       />
 
+      <TaskTypesManager
+        visible={showTypesManager}
+        onClose={() => setShowTypesManager(false)}
+      />
+
       {/* Modal de edición de tareas */}
       {selectedTask && (
         <TaskEditModal
@@ -692,6 +736,7 @@ CalendarModalProps) {
           visible={showTaskEditModal}
           initialText={selectedTask.text}
           initialReminder={selectedTask.reminder}
+          initialTypeId={selectedTask.typeId}
           initialRepeat={selectedTask.repeat || "none"}
           onSave={handleSaveTask}
           toggleTaskCompletion={handleToggleCompletion}
