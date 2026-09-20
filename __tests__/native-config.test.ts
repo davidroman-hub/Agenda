@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { changeLogLocales } from "../components/settings/changeLogLocales";
+import { BUG_REPORT_EMAIL } from "../config/bug-report";
 import { getChangelogForVersion } from "../utils/changelog-utils";
 
 const root = path.join(__dirname, "..");
@@ -144,5 +145,67 @@ describe("política de privacidad", () => {
 
     expect(htmlDate).toBeTruthy();
     expect(markdownDate).toBe(htmlDate);
+  });
+});
+
+describe("política de privacidad multilingüe (la que se publica)", () => {
+  const multilang = read("app-store-assets/privacy-policy-multilang.html");
+  const LANGUAGES = ["es", "en", "fr", "it"];
+  const article = (language: string) =>
+    new RegExp(`<article data-l="${language}"[\\s\\S]*?</article>`).exec(multilang)?.[0] ?? "";
+
+  // Forma del artículo: nº de tarjetas y de filas, listas, tiles y chips de cada una
+  const shapeOf = (html: string) => {
+    const cards = html.match(/<section class="card"[\s\S]*?<\/section>/g) ?? [];
+    return {
+      cards: cards.length,
+      rows: cards.map((card) => (card.match(/<dt>/g) ?? []).length),
+      items: cards.map((card) => (card.match(/<li>/g) ?? []).length),
+      tiles: (html.match(/<div class="tile">/g) ?? []).length,
+    };
+  };
+
+  it("tiene los cuatro idiomas y todos con la misma estructura", () => {
+    const english = shapeOf(article("en"));
+    expect(english.cards).toBeGreaterThan(0);
+
+    for (const language of LANGUAGES) {
+      expect(article(language)).not.toBe("");
+      expect([language, shapeOf(article(language))]).toEqual([language, english]);
+    }
+  });
+
+  it("el correo de contacto es al que la app envía los reportes de bug", () => {
+    for (const language of LANGUAGES) {
+      expect([language, article(language).includes(`mailto:${BUG_REPORT_EMAIL}`)]).toEqual([language, true]);
+    }
+  });
+
+  it("nombra al servicio que recibe los reportes de bug", () => {
+    // La URL del formulario se lee del propio archivo de configuración, sea cual sea el nombre de la
+    // constante. Si cambias de proveedor: añádelo aquí, actualiza la política (los 4 idiomas) y la Data safety de Play Console.
+    const PROVIDERS: Record<string, string> = { "formspree.io": "Formspree", "api.web3forms.com": "Web3Forms" };
+    const endpoint = /export const \w*ENDPOINT[^=]*=\s*"(https?:\/\/[^"]+)"/.exec(read("config/bug-report.ts"))?.[1];
+    expect(endpoint).toBeTruthy();
+
+    const provider = PROVIDERS[new URL(endpoint as string).hostname];
+    expect(provider).toBeDefined();
+
+    for (const language of LANGUAGES) {
+      const html = article(language);
+      expect([language, html.includes(`<strong>${provider}</strong>`)]).toEqual([language, true]);
+      // Y ningún otro proveedor conocido
+      for (const other of Object.values(PROVIDERS).filter((name) => name !== provider)) {
+        expect([language, other, html.includes(other)]).toEqual([language, other, false]);
+      }
+    }
+  });
+
+  it("habla del widget solo si la app tiene uno", () => {
+    const appHasWidget = manifest.includes("android.appwidget.provider");
+
+    for (const language of LANGUAGES) {
+      expect([language, /widget/i.test(article(language))]).toEqual([language, appHasWidget]);
+    }
   });
 });

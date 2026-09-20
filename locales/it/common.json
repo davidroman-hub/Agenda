@@ -208,6 +208,20 @@
       "sendByEmail": "Invia per Email"
     }
   },
+  "notificationTexts": {
+    "channelName": "Promemoria attività",
+    "taskReminderTitle": "📋 Promemoria attività",
+    "taskScheduledFor": "Attività prevista per: {{date}}",
+    "repeatedTaskTitle": "📅 Attività ripetuta: {{text}}",
+    "repeatedTaskBody": "Hai un'attività ripetuta in sospeso"
+  },
+  "exactAlarms": {
+    "title": "Promemoria all'ora esatta",
+    "message": "Perché i promemoria suonino all'ora esatta, attiva «Sveglie e promemoria» per questa app nelle impostazioni di Android. Altrimenti potrebbero arrivare in ritardo.",
+    "openSettings": "Apri impostazioni",
+    "notNow": "Non ora",
+    "settingsHint": "Apre le impostazioni di Android per consentire le sveglie esatte"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Elimina attività ripetuta",
     "occurrenceMessage": "Questa attività si ripete. Cosa vuoi eliminare? «Tutta la serie» include l'attività originale.",

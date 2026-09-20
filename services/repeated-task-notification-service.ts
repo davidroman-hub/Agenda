@@ -5,6 +5,7 @@ import {
   planRepeatedNotifications,
   PlannedNotification,
 } from "@/utils/repeat-notification-plan";
+import { notificationTexts } from "@/utils/notification-texts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   cancelScheduledNotificationAsync,
@@ -13,6 +14,7 @@ import {
   scheduleNotificationAsync,
 } from "expo-notifications";
 import type { NotificationRequest } from "expo-notifications";
+import i18n from "i18next";
 import { AppState, Platform } from "react-native";
 
 // Marca de los avisos de tareas repetidas (los recordatorios normales llevan "task-reminder")
@@ -45,6 +47,11 @@ const isRepeatedRequest = (request: NotificationRequest) => {
 };
 
 const occurrenceKey = (taskId: string, date: string) => `${taskId}|${date}`;
+
+// El aviso lleva el título en el idioma en que se programó: si el idioma cambia, la firma
+// deja de coincidir y la sincronización lo sustituye por uno en el idioma nuevo
+const signatureOf = (item: PlannedNotification) =>
+  `${notificationTexts.language()}|${item.signature}`;
 
 // Los stores se cargan de forma asíncrona desde AsyncStorage. Sincronizar antes de que
 // terminen vería "ninguna tarea" y cancelaría todos los avisos.
@@ -142,7 +149,7 @@ export class RepeatedTaskNotificationService {
             : null;
         const wanted = key ? plannedByKey.get(key) : undefined;
 
-        if (key && wanted && !upToDate.has(key) && signature === wanted.signature) {
+        if (key && wanted && !upToDate.has(key) && signature === signatureOf(wanted)) {
           upToDate.add(key);
         } else {
           await this.cancel(request.identifier);
@@ -166,8 +173,8 @@ export class RepeatedTaskNotificationService {
     try {
       await scheduleNotificationAsync({
         content: {
-          title: `📅 Tarea Repetida: ${item.text}`,
-          body: "Tienes una tarea repetida pendiente",
+          title: notificationTexts.repeatedTaskTitle(item.text),
+          body: notificationTexts.repeatedTaskBody(),
           // Sin `taskId` a propósito: cancelTaskReminder(taskId), al editar la tarea original,
           // cancela todo lo que lleve ese campo, y estos avisos los gestiona esta clase
           data: {
@@ -175,7 +182,7 @@ export class RepeatedTaskNotificationService {
             isRepeatedTask: true,
             originalTaskId: item.originalTaskId,
             occurrenceDate: item.date,
-            signature: item.signature,
+            signature: signatureOf(item),
             repeatOption: item.repeatOption,
             startDate: item.startDate,
           },
@@ -282,6 +289,10 @@ export class RepeatedTaskNotificationService {
     // Al abrir la app
     void RepeatedTaskNotificationService.syncScheduledNotifications();
 
+    // Al cambiar de idioma (o cuando i18next termina de arrancar) hay que reescribir los textos
+    i18n.on("languageChanged", requestSync);
+    i18n.on("initialized", requestSync);
+
     const stopAgenda = useAgendaTasksStore.subscribe((state, previous) => {
       if (state.tasksByDate !== previous.tasksByDate) requestSync();
     });
@@ -301,6 +312,8 @@ export class RepeatedTaskNotificationService {
 
     return () => {
       clearTimeout(timer);
+      i18n.off("languageChanged", requestSync);
+      i18n.off("initialized", requestSync);
       stopAgenda();
       stopRepeating();
       appState.remove();

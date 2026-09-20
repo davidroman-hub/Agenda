@@ -489,7 +489,7 @@ CalendarModalProps) {
         if (repeatingTasks > 0) {
           dots.push({
             key: "repeating",
-            color: "#rgb(255, 215, 0)",
+            color: "rgb(255, 215, 0)",
             selectedDotColor: "white",
           });
         }
@@ -777,8 +777,8 @@ const styles = StyleSheet.create({
   },
   taskCardRepeating: {
     backgroundColor: "transparent",
-    borderLeftColor: "#rgb(255, 215, 0)",
-    borderColor: "#rgb(255, 215, 0, 0.1)",
+    borderLeftColor: "rgb(255, 215, 0)",
+    borderColor: "rgba(255, 215, 0, 0.1)",
   },
   taskCheckbox: {
     fontSize: 16,

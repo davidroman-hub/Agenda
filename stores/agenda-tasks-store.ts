@@ -1,6 +1,7 @@
 import { mmkvStorage } from "@/lib/mmkv";
 import useBookSettingsStore from "@/stores/boook-settings";
 import { computeLineStatus } from "@/utils/book-lines";
+import { notificationTexts } from "@/utils/notification-texts";
 import { notificationService } from "@/services/notifications/notification-service";
 import {
   migrateDateKey,
@@ -101,7 +102,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           const notificationId = await notificationService.scheduleTaskReminder(
             newTask.id,
             newTask.text,
-            `Tarea programada para: ${date}`,
+            notificationTexts.taskScheduledFor(date),
             reminderDate,
             date
           );
@@ -144,7 +145,7 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
             notificationId = await notificationService.scheduleTaskReminder(
               existingTask.id,
               updates.text || existingTask.text,
-              `Tarea programada para: ${date}`,
+              notificationTexts.taskScheduledFor(date),
               reminderDate,
               date
             );

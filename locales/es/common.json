@@ -204,6 +204,20 @@
       "sendByEmail": "Enviar por Email"
     }
   },
+  "notificationTexts": {
+    "channelName": "Recordatorios de tareas",
+    "taskReminderTitle": "📋 Recordatorio de tarea",
+    "taskScheduledFor": "Tarea programada para: {{date}}",
+    "repeatedTaskTitle": "📅 Tarea repetida: {{text}}",
+    "repeatedTaskBody": "Tienes una tarea repetida pendiente"
+  },
+  "exactAlarms": {
+    "title": "Recordatorios a la hora exacta",
+    "message": "Para que los recordatorios suenen a la hora exacta, activa «Alarmas y recordatorios» para esta app en los ajustes de Android. Si no, pueden llegar con retraso.",
+    "openSettings": "Abrir ajustes",
+    "notNow": "Ahora no",
+    "settingsHint": "Abre los ajustes de Android para permitir alarmas exactas"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Eliminar tarea repetida",
     "occurrenceMessage": "Esta tarea se repite. ¿Qué quieres eliminar? «Toda la serie» incluye la tarea original.",

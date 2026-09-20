@@ -208,6 +208,20 @@
       "sendByEmail": "Envoyer par Email"
     }
   },
+  "notificationTexts": {
+    "channelName": "Rappels de tâches",
+    "taskReminderTitle": "📋 Rappel de tâche",
+    "taskScheduledFor": "Tâche prévue pour : {{date}}",
+    "repeatedTaskTitle": "📅 Tâche récurrente : {{text}}",
+    "repeatedTaskBody": "Vous avez une tâche récurrente en attente"
+  },
+  "exactAlarms": {
+    "title": "Rappels à l'heure exacte",
+    "message": "Pour que les rappels sonnent à l'heure exacte, activez « Alarmes et rappels » pour cette application dans les paramètres Android. Sinon, ils peuvent arriver en retard.",
+    "openSettings": "Ouvrir les paramètres",
+    "notNow": "Pas maintenant",
+    "settingsHint": "Ouvre les paramètres Android pour autoriser les alarmes exactes"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Supprimer la tâche récurrente",
     "occurrenceMessage": "Cette tâche se répète. Que voulez-vous supprimer ? « Toute la série » inclut la tâche d'origine.",

@@ -88,8 +88,6 @@ export const useBookPageLogic = () => {
   };
 
   const goToPrevPage = () => {
-    if (currentPageIndex === 0) return;
-
     // Limpiar patrones huérfanos antes de cambiar de página
     cleanUpOrphanedPatterns();
 
@@ -105,7 +103,8 @@ export const useBookPageLogic = () => {
         setTransitionProgress((i / steps) * 100);
         if (i === Math.floor(steps / 2)) {
           // Cambiar contenido en la mitad de la animación
-          setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+          // Sin límite: también se puede ir a días anteriores a hoy (índices negativos)
+          setCurrentPageIndex((prev) => prev - 1);
         }
         if (i === steps) {
           // Terminar efecto
@@ -114,6 +113,15 @@ export const useBookPageLogic = () => {
         }
       }, (duration / steps) * i);
     }
+  };
+
+  // Salto directo a una página (sin la animación de pasar página), p. ej. al abrir una notificación
+  const goToPage = (pageIndex: number) => {
+    setCurrentPageIndex(pageIndex);
+  };
+
+  const goToToday = () => {
+    setCurrentPageIndex(0);
   };
 
   // Gesture handler para swipe que no interfiere con scroll vertical
@@ -176,6 +184,8 @@ export const useBookPageLogic = () => {
     transitionProgress,
     goToNextPage,
     goToPrevPage,
+    goToPage,
+    goToToday,
     panResponder,
     getTranslateX,
   };

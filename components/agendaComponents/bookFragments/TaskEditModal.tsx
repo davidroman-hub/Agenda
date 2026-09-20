@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { promptForExactAlarmsOnce } from "@/services/exact-alarm-service";
 import useThemeStore from "@/stores/theme-store";
 import React, { useState } from "react";
 import { Alert, Modal, TextInput, TouchableOpacity, View } from "react-native";
@@ -78,6 +79,8 @@ export default function TaskEditModal({
         reminderEnabled && reminderDate ? reminderDate.toISOString() : null;
       const finalRepeatOption = repeatEnabled ? repeatOption : "none";
       onSave(trimmedText, reminderString, finalRepeatOption);
+      // Un recordatorio solo suena a su hora si Android permite alarmas exactas; se le explica una vez
+      if (reminderString) promptForExactAlarmsOnce(tCommon);
       setTaskText("");
       setReminderDate(null);
       setReminderEnabled(false);

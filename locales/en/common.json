@@ -203,6 +203,20 @@
       "sendByEmail": "Send by Email"
     }
   },
+  "notificationTexts": {
+    "channelName": "Task reminders",
+    "taskReminderTitle": "📋 Task reminder",
+    "taskScheduledFor": "Task scheduled for: {{date}}",
+    "repeatedTaskTitle": "📅 Repeating task: {{text}}",
+    "repeatedTaskBody": "You have a repeating task pending"
+  },
+  "exactAlarms": {
+    "title": "Reminders at the exact time",
+    "message": "For reminders to go off at the exact time, turn on “Alarms & reminders” for this app in Android settings. Otherwise they may arrive late.",
+    "openSettings": "Open settings",
+    "notNow": "Not now",
+    "settingsHint": "Opens Android settings to allow exact alarms"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Delete repeating task",
     "occurrenceMessage": "This task repeats. What do you want to delete? \"The whole series\" includes the original task.",

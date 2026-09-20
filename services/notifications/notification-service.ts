@@ -1,3 +1,4 @@
+import { notificationTexts } from "@/utils/notification-texts";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
@@ -56,17 +57,35 @@ class NotificationService {
 
     // Configurar canal de notificaciones para Android
     if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("task-reminders", {
-        name: "Recordatorios de Tareas",
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#FF231F7C",
-        sound: "default",
-        enableVibrate: true,
-      });
+      await this.configureAndroidChannel();
     }
 
     return true;
+  }
+
+  // El canal se crea con el nombre en el idioma del momento (es lo que ve el usuario en los
+  // ajustes de Android); si cambia de idioma, refreshChannelName lo renombra
+  private async configureAndroidChannel() {
+    await Notifications.setNotificationChannelAsync("task-reminders", {
+      name: notificationTexts.channelName(),
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+      sound: "default",
+      enableVibrate: true,
+    });
+  }
+
+  /** Vuelve a poner el nombre del canal en el idioma actual (solo si el canal ya existe) */
+  async refreshChannelName() {
+    if (Platform.OS !== "android") return;
+
+    try {
+      const channel = await Notifications.getNotificationChannelAsync("task-reminders");
+      if (channel) await this.configureAndroidChannel();
+    } catch (error) {
+      console.error("Error al actualizar el nombre del canal:", error);
+    }
   }
 
   async scheduleTaskReminder(
@@ -89,7 +108,7 @@ class NotificationService {
 
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
-          title: "📋 Recordatorio de Tarea",
+          title: notificationTexts.taskReminderTitle(),
           body: `${taskTitle}\n${taskDescription}`,
           data: {
             taskId,

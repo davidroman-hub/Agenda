@@ -1,5 +1,7 @@
+import { handleNotificationResponse } from "@/services/notification-navigation";
 import { notificationService } from "@/services/notifications/notification-service";
 import * as Notifications from "expo-notifications";
+import i18n from "i18next";
 import { useEffect, useRef } from "react";
 
 export function useNotifications() {
@@ -19,17 +21,28 @@ export function useNotifications() {
         // Aquí puedes agregar lógica adicional como mostrar un toast
       });
 
-    // Listener para cuando el usuario toca una notificación
+    // Listener para cuando el usuario toca una notificación: lleva el libro al día de la tarea
     responseListener.current =
-      notificationService.addNotificationResponseListener((response) => {
-        console.log("Notificación tocada:", response);
-        const data = response.notification.request.content.data;
+      notificationService.addNotificationResponseListener(
+        handleNotificationResponse
+      );
 
-        // Aquí puedes agregar navegación o acciones específicas
-        if (data?.type === "task-reminder") {
-          // Ejemplo: navigation.navigate('TaskDetail', { taskId: data.taskId });
-        }
-      });
+    // Si la app se ha abierto tocando una notificación, ese toque ya ocurrió antes de que existiera
+    // el listener: se recupera aquí (si llega por las dos vías, se cuenta como uno)
+    try {
+      const launchResponse = Notifications.getLastNotificationResponse();
+      if (launchResponse) handleNotificationResponse(launchResponse);
+    } catch (error) {
+      console.warn("No se pudo leer la notificación que abrió la app:", error);
+    }
+
+    // El nombre del canal de Android va en el idioma del usuario; se actualiza si cambia
+    // (o cuando i18next termina de arrancar)
+    const refreshChannelName = () => {
+      void notificationService.refreshChannelName();
+    };
+    i18n.on("languageChanged", refreshChannelName);
+    i18n.on("initialized", refreshChannelName);
 
     return () => {
       // Limpiar listeners al desmontar
@@ -39,6 +52,8 @@ export function useNotifications() {
       if (responseListener.current) {
         responseListener.current.remove();
       }
+      i18n.off("languageChanged", refreshChannelName);
+      i18n.off("initialized", refreshChannelName);
     };
   }, []);
 

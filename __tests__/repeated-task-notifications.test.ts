@@ -1,3 +1,4 @@
+import i18n from "i18next";
 import { AppState } from "react-native";
 
 jest.mock("@react-native-async-storage/async-storage", () =>
@@ -29,6 +30,8 @@ jest.mock("expo-notifications", () => {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
+import enCommon from "../locales/en/common.json";
+import esCommon from "../locales/es/common.json";
 import { RepeatedTaskNotificationService as Service } from "../services/repeated-task-notification-service";
 import useAgendaTasksStore from "../stores/agenda-tasks-store";
 import useRepeatingTasksStore from "../stores/repeating-tasks-store";
@@ -518,6 +521,88 @@ describe("startAutoSync", () => {
     await jest.advanceTimersByTimeAsync(2000);
 
     expect(fireHours()).toEqual([10]);
+  });
+});
+
+describe("idioma de los avisos", () => {
+  beforeAll(async () => {
+    await i18n.init({
+      lng: "es",
+      fallbackLng: "en",
+      defaultNS: "common",
+      resources: { es: { common: esCommon }, en: { common: enCommon } },
+      interpolation: { escapeValue: false },
+    });
+  });
+  // El mock de React Native no devuelve una suscripción de AppState, y startAutoSync la usa
+  let addListener: jest.SpyInstance;
+  beforeEach(() => {
+    addListener = jest.spyOn(AppState, "addEventListener").mockImplementation((() => ({ remove: jest.fn() })) as any);
+  });
+  afterEach(async () => {
+    addListener.mockRestore();
+    await i18n.changeLanguage("es");
+  });
+
+  const titles = () => repeated().map((item) => item.content.title as string);
+
+  it("título y cuerpo salen en el idioma actual", async () => {
+    await Service.syncScheduledNotifications();
+
+    expect(titles()[0]).toBe("📅 Tarea repetida: Tomar vitaminas");
+    expect(repeated()[0].content.body).toBe("Tienes una tarea repetida pendiente");
+  });
+
+  it("los avisos ya programados se reescriben cuando el usuario cambia de idioma", async () => {
+    const stop = Service.startAutoSync();
+    await flush();
+    expect(titles().every((title) => title.startsWith("📅 Tarea repetida:"))).toBe(true);
+
+    await i18n.changeLanguage("en");
+    await jest.advanceTimersByTimeAsync(1000);
+
+    expect(repeated()).toHaveLength(14);
+    expect(titles().every((title) => title === "📅 Repeating task: Tomar vitaminas")).toBe(true);
+    expect(repeated()[0].content.body).toBe("You have a repeating task pending");
+    stop();
+  });
+
+  it("sin cambiar de idioma, sincronizar de nuevo no reescribe nada", async () => {
+    await Service.syncScheduledNotifications();
+    mocked.scheduleNotificationAsync.mockClear();
+    mocked.cancelScheduledNotificationAsync.mockClear();
+
+    await Service.syncScheduledNotifications();
+
+    expect(mocked.scheduleNotificationAsync).not.toHaveBeenCalled();
+    expect(mocked.cancelScheduledNotificationAsync).not.toHaveBeenCalled();
+  });
+
+  it("los avisos programados antes de existir el idioma en la firma se sustituyen", async () => {
+    // Uno como los que dejó la versión anterior: mismo día y texto, firma sin idioma
+    os.scheduled.push({
+      identifier: "sin-idioma",
+      content: { title: "📅 Tarea Repetida: Tomar vitaminas", data: { type: "repeated-task-reminder", originalTaskId: TASK_ID, occurrenceDate: "2026-09-05", signature: `Tomar vitaminas|${new Date(2026, 8, 5, 10, 0).getTime()}` } },
+      trigger: {},
+    });
+
+    await Service.syncScheduledNotifications();
+
+    expect(os.scheduled.map((item) => item.identifier)).not.toContain("sin-idioma");
+    expect(repeated()).toHaveLength(14);
+    expect(titles().every((title) => title.startsWith("📅 Tarea repetida:"))).toBe(true);
+  });
+
+  it("la unión de listeners no se queda colgada al parar (no reacciona al cambiar de idioma)", async () => {
+    const stop = Service.startAutoSync();
+    await flush();
+    stop();
+    mocked.getAllScheduledNotificationsAsync.mockClear();
+
+    await i18n.changeLanguage("en");
+    await jest.advanceTimersByTimeAsync(2000);
+
+    expect(mocked.getAllScheduledNotificationsAsync).not.toHaveBeenCalled();
   });
 });
 

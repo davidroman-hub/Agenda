@@ -1,5 +1,6 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import BugReportButton from "@/components/settings/BugReportButton";
+import ExactAlarmButton from "@/components/settings/ExactAlarmButton";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
 import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import VersionInfoButton from "@/components/settings/versionInfoButton";
@@ -63,6 +64,7 @@ export default function SettingsPage() {
         <ChangeThemeButton />
         <TaskFontSizeButton />
         <VersionInfoButton />
+        <ExactAlarmButton />
         <BugReportButton />
         {/* <DevToolsButton /> */}
         {/* <LogoutButton /> */}

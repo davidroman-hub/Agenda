@@ -2,11 +2,13 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import LinkableText from "@/components/ui/linkable-text";
 import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
+import useBookNavigationStore from "@/stores/book-navigation-store";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { dateToLocalDateString } from "@/utils/date-utils";
 import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import { getTotalLines } from "@/utils/book-lines";
+import { findTaskLine } from "@/utils/book-navigation";
 import { buildDayTasks } from "@/utils/day-tasks";
 import {
   promptDeleteRepeatingOccurrence,
@@ -200,6 +202,18 @@ export default function BookPage({
     setEditingTask(existingTask?.text || "");
     setModalVisible(true);
   };
+
+  // Si se ha pedido mostrar una tarea de este día (p. ej. al tocar una notificación), se abre.
+  // La petición se consume siempre que sea de esta página, se encuentre la tarea o no
+  const bookTarget = useBookNavigationStore((state) => state.target);
+  const clearBookTarget = useBookNavigationStore((state) => state.clearTarget);
+  React.useEffect(() => {
+    if (!bookTarget || bookTarget.date !== dateKey) return;
+
+    clearBookTarget();
+    const line = findTaskLine(bookTarget.taskId, allTasks, repeatedTasks, totalUserLines);
+    if (line !== null) handleLinePress(line);
+  });
 
   const handleSaveTask = async (
     text: string,

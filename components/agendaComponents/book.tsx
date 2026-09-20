@@ -8,14 +8,17 @@ import {
 import { useI18n } from "@/hooks/use-i18n";
 import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import { useWidgetSync } from "@/hooks/use-widget-sync";
+import useBookNavigationStore from "@/stores/book-navigation-store";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
+import { getPageIndexForDate } from "@/utils/book-navigation";
+import { getCurrentLocalDateString } from "@/utils/date-utils";
 import {
   debugCurrentDateIssues,
   testDateUtils,
   testMidnightTransition,
 } from "@/utils/date-testing";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   BookPagesContent,
@@ -75,9 +78,23 @@ export default function Book() {
     transitionProgress,
     goToNextPage,
     goToPrevPage,
+    goToPage,
+    goToToday,
     panResponder,
     getTranslateX,
   } = useBookPageLogic();
+
+  // Petición de mostrar un día concreto (p. ej. al tocar una notificación): se lleva el libro a la
+  // página de ese día; la propia página del día abre la tarea. Se atiende una sola vez por petición
+  const bookTarget = useBookNavigationStore((state) => state.target);
+  const handledTargetRef = useRef<number | null>(null);
+  React.useEffect(() => {
+    if (!bookTarget || handledTargetRef.current === bookTarget.requestedAt) return;
+    handledTargetRef.current = bookTarget.requestedAt;
+    goToPage(
+      getPageIndexForDate(getCurrentLocalDateString(), bookTarget.date, daysToShow)
+    );
+  });
 
   const { tCommon, tAgenda } = useI18n();
 
@@ -138,6 +155,7 @@ export default function Book() {
           dynamicStyles={dynamicStyles}
           goToPrevPage={goToPrevPage}
           goToNextPage={goToNextPage}
+          goToToday={goToToday}
         />
         <BookActions 
           scrollProgress={scrollProgress}
