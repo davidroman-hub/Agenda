@@ -1,19 +1,21 @@
 import { mmkvStorage } from "@/lib/mmkv";
-import useAgendaTasksStore from "@/stores/agenda-tasks-store";
+import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import WidgetStore from "@/stores/widget-store";
 import { getCurrentLocalDateString } from "@/utils/date-utils";
+import { buildDayTasks } from "@/utils/day-tasks";
 import { useCallback, useEffect } from "react";
 import { AppState, AppStateStatus } from "react-native";
 
 // Hook para sincronizar datos del widget
 export const useWidgetSync = () => {
-  const { tasksByDate } = useAgendaTasksStore();
-  const {
-    getAllRepeatingPatterns,
-    shouldTaskRepeatOnDate,
-    isRepeatingTaskCompleted,
-  } = useRepeatingTasksStore();
+  const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
+  const repeatingPatterns = useRepeatingTasksStore(
+    (state) => state.repeatingPatterns
+  );
+  const repeatingCompletions = useRepeatingTasksStore(
+    (state) => state.repeatingTaskCompletions
+  );
 
   // Función para crear datos estáticos de prueba
   const createStaticWidgetData = useCallback(async () => {
@@ -28,87 +30,29 @@ export const useWidgetSync = () => {
   const syncRealDataToWidget = useCallback(
     async (date: string) => {
       try {
-        // Obtener tareas normales del día
-        const dayTasks = tasksByDate[date] || {};
+        // Tareas del día (normales + instancias de tareas repetidas). La lógica vive en
+        // utils/day-tasks.ts y es la misma que usan el libro y el calendario
+        const { normalTasks, repeatedTasks } = buildDayTasks(
+          date,
+          tasksByDate,
+          repeatingPatterns,
+          repeatingCompletions
+        );
 
-        // Obtener todos los patrones de repetición
-        const allPatterns = getAllRepeatingPatterns();
-
-        // Crear array de tareas combinadas
-        const allTasks = [];
-
-        // 1. Agregar tareas normales del día
-        for (const [, task] of Object.entries(dayTasks)) {
-          if (task?.text) {
-            allTasks.push({
-              id: task.id,
+        const finalTasks = [
+          ...Object.values(normalTasks)
+            .filter((task): task is AgendaTask => Boolean(task?.text))
+            .map((task) => ({
               text: task.text,
               completed: task.completed,
               isRepeating: false,
-              originalTaskId: task.id,
-            });
-          }
-        }
-
-        // 2. Agregar tareas repetidas para este día
-        for (const pattern of allPatterns) {
-          if (!pattern.isActive) continue;
-
-          if (shouldTaskRepeatOnDate(pattern.originalTaskId, date)) {
-            // Buscar la tarea original en cualquier día
-            let originalTask = null;
-            for (const [, dayTasks] of Object.entries(tasksByDate)) {
-              for (const [, task] of Object.entries(dayTasks)) {
-                if (task && task.id === pattern.originalTaskId) {
-                  originalTask = task;
-                  break;
-                }
-              }
-              if (originalTask) break;
-            }
-
-            if (originalTask) {
-              const isCompleted = isRepeatingTaskCompleted(
-                pattern.originalTaskId,
-                date
-              );
-              allTasks.push({
-                id: `${originalTask.id}-repeat-${date}`,
-                text: originalTask.text,
-                completed: isCompleted,
-                isRepeating: true,
-                originalTaskId: originalTask.id,
-              });
-            }
-          }
-        }
-
-        // 3. Filtrar duplicados: si hay tarea normal Y repetida del mismo ID, quedarse solo con una
-        const taskMap = new Map();
-        for (const task of allTasks) {
-          const key = task.originalTaskId;
-
-          // Si ya existe una tarea con este originalTaskId
-          if (taskMap.has(key)) {
-            const existingTask = taskMap.get(key);
-
-            // Priorizar tarea normal sobre repetida
-            if (!existingTask.isRepeating && task.isRepeating) {
-              // Mantener la tarea normal, ignorar la repetida
-              continue;
-            } else if (existingTask.isRepeating && !task.isRepeating) {
-              // Reemplazar la repetida con la normal
-              taskMap.set(key, task);
-            }
-            // Si ambas son del mismo tipo, mantener la primera
-          } else {
-            // Nueva tarea, agregarla
-            taskMap.set(key, task);
-          }
-        }
-
-        // Convertir el mapa a array
-        const finalTasks = Array.from(taskMap.values());
+            })),
+          ...repeatedTasks.map((task) => ({
+            text: task.text,
+            completed: task.completed,
+            isRepeating: true,
+          })),
+        ];
 
         // Crear array de tareas pendientes para el widget
         const pendingTasksList = [];
@@ -140,12 +84,7 @@ export const useWidgetSync = () => {
         console.error("❌ Error sincronizando datos reales:", error);
       }
     },
-    [
-      tasksByDate,
-      getAllRepeatingPatterns,
-      shouldTaskRepeatOnDate,
-      isRepeatingTaskCompleted,
-    ]
+    [tasksByDate, repeatingPatterns, repeatingCompletions]
   );
 
   const forceWidgetUpdate = useCallback(async () => {
@@ -174,14 +113,6 @@ export const useWidgetSync = () => {
     await syncTodayWidget();
     await forceWidgetUpdate();
   }, [syncTodayWidget, forceWidgetUpdate]);
-
-  // Suscribirse a cambios en los stores de tareas repetidas para forzar actualizaciones
-  const repeatingPatterns = useRepeatingTasksStore(
-    (state) => state.repeatingPatterns
-  );
-  const repeatingCompletions = useRepeatingTasksStore(
-    (state) => state.repeatingTaskCompletions
-  );
 
   // Sincronizar automáticamente cuando cambien las tareas O al inicio
   useEffect(() => {

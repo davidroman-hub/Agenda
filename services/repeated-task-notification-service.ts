@@ -1,5 +1,7 @@
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import { dateToLocalDateString } from "@/utils/date-utils";
+import { shouldRepeatOnDate } from "@/utils/repeat-utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   cancelScheduledNotificationAsync,
@@ -26,7 +28,7 @@ export class RepeatedTaskNotificationService {
   static async performDailyNotificationCheck(): Promise<void> {
     try {
       const today = new Date();
-      const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+      const todayStr = dateToLocalDateString(today); // YYYY-MM-DD en hora local
 
       // Verificar si ya se hizo el check hoy
       const lastCheck = await this.getLastDailyCheck();
@@ -76,37 +78,12 @@ export class RepeatedTaskNotificationService {
    * Determina si una tarea repetida debería ejecutarse hoy
    */
   private static shouldTaskRepeatToday(pattern: any, today: Date): boolean {
-    const startDate = new Date(pattern.startDate);
-    const daysDiff = Math.floor(
-      (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    // Misma regla que usa el libro, para que las notificaciones coincidan con lo que se ve
+    return shouldRepeatOnDate(
+      pattern.repeatOption,
+      pattern.startDate,
+      dateToLocalDateString(today)
     );
-
-    // Solo repetir si la fecha de inicio ya pasó
-    if (daysDiff < 0) return false;
-
-    switch (pattern.repeatOption) {
-      case "daily":
-        return true; // Todos los días desde la fecha inicial
-
-      case "twice":
-        return daysDiff % 3 === 0; // Cada 2 días
-
-      case "three":
-        return daysDiff % 4 === 0; // Cada 3 días
-
-      case "five":
-        return daysDiff % 6 === 0; // Cada 5 días
-
-      case "weekly":
-        return daysDiff % 7 === 0; // Cada 7 días
-
-      case "monthly":
-        // Mismo día del mes
-        return today.getDate() === startDate.getDate();
-
-      default:
-        return false;
-    }
   }
 
   /**

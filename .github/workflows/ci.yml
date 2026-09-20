@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# Cancela la ejecución anterior de la misma rama cuando llega un push nuevo
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # expo-env.d.ts lo genera `expo start` y está en .gitignore, pero tsc lo necesita
+      # (sin él fallan tipos de estilos como position: "sticky")
+      - name: Generar expo-env.d.ts
+        run: printf '/// <reference types="expo/types" />\n' > expo-env.d.ts
+
+      - name: Tipos (tsc)
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Ejecuta Jest en varias zonas horarias (ver scripts/run-tests.js)
+      - name: Tests
+        run: npm test

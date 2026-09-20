@@ -2,6 +2,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useI18n } from "@/hooks/use-i18n";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
+import { createLocalDateFromString } from "@/utils/date-utils";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import { useMemo } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
@@ -161,7 +162,7 @@ export default function PastTasks() {
         {filteredTasks.map(({ date, tasks }) => (
           <ThemedView key={date} style={styles.dateSection}>
             <ThemedText style={styles.dateHeader}>
-              {formatDateWithI18n(new Date(date))}
+              {formatDateWithI18n(createLocalDateFromString(date))}
             </ThemedText>
 
             <ThemedView style={styles.tasksContainer}>

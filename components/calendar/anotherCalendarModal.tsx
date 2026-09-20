@@ -3,6 +3,11 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import {
+  createLocalDateFromString,
+  dateToLocalDateString,
+} from "@/utils/date-utils";
+import { buildDayTasks } from "@/utils/day-tasks";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useMemo, useState } from "react";
 import {
@@ -46,7 +51,6 @@ CalendarModalProps) {
   const [localRepeatingCompletions, setLocalRepeatingCompletions] = useState<
     Record<string, boolean>
   >({});
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // Estados para el modal de edición de tareas
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
@@ -94,14 +98,11 @@ CalendarModalProps) {
   const toggleTaskCompletion = useAgendaTasksStore(
     (state) => state.toggleTaskCompletion
   );
-  const getAllRepeatingPatterns = useRepeatingTasksStore(
-    (state) => state.getAllRepeatingPatterns
+  const repeatingPatterns = useRepeatingTasksStore(
+    (state) => state.repeatingPatterns
   );
-  const shouldTaskRepeatOnDate = useRepeatingTasksStore(
-    (state) => state.shouldTaskRepeatOnDate
-  );
-  const isRepeatingTaskCompleted = useRepeatingTasksStore(
-    (state) => state.isRepeatingTaskCompleted
+  const repeatingCompletions = useRepeatingTasksStore(
+    (state) => state.repeatingTaskCompletions
   );
   const addRepeatingPattern = useRepeatingTasksStore(
     (state) => state.addRepeatingPattern
@@ -113,88 +114,27 @@ CalendarModalProps) {
     (state) => state.toggleRepeatingTaskCompletion
   );
 
+  // El estado local (optimista) de completados tiene prioridad sobre el del store
+  const completions = React.useMemo(
+    () => ({ ...repeatingCompletions, ...localRepeatingCompletions }),
+    [repeatingCompletions, localRepeatingCompletions]
+  );
+
+  // Tareas de un día (normales + instancias de repetidas). La lógica vive en utils/day-tasks.ts
   const getTasksForDate = React.useCallback(
     (dateString: string) => {
-      const allExistingTasks = getAllTasks();
-      const allPatterns = getAllRepeatingPatterns();
-
-      // Comenzar con las tareas normales del día
-      const normalTasks = tasksByDate[dateString] || {};
-      const combined = { ...normalTasks };
-
-      // Crear un mapa de tareas originales y sus fechas de creación
-      const originalTasksMap = new Map();
-      for (const [dateKeyMap, dayTasksMap] of Object.entries(
-        allExistingTasks
-      )) {
-        for (const [line, task] of Object.entries(dayTasksMap)) {
-          if (task) {
-            originalTasksMap.set(task.id, {
-              task,
-              originalDate: dateKeyMap,
-              line: Number.parseInt(line, 10),
-            });
-          }
-        }
-      }
-
-      // Crear un Set de IDs de tareas que tienen patrones de repetición activos
-      const tasksWithActivePatterns = new Set(
-        allPatterns
-          .filter((pattern) => pattern.isActive)
-          .map((pattern) => pattern.originalTaskId)
+      const { normalTasks, repeatedTasks } = buildDayTasks(
+        dateString,
+        tasksByDate,
+        repeatingPatterns,
+        completions
       );
 
-      // Solo filtrar tareas que tienen patrones de repetición activos Y NO estamos en su día de creación
-      for (const [line, task] of Object.entries(combined)) {
-        if (task && tasksWithActivePatterns.has(task.id)) {
-          const originalInfo = originalTasksMap.get(task.id);
-          // Solo filtrar si NO estamos en el día de creación original
-          if (originalInfo && originalInfo.originalDate !== dateString) {
-            delete combined[Number.parseInt(line, 10)];
-          }
-        }
-      }
-
-      // Agregar tareas repetidas para esta fecha (solo si NO es el día original)
-      const repeatedTasks: any[] = [];
-      for (const pattern of allPatterns) {
-        if (!pattern.isActive) continue;
-
-        if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateString)) {
-          const originalInfo = originalTasksMap.get(pattern.originalTaskId);
-
-          // Solo agregar como tarea repetida si NO estamos en el día de creación original
-          if (originalInfo && originalInfo.originalDate !== dateString) {
-            repeatedTasks.push({
-              ...originalInfo.task,
-              id: `${originalInfo.task.id}-repeat-${dateString}`,
-              completed:
-                localRepeatingCompletions[
-                  `${originalInfo.task.id}-${dateString}`
-                ] ?? isRepeatingTaskCompleted(originalInfo.task.id, dateString),
-              isRepeatingTask: true,
-              repeatingTaskId: originalInfo.task.id,
-              repeatingPatternId: pattern.id,
-            });
-          }
-        }
-      }
-
-      // Retornar todas las tareas (normales + repetidas)
-      return [...Object.values(combined), ...repeatedTasks].filter(
+      return [...Object.values(normalTasks), ...repeatedTasks].filter(
         (task) => task !== null
       );
     },
-    [
-      tasksByDate,
-      getAllTasks,
-      getAllRepeatingPatterns,
-      shouldTaskRepeatOnDate,
-      isRepeatingTaskCompleted,
-      localRepeatingCompletions,
-      refreshKey,
-    ]
+    [tasksByDate, repeatingPatterns, completions]
   );
 
   const backgroundColor = useThemeColor(
@@ -246,12 +186,6 @@ CalendarModalProps) {
       setLocalRepeatingCompletions({});
     }
   }, [showDayDetail]);
-
-  // Efecto para forzar actualización cuando cambian las tareas de la fecha seleccionada
-  React.useEffect(() => {
-    // Forzar re-render cuando cambien las tareas del día seleccionado
-    setRefreshKey((prev) => prev + 1);
-  }, [tasksByDate, selected]);
 
   const handleDayPress = (day: any) => {
     setSelected(day.dateString);
@@ -343,8 +277,6 @@ CalendarModalProps) {
         }
       }
 
-      // Refrescar datos
-      setRefreshKey((prev) => prev + 1);
       setShowTaskEditModal(false);
       setSelectedTask(null);
       setSelectedTaskLine(null);
@@ -393,8 +325,6 @@ CalendarModalProps) {
         }
       }
 
-      // Refrescar datos
-      setRefreshKey((prev) => prev + 1);
       setShowTaskEditModal(false);
       setSelectedTask(null);
       setSelectedTaskLine(null);
@@ -414,8 +344,6 @@ CalendarModalProps) {
         [`${selectedTask.repeatingTaskId}-${dateKey}`]: !selectedTask.completed,
       }));
 
-      // Refrescar la vista
-      setRefreshKey((prev) => prev + 1);
     } else {
       // Para tareas normales, buscar la línea real de la tarea
       const dayTasks = tasksByDate[dateKey] || {};
@@ -435,8 +363,6 @@ CalendarModalProps) {
         toggleTaskCompletion(dateKey, lineNumber);
       }
     }
-
-    setRefreshKey((prev) => prev + 1);
   };
 
   // Función para toggle completion desde la vista de calendario
@@ -475,7 +401,6 @@ CalendarModalProps) {
         }
       }
     }
-    setRefreshKey((prev) => prev + 1);
   };
 
   // Función para obtener el texto "sin tareas" según el idioma
@@ -504,7 +429,7 @@ CalendarModalProps) {
     for (let i = -30; i <= 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-      allDates.add(date.toISOString().split("T")[0]);
+      allDates.add(dateToLocalDateString(date));
     }
 
     for (const date of allDates) {
@@ -617,7 +542,7 @@ CalendarModalProps) {
         {/* Preview de tareas */}
         <ThemedView style={styles.taskPreview}>
           <ThemedText style={styles.previewTitle}>
-            {formatDateWithI18n(new Date(selected))}
+            {formatDateWithI18n(createLocalDateFromString(selected))}
           </ThemedText>
 
           {/* Botón QuickAdd debajo de la fecha */}
@@ -638,8 +563,6 @@ CalendarModalProps) {
                 setTimeout(() => {
                   // Actualizar el estado de líneas para la fecha seleccionada
                   updateLinesStatus(selected);
-                  // Forzar re-render del callback
-                  setRefreshKey((prev) => prev + 1);
                 }, 100);
               }}
             />

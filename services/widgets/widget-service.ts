@@ -3,6 +3,8 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import useAgendaTasksStore, { AgendaTask } from '../../stores/agenda-tasks-store';
 import useRepeatingTasksStore from '../../stores/repeating-tasks-store';
+import { dateToLocalDateString } from '../../utils/date-utils';
+import { buildDayTasks } from '../../utils/day-tasks';
 
 export interface WidgetData {
   currentDate: string;
@@ -32,89 +34,29 @@ class WidgetService {
    */
   public getCurrentDayData(): WidgetData {
     const today = new Date();
-    const dateString = today.toISOString().split('T')[0];
+    const dateString = dateToLocalDateString(today);
     
     console.log('🔍 Widget Service - Obteniendo datos para:', dateString);
     
-    // Get tasks for today from the store
-    const { tasksByDate, getAllTasks } = useAgendaTasksStore.getState();
-    const dayTasks = tasksByDate[dateString] || {};
-    
-    console.log('📋 Tareas normales del día:', Object.keys(dayTasks).length);
-    
-    // Get repeating tasks data
-    const { getAllRepeatingPatterns, shouldTaskRepeatOnDate, isRepeatingTaskCompleted } = useRepeatingTasksStore.getState();
-    const allPatterns = getAllRepeatingPatterns();
-    const allExistingTasks = getAllTasks();
-    
-    console.log('🔄 Patrones de repetición encontrados:', allPatterns.length);
-    console.log('🔄 Patrones activos:', allPatterns.filter(p => p.isActive).length);
-    
-    // Comenzar con las tareas normales del día
-    const normalTasks = { ...dayTasks };
-    
-    // Crear un mapa de tareas originales y sus fechas de creación
-    const originalTasksMap = new Map();
-    for (const [dateKey, dayTasks] of Object.entries(allExistingTasks)) {
-      for (const [line, task] of Object.entries(dayTasks)) {
-        if (task) {
-          originalTasksMap.set(task.id, {
-            task,
-            originalDate: dateKey,
-            line: Number.parseInt(line, 10),
-          });
-        }
-      }
-    }
-    
-    // Solo filtrar tareas originales si NO estamos en su día de creación
-    const tasksWithActivePatterns = new Set(
-      allPatterns
-        .filter(pattern => pattern.isActive)
-        .map(pattern => pattern.originalTaskId)
+    // Reconstruir las tareas de hoy (normales + instancias de tareas repetidas)
+    const { tasksByDate } = useAgendaTasksStore.getState();
+    const { repeatingPatterns, repeatingTaskCompletions } = useRepeatingTasksStore.getState();
+
+    const { normalTasks, repeatedTasks } = buildDayTasks(
+      dateString,
+      tasksByDate,
+      repeatingPatterns,
+      repeatingTaskCompletions
     );
-    
-    for (const [line, task] of Object.entries(normalTasks)) {
-      if (task && tasksWithActivePatterns.has(task.id)) {
-        const originalInfo = originalTasksMap.get(task.id);
-        // Solo filtrar si NO estamos en el día de creación original
-        if (originalInfo && originalInfo.originalDate !== dateString) {
-          delete normalTasks[Number.parseInt(line, 10)];
-        }
-      }
-    }
-    
-    // Generar tareas repetidas para hoy (solo si NO es el día original)
-    const repeatingTasks: AgendaTask[] = [];
-    for (const pattern of allPatterns) {
-      if (!pattern.isActive) continue;
-      
-      if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateString)) {
-        const originalInfo = originalTasksMap.get(pattern.originalTaskId);
-        
-        // Solo agregar como tarea repetida si NO estamos en el día de creación original
-        if (originalInfo && originalInfo.originalDate !== dateString) {
-          repeatingTasks.push({
-            ...originalInfo.task,
-            id: `${originalInfo.task.id}-repeat-${dateString}`,
-            completed: isRepeatingTaskCompleted(originalInfo.task.id, dateString),
-            isRepeatingTask: true,
-            repeatingTaskId: originalInfo.task.id,
-            repeatingPatternId: pattern.id,
-          });
-        }
-      }
-    }
-    
-    console.log('🔄 Tareas repetidas generadas:', repeatingTasks.length);
-    
+
+    console.log('📋 Tareas normales del día:', Object.keys(normalTasks).length);
+    console.log('🔄 Tareas repetidas generadas:', repeatedTasks.length);
+
     // Convertir tareas normales a array
     const normalTasksArray = Object.values(normalTasks).filter((task): task is AgendaTask => task !== null);
-    
-    console.log('📋 Tareas normales finales:', normalTasksArray.length);
-    
+
     // Combinar tareas normales y repetidas
-    const todayTasksArray = [...normalTasksArray, ...repeatingTasks];
+    const todayTasksArray = [...normalTasksArray, ...repeatedTasks];
     
     console.log('📊 Total de tareas para widget:', todayTasksArray.length);
     

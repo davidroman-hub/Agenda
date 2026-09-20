@@ -8,7 +8,8 @@
     "close": "Cerrar",
     "ok": "OK",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "copy": "Copiar"
   },
 
   "tabs": {
@@ -180,6 +181,34 @@
       "large": "Grande",
       "veryLarge": "Muy grande",
       "extraLarge": "Extra grande"
+    },
+    "privacyPolicy": "Política de Privacidad",
+    "bugReport": {
+      "reportBug": "Reportar un Error",
+      "description": "¿Encontraste un problema? Ayúdanos a mejorar la app describiendo qué salió mal. ¡Tu feedback es valioso!",
+      "emailLabel": "Tu Email",
+      "optional": "opcional",
+      "emailPlaceholder": "tu.email@ejemplo.com",
+      "bugDescription": "Descripción del Error",
+      "bugPlaceholder": "Por favor describe el error que encontraste:\n\n• ¿Qué estabas haciendo cuando pasó?\n• ¿Qué esperabas que pasara?\n• ¿Qué pasó realmente?\n• Cualquier otro detalle relevante...",
+      "sendReport": "Enviar Reporte",
+      "success": "¡Gracias!",
+      "emailOpened": "Tu app de email debería abrirse ahora. Por favor envía el email para completar el reporte del error.",
+      "error": "Error",
+      "descriptionRequired": "Por favor describe el error que encontraste.",
+      "sendError": "Hubo un error enviando el reporte del error. Por favor intenta de nuevo.",
+      "noEmailClient": "No hay App de Email",
+      "manualContact": "No se encontró una app de email. Por favor contáctanos manualmente en:",
+      "sending": "Enviando...",
+      "reportSent": "Tu reporte del error ha sido enviado. ¡Gracias por ayudarnos a mejorar la app!",
+      "sendByEmail": "Enviar por Email"
     }
+  },
+  "versionUpdate": {
+    "title": "🎉 Nueva versión instalada",
+    "message": "Has actualizado la app de la versión {{previous}} a la {{current}}.\n\n✨ ¡Disfruta de las novedades y mejoras!",
+    "viewChanges": "Ver cambios",
+    "gotIt": "Entendido",
+    "changesTitle": "📋 Cambios en la versión {{version}}"
   }
 }

@@ -1,4 +1,5 @@
 import { AgendaTask, DayTasks } from "@/stores/agenda-tasks-store";
+import { createLocalDateFromString } from "@/utils/date-utils";
 import { FilteredTask, FilterStats, TaskStatusFilter } from "./usePastTasksFilters";
 
 // Función auxiliar para procesar tareas de una fecha
@@ -30,9 +31,9 @@ export const getFilteredPastTasks = (
   const pastTasksData: FilteredTask[] = [];
 
   for (const [date, dayTasks] of Object.entries(tasksByDate)) {
-    const taskDate = new Date(date);
-    taskDate.setHours(0, 0, 0, 0);
-    
+    // Parseo local: new Date("YYYY-MM-DD") se interpretaría como UTC y desplazaría el día
+    const taskDate = createLocalDateFromString(date);
+
     // Solo incluir fechas anteriores a hoy que cumplan con los filtros
     if (taskDate < today && dateMatchesFilters(taskDate)) {
       const allTasksForDate = processTasksForDate(dayTasks);
@@ -88,9 +89,8 @@ export const calculateTotalTasksAllTime = (tasksByDate: Record<string, DayTasks>
   
   let total = 0;
   for (const [date, dayTasks] of Object.entries(tasksByDate)) {
-    const taskDate = new Date(date);
-    taskDate.setHours(0, 0, 0, 0);
-    
+    const taskDate = createLocalDateFromString(date);
+
     if (taskDate < today) {
       for (const task of Object.values(dayTasks)) {
         if (task) total++;

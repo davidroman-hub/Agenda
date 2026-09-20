@@ -8,7 +8,8 @@
     "close": "Close",
     "ok": "OK",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "copy": "Copy"
   },
 
   "tabs": {
@@ -179,6 +180,34 @@
       "large": "Large",
       "veryLarge": "Very Large",
       "extraLarge": "Extra Large"
+    },
+    "privacyPolicy": "Privacy Policy",
+    "bugReport": {
+      "reportBug": "Report a Bug",
+      "description": "Found a problem? Help us improve the app by describing what went wrong. Your feedback is valuable!",
+      "emailLabel": "Your Email",
+      "optional": "optional",
+      "emailPlaceholder": "your.email@example.com",
+      "bugDescription": "Bug Description",
+      "bugPlaceholder": "Please describe the bug you encountered:\n\n• What were you doing when it happened?\n• What did you expect to happen?\n• What actually happened?\n• Any other relevant details...",
+      "sendReport": "Send Report",
+      "success": "Thank you!",
+      "emailOpened": "Your email app should open now. Please send the email to complete the bug report.",
+      "error": "Error",
+      "descriptionRequired": "Please describe the bug you encountered.",
+      "sendError": "There was an error sending the bug report. Please try again.",
+      "noEmailClient": "No Email App",
+      "manualContact": "No email app found. Please contact us manually at:",
+      "sending": "Sending...",
+      "reportSent": "Your bug report has been sent. Thanks for helping us improve the app!",
+      "sendByEmail": "Send by Email"
     }
+  },
+  "versionUpdate": {
+    "title": "🎉 New version installed",
+    "message": "You have updated the app from version {{previous}} to {{current}}.\n\n✨ Enjoy the new features and improvements!",
+    "viewChanges": "View changes",
+    "gotIt": "Got it",
+    "changesTitle": "📋 What's new in version {{version}}"
   }
 }

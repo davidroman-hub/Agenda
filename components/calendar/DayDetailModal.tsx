@@ -1,6 +1,8 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import { createLocalDateFromString } from "@/utils/date-utils";
+import { buildDayTasks } from "@/utils/day-tasks";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useState } from "react";
 import {
@@ -45,92 +47,34 @@ export default function DayDetailModal({
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
   const updateTask = useAgendaTasksStore((state) => state.updateTask);
   const deleteTask = useAgendaTasksStore((state) => state.deleteTask);
-  const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
 
-  const getAllRepeatingPatterns = useRepeatingTasksStore(
-    (state) => state.getAllRepeatingPatterns
+  const repeatingPatterns = useRepeatingTasksStore(
+    (state) => state.repeatingPatterns
   );
-  const shouldTaskRepeatOnDate = useRepeatingTasksStore(
-    (state) => state.shouldTaskRepeatOnDate
-  );
-  const isRepeatingTaskCompleted = useRepeatingTasksStore(
-    (state) => state.isRepeatingTaskCompleted
+  const repeatingCompletions = useRepeatingTasksStore(
+    (state) => state.repeatingTaskCompletions
   );
   const toggleRepeatingTaskCompletion = useRepeatingTasksStore(
     (state) => state.toggleRepeatingTaskCompletion
   );
 
-  // Estado para forzar re-renders
-  // const [forceUpdate, setForceUpdate] = useState(0);
+  // El estado local (optimista) de completados tiene prioridad sobre el del store
+  const completions = React.useMemo(
+    () => ({ ...repeatingCompletions, ...localRepeatingCompletions }),
+    [repeatingCompletions, localRepeatingCompletions]
+  );
 
-  // Función para calcular las tareas del día
-  const calculateDayTasks = React.useCallback(() => {
-    const allExistingTasks = getAllTasks();
-    const allPatterns = getAllRepeatingPatterns();
-
-    // Comenzar con las tareas normales del día
-    const normalTasks = tasksByDate[selectedDate] || {};
-    const combined = { ...normalTasks };
-
-    // Crear un mapa de tareas originales y sus fechas de creación
-    const originalTasksMap = new Map();
-    for (const [dateKey, dayTasks] of Object.entries(allExistingTasks)) {
-      for (const [line, task] of Object.entries(dayTasks)) {
-        if (task) {
-          originalTasksMap.set(task.id, {
-            task,
-            originalDate: dateKey,
-            line: Number.parseInt(line, 10),
-          });
-        }
-      }
-    }
-
-    // Solo filtrar tareas originales si NO estamos en su día de creación
-    const tasksWithActivePatterns = new Set(
-      allPatterns
-        .filter((pattern) => pattern.isActive)
-        .map((pattern) => pattern.originalTaskId)
+  // Tareas del día (normales + instancias de repetidas). La lógica vive en utils/day-tasks.ts
+  const dayTasks = React.useMemo(() => {
+    const { normalTasks, repeatedTasks } = buildDayTasks(
+      selectedDate,
+      tasksByDate,
+      repeatingPatterns,
+      completions
     );
 
-    for (const [line, task] of Object.entries(combined)) {
-      if (task && tasksWithActivePatterns.has(task.id)) {
-        const originalInfo = originalTasksMap.get(task.id);
-        // Solo filtrar si NO estamos en el día de creación original
-        if (originalInfo && originalInfo.originalDate !== selectedDate) {
-          delete combined[Number.parseInt(line, 10)];
-        }
-      }
-    }
-
-    // Agregar tareas repetidas para esta fecha (solo si NO es el día original)
-    const repeatedTasks: any[] = [];
-    for (const pattern of allPatterns) {
-      if (!pattern.isActive) continue;
-
-      if (shouldTaskRepeatOnDate(pattern.originalTaskId, selectedDate)) {
-        const originalInfo = originalTasksMap.get(pattern.originalTaskId);
-
-        // Solo agregar como tarea repetida si NO estamos en el día de creación original
-        if (originalInfo && originalInfo.originalDate !== selectedDate) {
-          repeatedTasks.push({
-            ...originalInfo.task,
-            id: `${originalInfo.task.id}-repeat-${selectedDate}`,
-            completed:
-              localRepeatingCompletions[
-                `${originalInfo.task.id}-${selectedDate}`
-              ] ?? isRepeatingTaskCompleted(originalInfo.task.id, selectedDate),
-            isRepeatingTask: true,
-            repeatingTaskId: originalInfo.task.id,
-            repeatingPatternId: pattern.id,
-            line: -1, // Las tareas repetidas no tienen línea específica
-          });
-        }
-      }
-    }
-
-    // Convertir tareas normales a array con información de línea
-    const normalTasksArray = Object.entries(combined)
+    // Tareas normales con su número de línea
+    const normalTasksArray = Object.entries(normalTasks)
       .filter(([_, task]) => task !== null)
       .map(([line, task]) => ({
         ...task,
@@ -138,20 +82,12 @@ export default function DayDetailModal({
         isRepeatingTask: false,
       }));
 
-    // Retornar todas las tareas (normales + repetidas)
-    return [...normalTasksArray, ...repeatedTasks];
-  }, [
-    tasksByDate,
-    selectedDate,
-    getAllTasks,
-    getAllRepeatingPatterns,
-    shouldTaskRepeatOnDate,
-    isRepeatingTaskCompleted,
-    localRepeatingCompletions,
-  ]);
-
-  // Calcular las tareas usando la función
-  const dayTasks = calculateDayTasks();
+    // Las tareas repetidas no tienen línea específica
+    return [
+      ...normalTasksArray,
+      ...repeatedTasks.map((task) => ({ ...task, line: -1 })),
+    ];
+  }, [selectedDate, tasksByDate, repeatingPatterns, completions]);
 
   // Efecto para forzar re-render cuando cambien las tareas repetidas
   React.useEffect(() => {
@@ -246,7 +182,7 @@ export default function DayDetailModal({
         {/* Header */}
         <ThemedView style={styles.header}>
           <ThemedText style={[styles.title, { color: textColor }]}>
-            📅 {formatDateWithI18n(new Date(selectedDate))}
+            📅 {formatDateWithI18n(createLocalDateFromString(selectedDate))}
           </ThemedText>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="times" size={20} color={textColor} />

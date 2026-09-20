@@ -1,3 +1,4 @@
+import { getCurrentLocalDateString } from "@/utils/date-utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NativeModules } from "react-native";
 
@@ -83,7 +84,7 @@ class WidgetStore {
       tasks: [], // Sin tareas pendientes (datos estáticos)
       totalTasks: 0, // Sin tareas totales
       completedTasks: 0, // Sin tareas completadas
-      date: new Date().toISOString().split("T")[0], // Fecha actual
+      date: getCurrentLocalDateString(), // Fecha actual (local)
       timestamp: Date.now(),
     };
 

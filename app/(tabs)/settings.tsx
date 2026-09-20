@@ -1,4 +1,5 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
+import BugReportButton from "@/components/settings/BugReportButton";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
 import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import VersionInfoButton from "@/components/settings/versionInfoButton";
@@ -20,6 +21,11 @@ const versionJSON = pjson.expo.version;
 
 const handleDavidRomanPress = () => {
   Linking.openURL("https://aulaconnect.davidroman-hub.deno.net/work-with-me");
+};
+
+const handlePrivacyPolicyPress = () => {
+  // Temporary link - replace with your hosted privacy policy URL
+  Linking.openURL("https://davidroman-hub.github.io/justagenda-privacy-policy");
 };
 
 export default function SettingsPage() {
@@ -57,6 +63,7 @@ export default function SettingsPage() {
         <ChangeThemeButton />
         <TaskFontSizeButton />
         <VersionInfoButton />
+        <BugReportButton />
         {/* <DevToolsButton /> */}
         {/* <LogoutButton /> */}
       </ThemedView>
@@ -79,6 +86,23 @@ export default function SettingsPage() {
         onPress={handleDavidRomanPress}
       >
         <ThemedText style={dynamicStyles.link}>David Roman</ThemedText>
+      </TouchableOpacity>
+
+      {/* Privacy Policy Link */}
+      <TouchableOpacity
+        style={{ 
+          justifyContent: "center", 
+          alignItems: "center", 
+          padding: 15,
+          marginTop: 20,
+          borderTopWidth: 1,
+          borderTopColor: '#E0E0E0'
+        }}
+        onPress={handlePrivacyPolicyPress}
+      >
+        <ThemedText style={[dynamicStyles.link, { fontSize: 14 }]}>
+          {tCommon("settings.privacyPolicy")}
+        </ThemedText>
       </TouchableOpacity>
       
     </ParallaxScrollView>

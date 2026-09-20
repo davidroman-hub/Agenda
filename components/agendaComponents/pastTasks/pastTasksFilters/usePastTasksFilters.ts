@@ -1,4 +1,5 @@
 import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
+import { createLocalDateFromString } from "@/utils/date-utils";
 import { useCallback, useMemo, useState } from "react";
 
 export type TaskStatusFilter = 'all' | 'completed' | 'pending';
@@ -31,9 +32,9 @@ export const usePastTasksFilters = () => {
     const years = new Set<number>();
     
     for (const date of Object.keys(tasksByDate)) {
-      const taskDate = new Date(date);
-      taskDate.setHours(0, 0, 0, 0);
-      
+      // Parseo local: new Date("YYYY-MM-DD") se interpretaría como UTC y desplazaría el día
+      const taskDate = createLocalDateFromString(date);
+
       if (taskDate < today) {
         years.add(taskDate.getFullYear());
       }
@@ -52,9 +53,8 @@ export const usePastTasksFilters = () => {
     const months = new Set<number>();
     
     for (const date of Object.keys(tasksByDate)) {
-      const taskDate = new Date(date);
-      taskDate.setHours(0, 0, 0, 0);
-      
+      const taskDate = createLocalDateFromString(date);
+
       if (taskDate < today && taskDate.getFullYear() === selectedYear) {
         months.add(taskDate.getMonth());
       }

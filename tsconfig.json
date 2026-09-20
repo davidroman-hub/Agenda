@@ -13,5 +13,11 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  // widgets/ es la entrada JS de un widget de iOS que hoy no está conectado a ningún
+  // plugin, y AgendaWidget.tsx está vacío; si se recupera el widget, quitar esta exclusión.
+  "exclude": [
+    "node_modules",
+    "widgets"
   ]
 }

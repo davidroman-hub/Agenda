@@ -1,5 +1,36 @@
 # Changelog
 
+**Sin publicar**
+- 🐛 FIX Fechas calculadas en UTC en vez de hora local: el widget mostraba las tareas de mañana por la tarde-noche, el chequeo diario de notificaciones repetidas se saltaba la mañana siguiente, y los marcadores del calendario, las cabeceras y los filtros de "Tareas pasadas" se desplazaban un día según la zona horaria
+- 🐛 FIX "Cada 2/3/5 días" daba días distintos en el libro y en las notificaciones; ahora hay una única regla en `utils/repeat-utils.ts`
+- 🐛 FIX Repetición mensual desde el día 1 no aparecía algunos meses en zonas UTC-
+- 🐛 FIX El aviso "nueva versión instalada" nunca se mostraba (la versión estaba fija en 1.4.0). Ahora usa la de app.json, está traducido a los 4 idiomas y "Ver cambios" enseña los cambios reales de esa versión; una instalación nueva ya no recibe un aviso falso de actualización
+- 🔧 IMPROVE La lógica de "qué tareas hay en un día" (incluidas las instancias de tareas repetidas) vive en un único sitio, `utils/day-tasks.ts`, y la usan el libro, el calendario, el detalle del día y el widget; se eliminaron los parches de refresco (`forceRefresh`, `refreshKey`)
+- 🔧 IMPROVE Permisos de Android reducidos a los necesarios (se bloquean `SYSTEM_ALERT_WINDOW`, almacenamiento externo, calendario y política de notificaciones) y eliminada la dependencia `expo-calendar`, que no se usaba
+- 🔧 IMPROVE Política de privacidad reescrita para reflejar lo que la app hace realmente (incluido el envío opcional de reportes de bug)
+- 🔧 IMPROVE Versión alineada en app.json, package.json y build.gradle (`npm run version:sync`)
+- ✨ ADD Tests con Jest (fechas, repeticiones, tareas del día, configuración nativa) y CI en GitHub Actions
+
+**v1.9.0** - 2025-11-11
+- ✨ ADD Crear tareas directamente desde el calendario (QuickAddTaskButton)
+- ✨ ADD Las líneas extra cuentan como líneas disponibles (total = líneas por página + líneas extra)
+- ✨ ADD Botón flotante que se reduce y se oculta al hacer scroll, y cierra el menú automáticamente
+- 🔧 IMPROVE Las tareas repetidas originales conservan su estado de completado en su día de creación
+- 🔧 IMPROVE Mejor generación y filtrado de tareas virtuales, y menos re-renders
+- 🐛 FIX Modificar el patrón de repetición duplicaba tareas virtuales; ahora actualiza el patrón existente
+- 🐛 FIX Tareas creadas desde el calendario no aparecían en el libro
+- 🐛 FIX Las tareas se guardaban un día antes de la fecha seleccionada (conversión de fecha local)
+
+**v1.8.1** - 2025-11-03
+- ✨ ADD Widget de Android con soporte para 5 idiomas, detección automática del idioma y fechas con formato regional
+- 🐛 FIX El widget no mostraba tareas repetidas cuando no había tareas normales
+- 🔧 IMPROVE El widget usa la misma lógica de tareas que el calendario y evita duplicados
+
+**v1.8.0** - 2025-11-03
+- ✨ ADD App en 4 idiomas (español, inglés, italiano y francés) con detección automática del idioma del dispositivo
+- ✨ ADD Calendario localizado (nombres de meses y días) e i18next con namespaces
+- 🔧 IMPROVE En las tareas repetidas, la original se queda en su línea de creación y no se borra por accidente
+
 **v1.7.0** - 2025-10-29
 - ✨ ADD Enlaces clickeables en tareas: URLs automáticamente detectadas y convertidas en hipervínculos
 - ✨ ADD Soporte completo para múltiples formatos de URL (https://, http://, www., dominios)

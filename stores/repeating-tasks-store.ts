@@ -1,5 +1,6 @@
 import { RepeatOption } from "@/components/agendaComponents/bookFragments/TaskRepeat";
 import { mmkvStorage } from "@/lib/mmkv";
+import { shouldRepeatOnDate } from "@/utils/repeat-utils";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -128,44 +129,11 @@ const useRepeatingTasksStore = create<RepeatingTasksState>()(
 
         if (!pattern?.isActive) return false;
 
-        const targetDateObj = new Date(targetDate);
-        const startDateObj = new Date(pattern.startDate);
-
-        // La tarea debe comenzar en o antes de la fecha objetivo
-        if (startDateObj > targetDateObj) return false;
-
-        // Calcular si la tarea debe aparecer en esta fecha según su patrón de repetición
-        const daysDifference = Math.floor(
-          (targetDateObj.getTime() - startDateObj.getTime()) /
-            (1000 * 60 * 60 * 24)
+        return shouldRepeatOnDate(
+          pattern.repeatOption,
+          pattern.startDate,
+          targetDate
         );
-
-        switch (pattern.repeatOption) {
-          case "daily":
-            return daysDifference >= 0; // Todos los días desde la fecha de inicio
-
-          case "twice":
-            return daysDifference >= 0 && daysDifference % 2 === 0; // Cada 2 días
-
-          case "three":
-            return daysDifference >= 0 && daysDifference % 3 === 0; // Cada 3 días
-
-          case "five":
-            return daysDifference >= 0 && daysDifference % 5 === 0; // Cada 5 días
-
-          case "weekly":
-            return daysDifference >= 0 && daysDifference % 7 === 0; // Cada 7 días
-
-          case "monthly":
-            // Mismo día del mes
-            return (
-              daysDifference >= 0 &&
-              startDateObj.getDate() === targetDateObj.getDate()
-            );
-
-          default:
-            return false;
-        }
       },
 
       getAllRepeatingPatterns: () => {

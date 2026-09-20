@@ -83,13 +83,16 @@ export function migrateDateKey(oldDateKey: string): string {
   }
   
   // Si es un ISO string, convertir a fecha local
-  try {
-    const date = new Date(oldDateKey);
-    return dateToLocalDateString(date);
-  } catch {
-    // Si no se puede parsear, devolver tal como está
+  const date = new Date(oldDateKey);
+
+  // new Date() no lanza con texto inválido: devuelve una fecha con NaN
+  // (y dateToLocalDateString daría "NaN-NaN-NaN"). Si no se puede parsear,
+  // devolver tal como está
+  if (Number.isNaN(date.getTime())) {
     return oldDateKey;
   }
+
+  return dateToLocalDateString(date);
 }
 
 /**

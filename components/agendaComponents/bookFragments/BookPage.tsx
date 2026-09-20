@@ -5,6 +5,7 @@ import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { dateToLocalDateString } from "@/utils/date-utils";
+import { buildDayTasks } from "@/utils/day-tasks";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
 
@@ -28,9 +29,6 @@ interface BookPageProps {
   tCommon: (key: string, options?: any) => string;
 }
 
-// Objeto vacío estable para evitar re-renders innecesarios
-const EMPTY_TASKS = {};
-
 export default function BookPage({
   day,
   dayIndex,
@@ -49,8 +47,6 @@ export default function BookPage({
   const [modalVisible, setModalVisible] = useState(false);
   const [editingLine, setEditingLine] = useState<number | null>(null);
   const [editingTask, setEditingTask] = useState<string>("");
-  const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
-  const [forceRefresh, setForceRefresh] = useState(0);
 
   // Obtener configuración de líneas por página
   const { linesPerPage } = useBookSettingsStore();
@@ -58,21 +54,20 @@ export default function BookPage({
 
   const extraLines = linesStatus[dateKey]?.extraLines || 0;
 
-  // Suscribirse directamente a las tareas de esta fecha específica
-  const dayTasks = useAgendaTasksStore(
-    (state) => state.tasksByDate[dateKey] || EMPTY_TASKS
+  // Datos de los que depende lo que se ve en esta página. La instancia virtual de una
+  // tarea repetida viene de una tarea de OTRO día, así que hay que suscribirse a todas
+  const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
+  const repeatingPatterns = useRepeatingTasksStore(
+    (state) => state.repeatingPatterns
+  );
+  const repeatingCompletions = useRepeatingTasksStore(
+    (state) => state.repeatingTaskCompletions
   );
 
   const { setCalendarIsOpen, calendarIsopen, selectDate } =
     useCalendarSettingsStore();
 
   // Obtener funciones del store de patrones de repetición
-  const getAllRepeatingPatterns = useRepeatingTasksStore(
-    (state) => state.getAllRepeatingPatterns
-  );
-  const shouldTaskRepeatOnDate = useRepeatingTasksStore(
-    (state) => state.shouldTaskRepeatOnDate
-  );
   const addRepeatingPattern = useRepeatingTasksStore(
     (state) => state.addRepeatingPattern
   );
@@ -82,9 +77,6 @@ export default function BookPage({
   const toggleRepeatingTaskCompletion = useRepeatingTasksStore(
     (state) => state.toggleRepeatingTaskCompletion
   );
-  const isRepeatingTaskCompleted = useRepeatingTasksStore(
-    (state) => state.isRepeatingTaskCompleted
-  );
   const getRepeatingPatternForTask = useRepeatingTasksStore(
     (state) => state.getRepeatingPatternForTask
   );
@@ -93,91 +85,13 @@ export default function BookPage({
   const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
   const getTaskForLine = useAgendaTasksStore((state) => state.getTaskForLine);
 
-  // Suscribirse al estado de completado para forzar re-renders
-  const repeatingCompletions = useRepeatingTasksStore(
-    (state) => state.repeatingTaskCompletions
+  // Separar tareas normales y tareas repetidas en estructuras independientes.
+  // La lógica vive en utils/day-tasks.ts (compartida con el calendario y el widget)
+  const { normalTasks: allTasks, repeatedTasks } = React.useMemo(
+    () =>
+      buildDayTasks(dateKey, tasksByDate, repeatingPatterns, repeatingCompletions),
+    [dateKey, tasksByDate, repeatingPatterns, repeatingCompletions]
   );
-
-  // Separar tareas normales y tareas repetidas en estructuras independientes
-  const { allTasks, repeatedTasks } = React.useMemo(() => {
-    const allExistingTasks = getAllTasks();
-    const allPatterns = getAllRepeatingPatterns();
-
-    // Crear un mapa de tareas originales y sus fechas de creación
-    const originalTasksMap = new Map();
-    for (const [dateKeyMap, dayTasksMap] of Object.entries(allExistingTasks)) {
-      for (const [line, task] of Object.entries(dayTasksMap)) {
-        if (task) {
-          originalTasksMap.set(task.id, {
-            task,
-            originalDate: dateKeyMap,
-            line: Number.parseInt(line, 10),
-          });
-        }
-      }
-    }
-
-    // Crear un Set de IDs de tareas que tienen patrones de repetición activos
-    const tasksWithActivePatterns = new Set(
-      allPatterns
-        .filter((pattern) => pattern.isActive)
-        .map((pattern) => pattern.originalTaskId)
-    );
-
-    // Comenzar con las tareas del día (SIEMPRE mantener estas líneas)
-    const normalTasks = { ...dayTasks };
-
-    // Solo filtrar tareas que tienen patrones de repetición activos Y NO estamos en su día de creación
-    for (const [line, task] of Object.entries(normalTasks)) {
-      if (task && tasksWithActivePatterns.has(task.id)) {
-        const originalInfo = originalTasksMap.get(task.id);
-        // Solo filtrar si NO estamos en el día de creación original
-        if (originalInfo && originalInfo.originalDate !== dateKey) {
-          delete normalTasks[Number.parseInt(line, 10)];
-        }
-      }
-    }
-
-    // Crear array independiente de tareas repetidas (no ocupan líneas normales)
-    const repeatedTasksList: AgendaTask[] = [];
-    for (const pattern of allPatterns) {
-      if (!pattern.isActive) continue;
-
-      if (shouldTaskRepeatOnDate(pattern.originalTaskId, dateKey)) {
-        const originalInfo = originalTasksMap.get(pattern.originalTaskId);
-
-        // Solo agregar como tarea repetida si NO estamos en el día de creación original
-        if (originalInfo && originalInfo.originalDate !== dateKey) {
-          repeatedTasksList.push({
-            ...originalInfo.task,
-            id: `${originalInfo.task.id}-repeat-${dateKey}`,
-            completed: isRepeatingTaskCompleted(originalInfo.task.id, dateKey),
-            isRepeatingTask: true,
-            repeatingTaskId: originalInfo.task.id,
-            repeatingPatternId: pattern.id,
-          });
-        }
-      }
-    }
-
-    return {
-      allTasks: normalTasks,
-      repeatedTasks: repeatedTasksList,
-    };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    dayTasks,
-    dateKey,
-    getAllTasks,
-    getAllRepeatingPatterns,
-    shouldTaskRepeatOnDate,
-    lastUpdateTime,
-    repeatingCompletions,
-    linesPerPage,
-    forceRefresh,
-    extraLines,
-  ]);
   const {
     addTask,
     updateTask,
@@ -454,27 +368,11 @@ export default function BookPage({
         await addTask(dateKey, targetLine, text, reminder, repeat);
       }
 
-      // Forzar una actualización del componente para asegurar que se vean los cambios
+      // No hace falta forzar nada más: la página se recalcula sola porque está
+      // suscrita a las tareas, los patrones y los completados (ver buildDayTasks)
       setModalVisible(false);
       setEditingLine(null);
       setEditingTask("");
-
-      // Forzar múltiples actualizaciones para limpiar completamente las instancias virtuales
-      const updateTime = Date.now();
-      setLastUpdateTime(updateTime);
-      setForceRefresh((prev) => prev + 1);
-
-      // Para tareas repetidas, forzar limpieza agresiva
-      if (existingTask?.isRepeatingTask || (repeat && repeat !== "none")) {
-        setTimeout(() => {
-          setLastUpdateTime(updateTime + 1);
-          setForceRefresh((prev) => prev + 1);
-        }, 50);
-        setTimeout(() => {
-          setLastUpdateTime(updateTime + 2);
-          setForceRefresh((prev) => prev + 1);
-        }, 150);
-      }
     }
   };
 
@@ -485,8 +383,6 @@ export default function BookPage({
       if (existingTask?.isRepeatingTask) {
         // Eliminar patrón de repetición del store
         removeRepeatingPattern(existingTask.repeatingTaskId!);
-        // Forzar actualización inmediata
-        setLastUpdateTime(Date.now());
       } else if (existingTask) {
         // Eliminar tarea normal - buscar su línea original
         const allExistingTasks = getAllTasks();

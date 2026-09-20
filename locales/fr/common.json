@@ -8,7 +8,8 @@
     "close": "Fermer",
     "ok": "OK",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "copy": "Copier"
   },
 
   "tabs": {
@@ -184,6 +185,34 @@
       "large": "Grande",
       "veryLarge": "Très grande",
       "extraLarge": "Énorme"
+    },
+    "privacyPolicy": "Politique de Confidentialité",
+    "bugReport": {
+      "reportBug": "Signaler un Bug",
+      "description": "Vous avez trouvé un problème ? Aidez-nous à améliorer l'application en décrivant ce qui s'est mal passé. Vos commentaires sont précieux !",
+      "emailLabel": "Votre Email",
+      "optional": "optionnel",
+      "emailPlaceholder": "votre.email@exemple.com",
+      "bugDescription": "Description du Bug",
+      "bugPlaceholder": "Veuillez décrire le bug que vous avez rencontré :\n\n• Que faisiez-vous quand c'est arrivé ?\n• Qu'attendiez-vous qu'il se passe ?\n• Que s'est-il réellement passé ?\n• Tout autre détail pertinent...",
+      "sendReport": "Envoyer le Rapport",
+      "success": "Merci !",
+      "emailOpened": "Votre application email devrait s'ouvrir maintenant. Veuillez envoyer l'email pour compléter le rapport de bug.",
+      "error": "Erreur",
+      "descriptionRequired": "Veuillez décrire le bug que vous avez rencontré.",
+      "sendError": "Il y a eu une erreur lors de l'envoi du rapport de bug. Veuillez réessayer.",
+      "noEmailClient": "Pas d'App Email",
+      "manualContact": "Aucune application email trouvée. Veuillez nous contacter manuellement à :",
+      "sending": "Envoi...",
+      "reportSent": "Votre rapport de bug a été envoyé. Merci de nous aider à améliorer l'application !",
+      "sendByEmail": "Envoyer par Email"
     }
+  },
+  "versionUpdate": {
+    "title": "🎉 Nouvelle version installée",
+    "message": "Vous avez mis à jour l'application de la version {{previous}} vers la version {{current}}.\n\n✨ Profitez des nouveautés et des améliorations !",
+    "viewChanges": "Voir les changements",
+    "gotIt": "Compris",
+    "changesTitle": "📋 Nouveautés de la version {{version}}"
   }
 }
