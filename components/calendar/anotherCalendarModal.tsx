@@ -197,7 +197,9 @@ CalendarModalProps) {
     return `${year}-${month}-${day}`;
   };
 
-  const [selected, setSelected] = useState(dateSelected as any);
+  const [selected, setSelected] = useState<string>(
+    dateSelected || getCurrentDateString()
+  );
 
   // Efecto para sincronizar el estado local con el store
   React.useEffect(() => {
