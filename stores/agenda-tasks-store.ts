@@ -1,4 +1,6 @@
 import { mmkvStorage } from "@/lib/mmkv";
+import useBookSettingsStore from "@/stores/boook-settings";
+import { computeLineStatus } from "@/utils/book-lines";
 import { notificationService } from "@/services/notifications/notification-service";
 import {
   migrateDateKey,
@@ -212,25 +214,18 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
         return get().tasksByDate;
       },
 
-      // Nuevas funciones para manejar líneas ocupadas y disponibles
+      // Líneas ocupadas y disponibles de un día. Se calculan con el ajuste "líneas por
+      // página" que esté activo en ese momento (antes estaba fijo a 12)
       updateLinesStatus: (date: string) => {
-        const linesPerPage = 12;
-        const normalTasks = get().tasksByDate[date] || {};
         const currentExtraLines = get().linesStatus[date]?.extraLines || 0;
-        const totalLines = linesPerPage + currentExtraLines;
+        const { occupiedLines, availableLines } = computeLineStatus(
+          get().tasksByDate[date],
+          useBookSettingsStore.getState().linesPerPage,
+          currentExtraLines
+        );
 
-        const occupiedLines = Object.keys(normalTasks)
-          .filter((line) => normalTasks[Number.parseInt(line, 10)] !== null)
-          .map((line) => Number.parseInt(line, 10))
-          .sort((a, b) => a - b);
-
-        const availableLines: number[] = [];
-        for (let i = 1; i <= totalLines; i++) {
-          if (!normalTasks[i]) {
-            availableLines.push(i);
-          }
-        }
-
+        // Esta caché ya no se lee (los getters calculan en el momento, así no se queda
+        // vieja al cambiar el ajuste); se sigue guardando por compatibilidad
         set((state) => ({
           linesStatus: {
             ...state.linesStatus,
@@ -245,18 +240,20 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
 
       getOccupiedLinesForDate: (date: string): number[] => {
         const state = get();
-        if (!state.linesStatus[date]) {
-          state.updateLinesStatus(date);
-        }
-        return state.linesStatus[date]?.occupiedLines || [];
+        return computeLineStatus(
+          state.tasksByDate[date],
+          useBookSettingsStore.getState().linesPerPage,
+          state.linesStatus[date]?.extraLines || 0
+        ).occupiedLines;
       },
 
       getAvailableLinesForDate: (date: string): number[] => {
         const state = get();
-        if (!state.linesStatus[date]) {
-          state.updateLinesStatus(date);
-        }
-        return state.linesStatus[date]?.availableLines  || [];
+        return computeLineStatus(
+          state.tasksByDate[date],
+          useBookSettingsStore.getState().linesPerPage,
+          state.linesStatus[date]?.extraLines || 0
+        ).availableLines;
       },
 
       getAdditionalLinesForDate: (date: string): number => {

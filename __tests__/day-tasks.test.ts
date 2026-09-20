@@ -173,6 +173,27 @@ describe("buildDayTasks", () => {
     expect(onOriginalDay.repeatedTasks).toEqual([]);
   });
 
+  it("una fecha saltada no genera instancia, y las de alrededor sí", () => {
+    const skipped = [makePattern("t1", "daily", "2026-09-01", { excludedDates: ["2026-09-03"] })];
+
+    expect(buildDayTasks("2026-09-03", tasksByDate, skipped, {}).repeatedTasks).toEqual([]);
+    expect(ids(buildDayTasks("2026-09-02", tasksByDate, skipped, {}).repeatedTasks)).toEqual(["t1-repeat-2026-09-02"]);
+    expect(ids(buildDayTasks("2026-09-04", tasksByDate, skipped, {}).repeatedTasks)).toEqual(["t1-repeat-2026-09-04"]);
+  });
+
+  it("después de la fecha de fin no genera instancia, y en la propia fecha de fin sí", () => {
+    const ended = [makePattern("t1", "daily", "2026-09-01", { endDate: "2026-09-05" })];
+
+    expect(ids(buildDayTasks("2026-09-05", tasksByDate, ended, {}).repeatedTasks)).toEqual(["t1-repeat-2026-09-05"]);
+    expect(buildDayTasks("2026-09-06", tasksByDate, ended, {}).repeatedTasks).toEqual([]);
+  });
+
+  it("saltar o terminar la serie no afecta a la tarea original en su día", () => {
+    const rule = [makePattern("t1", "daily", "2026-09-01", { endDate: "2026-09-01", excludedDates: ["2026-09-02"] })];
+
+    expect(buildDayTasks("2026-09-01", tasksByDate, rule, {}).normalTasks[3]?.id).toBe("t1");
+  });
+
   it("no modifica los datos de entrada", () => {
     const frozenTasks = deepFreeze(structuredClone(tasksByDate));
     const frozenPatterns = deepFreeze([dailyPattern, makePattern("t2", "weekly", "2026-09-01")].map((p) => ({ ...p })));

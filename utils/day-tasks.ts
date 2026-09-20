@@ -1,6 +1,6 @@
 import type { AgendaTask, DayTasks } from "../stores/agenda-tasks-store";
 import type { RepeatingTaskPattern } from "../stores/repeating-tasks-store";
-import { shouldRepeatOnDate } from "./repeat-utils";
+import { patternOccursOn } from "./repeat-utils";
 
 export interface DayTasksResult {
   /** Tareas propias del día, indexadas por número de línea */
@@ -20,6 +20,7 @@ export interface DayTasksResult {
  * - Si un mismo id aparece en varias fechas (datos antiguos duplicados), cuenta
  *   como original la última fecha recorrida y se quita la copia de las demás.
  * - Los patrones inactivos, o cuya tarea original ya no existe, no generan nada.
+ * - Una serie no genera nada después de su fecha de fin ni en las fechas que se han saltado.
  *
  * @param dateKey      Día a reconstruir, YYYY-MM-DD en hora local
  * @param tasksByDate  `tasksByDate` del store de tareas
@@ -64,7 +65,7 @@ export function buildDayTasks(
   // Instancias virtuales (nunca en el día de creación de la original)
   const repeatedTasks: AgendaTask[] = [];
   for (const pattern of activePatterns) {
-    if (!shouldRepeatOnDate(pattern.repeatOption, pattern.startDate, dateKey)) {
+    if (!patternOccursOn(pattern, dateKey)) {
       continue;
     }
 

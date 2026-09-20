@@ -1,4 +1,10 @@
-import { daysBetweenDateKeys, shouldRepeatOnDate } from "../utils/repeat-utils";
+import {
+  addDaysToDateKey,
+  daysBetweenDateKeys,
+  hasOccurrencesAfterStart,
+  patternOccursOn,
+  shouldRepeatOnDate,
+} from "../utils/repeat-utils";
 
 // Devuelve las claves YYYY-MM-DD desde `start`, `count` días seguidos (aritmética en UTC: no depende de la zona)
 const daysFrom = (start: string, count: number): string[] => {
@@ -112,5 +118,78 @@ describe("shouldRepeatOnDate: casos límite", () => {
   it("una fecha inválida no repite en vez de fallar", () => {
     expect(shouldRepeatOnDate("daily", "basura", "2026-09-02")).toBe(false);
     expect(shouldRepeatOnDate("monthly", "2026-09-02", "basura")).toBe(false);
+  });
+});
+
+describe("addDaysToDateKey", () => {
+  it("suma y resta días cruzando mes y año", () => {
+    expect(addDaysToDateKey("2026-09-08", -1)).toBe("2026-09-07");
+    expect(addDaysToDateKey("2026-09-30", 1)).toBe("2026-10-01");
+    expect(addDaysToDateKey("2026-01-01", -1)).toBe("2025-12-31");
+    expect(addDaysToDateKey("2028-02-28", 1)).toBe("2028-02-29"); // año bisiesto
+    expect(addDaysToDateKey("2026-03-28", 2)).toBe("2026-03-30"); // cambio de horario en Europa
+  });
+});
+
+describe("patternOccursOn", () => {
+  const daily = { repeatOption: "daily", startDate: "2026-09-01" };
+
+  it("sin fin ni exclusiones se comporta igual que shouldRepeatOnDate", () => {
+    expect(patternOccursOn(daily, "2026-09-05")).toBe(true);
+    expect(patternOccursOn({ repeatOption: "weekly", startDate: "2026-09-01" }, "2026-09-05")).toBe(false);
+  });
+
+  it("no ocurre después de la fecha de fin, pero sí en la propia fecha de fin", () => {
+    const ended = { ...daily, endDate: "2026-09-07" };
+    expect(patternOccursOn(ended, "2026-09-07")).toBe(true);
+    expect(patternOccursOn(ended, "2026-09-08")).toBe(false);
+    expect(patternOccursOn(ended, "2026-12-01")).toBe(false);
+  });
+
+  it("no ocurre en las fechas saltadas, y sí en las de alrededor", () => {
+    const skipped = { ...daily, excludedDates: ["2026-09-04", "2026-09-06"] };
+    expect(patternOccursOn(skipped, "2026-09-03")).toBe(true);
+    expect(patternOccursOn(skipped, "2026-09-04")).toBe(false);
+    expect(patternOccursOn(skipped, "2026-09-05")).toBe(true);
+    expect(patternOccursOn(skipped, "2026-09-06")).toBe(false);
+  });
+
+  it("fin y exclusiones se combinan", () => {
+    const rule = { ...daily, endDate: "2026-09-10", excludedDates: ["2026-09-05"] };
+    expect(patternOccursOn(rule, "2026-09-05")).toBe(false);
+    expect(patternOccursOn(rule, "2026-09-09")).toBe(true);
+    expect(patternOccursOn(rule, "2026-09-11")).toBe(false);
+  });
+
+  it("endDate nulo o excludedDates vacío equivalen a no tenerlos (datos guardados antes de existir)", () => {
+    expect(patternOccursOn({ ...daily, endDate: null, excludedDates: [] }, "2026-09-05")).toBe(true);
+  });
+
+  it("una saltada mensual del día 1 sigue funcionando en zonas UTC-", () => {
+    const monthly = { repeatOption: "monthly", startDate: "2026-09-01", excludedDates: ["2026-11-01"] };
+    expect(patternOccursOn(monthly, "2026-10-01")).toBe(true);
+    expect(patternOccursOn(monthly, "2026-11-01")).toBe(false);
+    expect(patternOccursOn(monthly, "2026-12-01")).toBe(true);
+  });
+});
+
+describe("hasOccurrencesAfterStart", () => {
+  it("una serie sin fin siempre tiene más ocurrencias", () => {
+    expect(hasOccurrencesAfterStart({ repeatOption: "weekly", startDate: "2026-09-01" })).toBe(true);
+  });
+
+  it("una serie que termina el mismo día que empieza ya no tiene ocurrencias", () => {
+    expect(hasOccurrencesAfterStart({ repeatOption: "daily", startDate: "2026-09-01", endDate: "2026-09-01" })).toBe(false);
+  });
+
+  it("una semanal cortada antes de su segunda ocurrencia ya no tiene más", () => {
+    expect(hasOccurrencesAfterStart({ repeatOption: "weekly", startDate: "2026-09-01", endDate: "2026-09-07" })).toBe(false);
+    expect(hasOccurrencesAfterStart({ repeatOption: "weekly", startDate: "2026-09-01", endDate: "2026-09-08" })).toBe(true);
+  });
+
+  it("si se han saltado todas las que quedaban, tampoco tiene más", () => {
+    const rule = { repeatOption: "daily", startDate: "2026-09-01", endDate: "2026-09-03", excludedDates: ["2026-09-02", "2026-09-03"] };
+    expect(hasOccurrencesAfterStart(rule)).toBe(false);
+    expect(hasOccurrencesAfterStart({ ...rule, excludedDates: ["2026-09-02"] })).toBe(true);
   });
 });

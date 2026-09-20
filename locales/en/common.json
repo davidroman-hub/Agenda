@@ -203,6 +203,15 @@
       "sendByEmail": "Send by Email"
     }
   },
+  "repeatDelete": {
+    "occurrenceTitle": "Delete repeating task",
+    "occurrenceMessage": "This task repeats. What do you want to delete? \"The whole series\" includes the original task.",
+    "onlyThis": "Only this one",
+    "thisAndFollowing": "This and following",
+    "allSeries": "The whole series",
+    "seriesTitle": "Delete repeating series",
+    "seriesMessage": "This is the original task of a repeating series. If you delete it, the whole series is deleted."
+  },
   "versionUpdate": {
     "title": "🎉 New version installed",
     "message": "You have updated the app from version {{previous}} to {{current}}.\n\n✨ Enjoy the new features and improvements!",

@@ -204,6 +204,15 @@
       "sendByEmail": "Enviar por Email"
     }
   },
+  "repeatDelete": {
+    "occurrenceTitle": "Eliminar tarea repetida",
+    "occurrenceMessage": "Esta tarea se repite. ¿Qué quieres eliminar? «Toda la serie» incluye la tarea original.",
+    "onlyThis": "Solo esta",
+    "thisAndFollowing": "Esta y las siguientes",
+    "allSeries": "Toda la serie",
+    "seriesTitle": "Eliminar serie repetida",
+    "seriesMessage": "Esta es la tarea original de una serie repetida. Si la eliminas, se elimina toda la serie."
+  },
   "versionUpdate": {
     "title": "🎉 Nueva versión instalada",
     "message": "Has actualizado la app de la versión {{previous}} a la {{current}}.\n\n✨ ¡Disfruta de las novedades y mejoras!",

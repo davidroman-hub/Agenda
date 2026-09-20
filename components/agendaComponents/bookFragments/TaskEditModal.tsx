@@ -19,6 +19,9 @@ interface TaskEditModalProps {
   ) => void;
   readonly onCancel: () => void;
   readonly onDelete?: () => void;
+  // Si es false, no se muestra la confirmación genérica antes de llamar a onDelete
+  // (para tareas repetidas, cuyo borrado ya pregunta qué se quiere eliminar)
+  readonly confirmDelete?: boolean;
 
   readonly toggleTaskCompletion: (date: string, lineNumber: number) => void;
   readonly date: string;
@@ -35,6 +38,7 @@ export default function TaskEditModal({
   onSave,
   onCancel,
   onDelete,
+  confirmDelete = true,
   toggleTaskCompletion,
   date,
   lineNumber,
@@ -96,6 +100,11 @@ export default function TaskEditModal({
   };
 
   const handleDelete = () => {
+    if (onDelete && !confirmDelete) {
+      onDelete();
+      return;
+    }
+
     if (onDelete) {
       Alert.alert(
         tCommon("taskEditModal.deleteTask"),

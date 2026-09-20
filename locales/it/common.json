@@ -208,6 +208,15 @@
       "sendByEmail": "Invia per Email"
     }
   },
+  "repeatDelete": {
+    "occurrenceTitle": "Elimina attività ripetuta",
+    "occurrenceMessage": "Questa attività si ripete. Cosa vuoi eliminare? «Tutta la serie» include l'attività originale.",
+    "onlyThis": "Solo questa",
+    "thisAndFollowing": "Questa e le successive",
+    "allSeries": "Tutta la serie",
+    "seriesTitle": "Elimina serie ripetuta",
+    "seriesMessage": "Questa è l'attività originale di una serie ripetuta. Se la elimini, viene eliminata tutta la serie."
+  },
   "versionUpdate": {
     "title": "🎉 Nuova versione installata",
     "message": "Hai aggiornato l'app dalla versione {{previous}} alla versione {{current}}.\n\n✨ Goditi le novità e i miglioramenti!",

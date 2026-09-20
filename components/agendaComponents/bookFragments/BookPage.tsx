@@ -5,7 +5,13 @@ import useAgendaTasksStore, { AgendaTask } from "@/stores/agenda-tasks-store";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { dateToLocalDateString } from "@/utils/date-utils";
+import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
+import { getTotalLines } from "@/utils/book-lines";
 import { buildDayTasks } from "@/utils/day-tasks";
+import {
+  promptDeleteRepeatingOccurrence,
+  promptDeleteRepeatingSeries,
+} from "@/utils/repeat-delete-prompts";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
 
@@ -92,6 +98,10 @@ export default function BookPage({
       buildDayTasks(dateKey, tasksByDate, repeatingPatterns, repeatingCompletions),
     [dateKey, tasksByDate, repeatingPatterns, repeatingCompletions]
   );
+
+  // Líneas que dibuja esta página: las del ajuste + las extra del día, y nunca menos que
+  // la última línea con una tarea (si no, al bajar el ajuste esas tareas dejarían de verse)
+  const totalUserLines = getTotalLines(allTasks, linesPerPage, extraLines);
   const {
     addTask,
     updateTask,
@@ -149,7 +159,6 @@ export default function BookPage({
     const lines = [];
 
     // Líneas normales del día + líneas extra (siempre disponibles para el usuario)
-    const totalUserLines = linesPerPage + extraLines;
     for (let i = 1; i <= totalUserLines; i++) {
       lines.push({ lineNumber: i, isVirtual: false });
     }
@@ -175,8 +184,7 @@ export default function BookPage({
       return allTasks[lineNumber];
     }
 
-    // Si la línea está después de (linesPerPage + extraLines), puede ser una tarea repetida virtual
-    const totalUserLines = linesPerPage + extraLines;
+    // Si la línea está después de las líneas de la página, puede ser una tarea repetida virtual
     const repeatedIndex = lineNumber - totalUserLines - 1;
     if (repeatedIndex >= 0 && repeatedIndex < repeatedTasks.length) {
       return repeatedTasks[repeatedIndex];
@@ -240,7 +248,7 @@ export default function BookPage({
             removeRepeatingPattern(existingTask.repeatingTaskId!);
             // 2. Encontrar la primera línea disponible del día para crear la tarea normal
             let availableLine = 1;
-            for (let i = 1; i <= linesPerPage + extraLines; i++) {
+            for (let i = 1; i <= totalUserLines; i++) {
               if (!allTasks[i]) {
                 availableLine = i;
                 break;
@@ -314,7 +322,6 @@ export default function BookPage({
         // Nueva tarea repetida
         // Si estamos en una línea virtual, encontrar una línea real disponible
         let targetLine = editingLine;
-        const totalUserLines = linesPerPage + extraLines;
         if (editingLine > totalUserLines) {
           // Buscar primera línea disponible
           for (let i = 1; i <= totalUserLines; i++) {
@@ -355,7 +362,6 @@ export default function BookPage({
         // Nueva tarea normal
         // Si estamos en una línea virtual, encontrar una línea real disponible
         let targetLine = editingLine;
-        const totalUserLines = linesPerPage + extraLines;
         if (editingLine > totalUserLines) {
           // Buscar primera línea disponible
           for (let i = 1; i <= totalUserLines; i++) {
@@ -376,14 +382,43 @@ export default function BookPage({
     }
   };
 
+  // ¿Es una tarea que pertenece a una serie repetida? (una instancia, o la original de la serie)
+  const isPartOfSeries = (task: AgendaTask | null) =>
+    Boolean(
+      task &&
+        (task.isRepeatingTask || getRepeatingPatternForTask(task.id)?.isActive)
+    );
+
+  const closeEditModal = () => {
+    setModalVisible(false);
+    setEditingLine(null);
+    setEditingTask("");
+  };
+
   const handleDeleteTask = async () => {
     if (editingLine !== null) {
       const existingTask = getTaskForPageLine(editingLine);
 
       if (existingTask?.isRepeatingTask) {
-        // Eliminar patrón de repetición del store
-        removeRepeatingPattern(existingTask.repeatingTaskId!);
-      } else if (existingTask) {
+        // Una ocurrencia de una serie: se pregunta si se quiere borrar solo esta,
+        // esta y las siguientes, o toda la serie. Si se cancela, el modal sigue abierto.
+        promptDeleteRepeatingOccurrence(tCommon, async (scope) => {
+          await deleteRepeatingOccurrence(scope, existingTask.repeatingTaskId!, dateKey);
+          closeEditModal();
+        });
+        return;
+      }
+
+      if (existingTask && isPartOfSeries(existingTask)) {
+        // La tarea original de una serie: borrarla borra toda la serie, así que se confirma
+        promptDeleteRepeatingSeries(tCommon, async () => {
+          await deleteRepeatingOccurrence("all", existingTask.id, dateKey);
+          closeEditModal();
+        });
+        return;
+      }
+
+      if (existingTask) {
         // Eliminar tarea normal - buscar su línea original
         const allExistingTasks = getAllTasks();
         const dayTasks = allExistingTasks[dateKey] || {};
@@ -754,6 +789,9 @@ export default function BookPage({
         lineNumber={editingLine as number}
         onCancel={handleCancelEdit}
         onDelete={editingTask ? handleDeleteTask : undefined}
+        confirmDelete={
+          !isPartOfSeries(editingLine ? getTaskForPageLine(editingLine) : null)
+        }
       />
 
       <AddExtraLine linesPerPage={linesPerPage} date={dateKey} />

@@ -208,6 +208,15 @@
       "sendByEmail": "Envoyer par Email"
     }
   },
+  "repeatDelete": {
+    "occurrenceTitle": "Supprimer la tâche récurrente",
+    "occurrenceMessage": "Cette tâche se répète. Que voulez-vous supprimer ? « Toute la série » inclut la tâche d'origine.",
+    "onlyThis": "Seulement celle-ci",
+    "thisAndFollowing": "Celle-ci et les suivantes",
+    "allSeries": "Toute la série",
+    "seriesTitle": "Supprimer la série récurrente",
+    "seriesMessage": "Ceci est la tâche d'origine d'une série récurrente. Si vous la supprimez, toute la série est supprimée."
+  },
   "versionUpdate": {
     "title": "🎉 Nouvelle version installée",
     "message": "Vous avez mis à jour l'application de la version {{previous}} vers la version {{current}}.\n\n✨ Profitez des nouveautés et des améliorations !",

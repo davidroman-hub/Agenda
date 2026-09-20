@@ -1,8 +1,13 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { createLocalDateFromString } from "@/utils/date-utils";
 import { buildDayTasks } from "@/utils/day-tasks";
+import {
+  promptDeleteRepeatingOccurrence,
+  promptDeleteRepeatingSeries,
+} from "@/utils/repeat-delete-prompts";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useState } from "react";
 import {
@@ -156,7 +161,25 @@ export default function DayDetailModal({
 
   const handleDeleteTask = (task: any) => {
     if (task.isRepeatingTask) {
-      Alert.alert(tCommon("taskRepeat.cannotDeleteRepeated"));
+      // Una ocurrencia de una serie: se pregunta si se quiere borrar solo esta,
+      // esta y las siguientes, o toda la serie
+      promptDeleteRepeatingOccurrence(tCommon, (scope) => {
+        deleteRepeatingOccurrence(scope, task.repeatingTaskId, selectedDate).catch(
+          console.error
+        );
+      });
+      return;
+    }
+
+    // La tarea original de una serie: borrarla borra toda la serie, así que se confirma
+    if (
+      repeatingPatterns.some(
+        (pattern) => pattern.originalTaskId === task.id && pattern.isActive
+      )
+    ) {
+      promptDeleteRepeatingSeries(tCommon, () => {
+        deleteRepeatingOccurrence("all", task.id, selectedDate).catch(console.error);
+      });
       return;
     }
 
@@ -283,14 +306,12 @@ export default function DayDetailModal({
                       </ThemedView>
 
                       {/* Botones de acción */}
-                      {!task.isRepeatingTask && (
-                        <TouchableOpacity
-                          onPress={() => handleDeleteTask(task)}
-                          style={styles.actionButton}
-                        >
-                          <Icon name="trash" size={16} color="#ff4444" />
-                        </TouchableOpacity>
-                      )}
+                      <TouchableOpacity
+                        onPress={() => handleDeleteTask(task)}
+                        style={styles.actionButton}
+                      >
+                        <Icon name="trash" size={16} color="#ff4444" />
+                      </TouchableOpacity>
                     </ThemedView>
                   </ThemedView>
                 ))}

@@ -1,5 +1,6 @@
 import { useI18n } from "@/hooks/use-i18n";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
@@ -8,6 +9,10 @@ import {
   dateToLocalDateString,
 } from "@/utils/date-utils";
 import { buildDayTasks } from "@/utils/day-tasks";
+import {
+  promptDeleteRepeatingOccurrence,
+  promptDeleteRepeatingSeries,
+} from "@/utils/repeat-delete-prompts";
 import { formatDateWithI18n } from "@/utils/locale-config";
 import React, { useMemo, useState } from "react";
 import {
@@ -285,25 +290,46 @@ CalendarModalProps) {
     }
   };
 
+  // ¿Es la tarea original de una serie repetida activa?
+  const isSeriesOriginal = (task: any) =>
+    repeatingPatterns.some(
+      (pattern) => pattern.originalTaskId === task?.id && pattern.isActive
+    );
+
   // Función para eliminar tarea
   const handleDeleteTask = async () => {
     if (!selectedTask) return;
 
+    const closeEditModal = () => {
+      setShowTaskEditModal(false);
+      setSelectedTask(null);
+      setSelectedTaskLine(null);
+    };
+
     try {
       if (selectedTask.isRepeatingTask) {
-        // Eliminar patrón de repetición completo
-        removeRepeatingPattern(selectedTask.repeatingTaskId);
-
-        // También eliminar la tarea original si existe
-        const allExistingTasks = getAllTasks();
-        for (const [dateKey, tasks] of Object.entries(allExistingTasks)) {
-          for (const [line, task] of Object.entries(tasks)) {
-            if (task && task.id === selectedTask.repeatingTaskId) {
-              await deleteTask(dateKey, Number.parseInt(line, 10));
-              break;
-            }
+        // Una ocurrencia de una serie: se pregunta si se quiere borrar solo esta,
+        // esta y las siguientes, o toda la serie. Si se cancela, el modal sigue abierto.
+        promptDeleteRepeatingOccurrence(tCommon, async (scope) => {
+          try {
+            await deleteRepeatingOccurrence(scope, selectedTask.repeatingTaskId, selected);
+            closeEditModal();
+          } catch (error) {
+            console.error("Error deleting repeating task:", error);
           }
-        }
+        });
+        return;
+      } else if (isSeriesOriginal(selectedTask)) {
+        // La tarea original de una serie: borrarla borra toda la serie, así que se confirma
+        promptDeleteRepeatingSeries(tCommon, async () => {
+          try {
+            await deleteRepeatingOccurrence("all", selectedTask.id, selected);
+            closeEditModal();
+          } catch (error) {
+            console.error("Error deleting repeating series:", error);
+          }
+        });
+        return;
       } else {
         // Para tareas normales, necesitamos encontrar la línea correcta en el día actual
         const allExistingTasks = getAllTasks();
@@ -678,6 +704,9 @@ CalendarModalProps) {
             setSelectedTaskLine(null);
           }}
           onDelete={selectedTask.text ? handleDeleteTask : undefined}
+          confirmDelete={
+            !(selectedTask.isRepeatingTask || isSeriesOriginal(selectedTask))
+          }
         />
       )}
     </Modal>
