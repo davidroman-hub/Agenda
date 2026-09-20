@@ -49,7 +49,10 @@ const att = (name: string, mime: string, seed: number) => {
 const texts = (root: ReactTestInstance) =>
   root.findAllByType(Text).map((node) => node.props.children).flat(Infinity).filter((c) => typeof c === "string");
 const byLabel = (root: ReactTestInstance, label: string) => root.findAllByType(TouchableOpacity).filter((n) => n.props.accessibilityLabel === label);
-const tabsOf = (root: ReactTestInstance) => root.findAllByType(TouchableOpacity).filter((n) => n.props.accessibilityRole === "tab");
+const isViewToggle = (n: ReactTestInstance) => /^yearView\.toggle/.test(n.props.accessibilityLabel ?? "");
+// Las pestañas de tareas y Notas (sin los dos botones Libro/Año)
+const tabsOf = (root: ReactTestInstance) => root.findAllByType(TouchableOpacity).filter((n) => n.props.accessibilityRole === "tab" && !isViewToggle(n));
+const viewToggles = (root: ReactTestInstance) => root.findAllByType(TouchableOpacity).filter(isViewToggle);
 const mounted: ReactTestRenderer[] = [];
 async function render(element: React.ReactElement) {
   let renderer!: ReactTestRenderer;
@@ -64,7 +67,7 @@ afterEach(async () => {
 beforeEach(() => {
   mockMissingFiles.clear();
   useNotesStore.setState({ notes: [] });
-  useAgendaSectionStore.setState({ section: "agenda" });
+  useAgendaSectionStore.setState({ section: "agenda", agendaView: "book" });
   useTaskTypesStore.setState({ types: [], activeFilter: "all" });
   useAgendaTasksStore.setState({ tasksByDate: {}, linesStatus: {} });
 });
@@ -225,6 +228,41 @@ describe("TypeTabs (tira con Notas)", () => {
 
     expect(useAgendaSectionStore.getState().section).toBe("agenda");
     expect(useTaskTypesStore.getState().activeFilter).toBe(typeId);
+  });
+
+  it("junto a Notas hay dos botones, Libro y Año, y el del libro es el marcado al empezar", async () => {
+    const r = await render(<TypeTabs />);
+    const toggles = viewToggles(r.root);
+    expect(toggles.map((t) => t.props.accessibilityLabel)).toEqual(["yearView.toggleBook", "yearView.toggleYear"]);
+    expect(toggles.map((t) => t.props.accessibilityState.selected)).toEqual([true, false]);
+  });
+
+  it("pulsar Año cambia la vista de la agenda y marca ese botón", async () => {
+    const r = await render(<TypeTabs />);
+    await act(async () => { viewToggles(r.root)[1].props.onPress(); });
+
+    expect(useAgendaSectionStore.getState()).toMatchObject({ section: "agenda", agendaView: "year" });
+    expect(viewToggles(r.root).map((t) => t.props.accessibilityState.selected)).toEqual([false, true]);
+    // Las pestañas de tareas siguen marcadas: el filtro por tipo vale también en el año
+    expect(tabsOf(r.root)[0].props.accessibilityState.selected).toBe(true);
+  });
+
+  it("en las notas no hay ni Libro ni Año marcados, y pulsar uno vuelve a la agenda en esa vista", async () => {
+    useAgendaSectionStore.getState().showNotes();
+    const r = await render(<TypeTabs />);
+    expect(viewToggles(r.root).map((t) => t.props.accessibilityState.selected)).toEqual([false, false]);
+
+    await act(async () => { viewToggles(r.root)[1].props.onPress(); });
+    expect(useAgendaSectionStore.getState()).toMatchObject({ section: "agenda", agendaView: "year" });
+  });
+
+  it("volver de las notas con una pestaña de tareas conserva la vista en la que se estaba (el año)", async () => {
+    useAgendaSectionStore.getState().showYear();
+    useAgendaSectionStore.getState().showNotes();
+    const r = await render(<TypeTabs />);
+
+    await act(async () => { tabsOf(r.root)[0].props.onPress(); });
+    expect(useAgendaSectionStore.getState()).toMatchObject({ section: "agenda", agendaView: "year" });
   });
 
   it("el botón ＋ (crear tipo) sigue disponible sin tipos", async () => {

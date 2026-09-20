@@ -274,6 +274,27 @@
     "deleteMessage": "Delete this note? Its attached files will be deleted too.",
     "errorEmpty": "Write something or attach a file to save the note."
   },
+  "yearView": {
+    "toggleBook": "Book",
+    "toggleYear": "Year",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "today": "Today",
+    "calendarLabel": "Year calendar",
+    "titleYear": "Tasks in {{year}}",
+    "titleMonth": "Tasks in {{month}} {{year}}",
+    "titleDay": "Tasks on {{date}}",
+    "summary": "Tasks: {{total}} · Done: {{done}}",
+    "showYear": "Show the whole year",
+    "openInBook": "Open in the book",
+    "empty": "No tasks in this period",
+    "repeatsTitle": "Repeating",
+    "occurrences": "Times this year: {{count}}",
+    "landscape": "Landscape",
+    "portrait": "Portrait",
+    "landscapeLabel": "View the year in landscape",
+    "portraitLabel": "Back to portrait"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Delete repeating task",
     "occurrenceMessage": "This task repeats. What do you want to delete? \"The whole series\" includes the original task.",

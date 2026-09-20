@@ -1,5 +1,5 @@
 /**
- * Los textos de adjuntos y notas se editan a mano en cuatro archivos JSON; esto avisa si falta una
+ * Los textos de adjuntos, notas y vista de año se editan a mano en cuatro archivos JSON; esto avisa si falta una
  * clave (en la app saldría la clave a pelo en ese idioma) o si a una traducción se le pierde un {{dato}}.
  */
 import fs from "node:fs";
@@ -11,7 +11,7 @@ import itCommon from "../locales/it/common.json";
 
 const root = path.join(__dirname, "..");
 const LANGUAGES = ["es", "en", "fr", "it"] as const;
-const GROUPS = ["attachments", "notes"] as const;
+const GROUPS = ["attachments", "notes", "yearView"] as const;
 const files: Record<string, Record<string, unknown>> = {
   es: esCommon,
   en: enCommon,

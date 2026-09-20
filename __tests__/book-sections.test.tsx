@@ -28,6 +28,15 @@ jest.mock("../hooks/use-date-migration", () => ({
 
 const mockGoToPage = jest.fn();
 const mockPanHandlers = { onMoveShouldSetResponder: () => true };
+// La pantalla que se fuerza o se devuelve: aquí solo interesa cuándo se pide una cosa u otra
+const mockForce = jest.fn(async () => true);
+const mockRestore = jest.fn(async () => undefined);
+jest.mock("../services/screen-orientation", () => ({
+  forceLandscape: () => mockForce(),
+  restoreOrientation: () => mockRestore(),
+  isLandscapeLockAvailable: () => true,
+}));
+
 jest.mock("../components/agendaComponents/bookFragments", () => {
   const React = require("react");
   const { View } = require("react-native");
@@ -62,6 +71,11 @@ jest.mock("../components/agendaComponents/notes/NotesBoard", () => {
   const { View } = require("react-native");
   return { __esModule: true, default: () => React.createElement(View, { testID: "notes-board" }) };
 });
+jest.mock("../components/agendaComponents/yearView/YearView", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return { __esModule: true, default: () => React.createElement(View, { testID: "year-view" }) };
+});
 jest.mock("../components/agendaComponents/typeTabs/TypeTabs", () => {
   const React = require("react");
   const { View } = require("react-native");
@@ -91,7 +105,8 @@ async function renderBook() {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  useAgendaSectionStore.setState({ section: "agenda" });
+  useAgendaSectionStore.setState({ section: "agenda", agendaView: "book", landscapeYear: false });
+  mockForce.mockImplementation(async () => true);
   useBookNavigationStore.setState({ target: null });
 });
 
@@ -144,6 +159,48 @@ describe("Book: agenda o notas", () => {
     expect(hasSwipeHandlers(root)).toBe(true);
   });
 
+  it("en la vista de año enseña el año en lugar del libro, con la tira de pestañas encima", async () => {
+    useAgendaSectionStore.setState({ section: "agenda", agendaView: "year" });
+    const root = await renderBook();
+    expect(has(root, "year-view")).toBe(true);
+    expect(has(root, "type-tabs")).toBe(true);
+    expect(has(root, "page-turn")).toBe(false);
+    expect(has(root, "navigation")).toBe(false);
+    expect(has(root, "book-actions")).toBe(false);
+    expect(has(root, "notes-board")).toBe(false);
+  });
+
+  it("en la vista de año el gesto de pasar página NO actúa", async () => {
+    useAgendaSectionStore.setState({ section: "agenda", agendaView: "year" });
+    expect(hasSwipeHandlers(await renderBook())).toBe(false);
+  });
+
+  it("en el libro no se dibuja la vista de año", async () => {
+    expect(has(await renderBook(), "year-view")).toBe(false);
+  });
+
+  it("las notas mandan sobre la vista: con la vista de año recordada, en notas solo se ve el tablero", async () => {
+    useAgendaSectionStore.setState({ section: "notes", agendaView: "year" });
+    const root = await renderBook();
+    expect(has(root, "notes-board")).toBe(true);
+    expect(has(root, "year-view")).toBe(false);
+  });
+
+  it("alternar entre libro, año y notas en marcha muestra siempre una sola cosa", async () => {
+    const root = await renderBook();
+    const visible = () => ["page-turn", "year-view", "notes-board"].filter((id) => has(root, id));
+
+    expect(visible()).toEqual(["page-turn"]);
+    await act(async () => useAgendaSectionStore.getState().showYear());
+    expect(visible()).toEqual(["year-view"]);
+    await act(async () => useAgendaSectionStore.getState().showNotes());
+    expect(visible()).toEqual(["notes-board"]);
+    await act(async () => useAgendaSectionStore.getState().showAgenda()); // vuelve al año
+    expect(visible()).toEqual(["year-view"]);
+    await act(async () => useAgendaSectionStore.getState().showBook());
+    expect(visible()).toEqual(["page-turn"]);
+  });
+
   it("los hooks de fondo (repetidas, widget, migración) siguen ejecutándose en las notas", async () => {
     useAgendaSectionStore.setState({ section: "notes" });
     await renderBook();
@@ -166,6 +223,25 @@ describe("Book: petición de mostrar un día (tocar una notificación)", () => {
     expect(has(root, "notes-board")).toBe(false);
   });
 
+  it("estando en la vista de año, vuelve al libro (la página del día no se ve en el año) y va a ese día", async () => {
+    useAgendaSectionStore.setState({ section: "agenda", agendaView: "year" });
+    const root = await renderBook();
+
+    await act(async () => useBookNavigationStore.getState().requestTarget("2026-09-25", "task-1"));
+
+    expect(useAgendaSectionStore.getState()).toMatchObject({ section: "agenda", agendaView: "book" });
+    expect(mockGoToPage).toHaveBeenCalledTimes(1);
+    expect(has(root, "page-turn")).toBe(true);
+    expect(has(root, "year-view")).toBe(false);
+  });
+
+  it("estando en las notas con la vista de año recordada, la petición lleva al libro (no al año)", async () => {
+    useAgendaSectionStore.setState({ section: "notes", agendaView: "year" });
+    await renderBook();
+    await act(async () => useBookNavigationStore.getState().requestTarget("2026-09-25", "task-1"));
+    expect(useAgendaSectionStore.getState()).toMatchObject({ section: "agenda", agendaView: "book" });
+  });
+
   it("estando ya en la agenda, solo lleva el libro al día", async () => {
     await renderBook();
     await act(async () => useBookNavigationStore.getState().requestTarget("2026-09-25", "task-1"));
@@ -182,5 +258,131 @@ describe("Book: petición de mostrar un día (tocar una notificación)", () => {
     await act(async () => useAgendaSectionStore.getState().showNotes());
     expect(useAgendaSectionStore.getState().section).toBe("notes");
     expect(mockGoToPage).not.toHaveBeenCalled();
+  });
+});
+
+describe("Book: pantalla forzada en horizontal", () => {
+  const settle = () => act(async () => undefined);
+
+  it("en el libro, o en el año sin haberlo pedido, no se fuerza nada", async () => {
+    await renderBook();
+    expect(mockForce).not.toHaveBeenCalled();
+
+    await act(async () => useAgendaSectionStore.getState().showYear());
+    expect(mockForce).not.toHaveBeenCalled();
+  });
+
+  it("al ver el año habiendo pedido horizontal, se fuerza la pantalla (una vez)", async () => {
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    expect(mockForce).toHaveBeenCalledTimes(1);
+  });
+
+  it("al volver al libro desde el año horizontal, se devuelve la pantalla", async () => {
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    mockRestore.mockClear();
+
+    await act(async () => useAgendaSectionStore.getState().showBook());
+    expect(mockRestore).toHaveBeenCalledTimes(1);
+    expect(mockForce).toHaveBeenCalledTimes(1);
+  });
+
+  it("al ir a las notas desde el año horizontal, se devuelve la pantalla", async () => {
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    mockRestore.mockClear();
+
+    await act(async () => useAgendaSectionStore.getState().showNotes());
+    expect(mockRestore).toHaveBeenCalledTimes(1);
+  });
+
+  it("al volver al año, se vuelve a forzar (lo pedido se recuerda)", async () => {
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    await act(async () => useAgendaSectionStore.getState().showBook());
+    await act(async () => useAgendaSectionStore.getState().showYear());
+
+    expect(mockForce).toHaveBeenCalledTimes(2);
+  });
+
+  it("apagarlo con el botón «Vertical» devuelve la pantalla sin salir del año", async () => {
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    mockRestore.mockClear();
+
+    await act(async () => useAgendaSectionStore.getState().setLandscapeYear(false));
+    expect(mockRestore).toHaveBeenCalledTimes(1);
+    expect(useAgendaSectionStore.getState().agendaView).toBe("year");
+  });
+
+  it("una petición de mostrar un día (notificación) saca del año horizontal y devuelve la pantalla", async () => {
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    mockRestore.mockClear();
+
+    await act(async () => useBookNavigationStore.getState().requestTarget("2026-09-25", "task-1"));
+    expect(useAgendaSectionStore.getState().agendaView).toBe("book");
+    expect(mockRestore).toHaveBeenCalledTimes(1);
+  });
+
+  it("si el sistema no deja girar, se apaga lo pedido (el botón no puede decir «Vertical» sin estarlo)", async () => {
+    mockForce.mockImplementation(async () => false);
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    await settle();
+
+    expect(useAgendaSectionStore.getState().landscapeYear).toBe(false);
+    expect(useAgendaSectionStore.getState().agendaView).toBe("year");
+  });
+
+  it("si al fallar el giro ya se había salido del año, no se toca lo pedido", async () => {
+    let finish: (ok: boolean) => void = () => undefined;
+    mockForce.mockImplementation(() => new Promise<boolean>((resolve) => (finish = resolve)));
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    await act(async () => useAgendaSectionStore.getState().showBook()); // se sale antes de que responda
+
+    await act(async () => finish(false));
+    expect(useAgendaSectionStore.getState().landscapeYear).toBe(true);
+  });
+
+  it("al desmontar el libro se devuelve la pantalla", async () => {
+    await renderBook();
+    await act(async () => {
+      useAgendaSectionStore.getState().showYear();
+      useAgendaSectionStore.getState().setLandscapeYear(true);
+    });
+    mockRestore.mockClear();
+
+    await act(async () => {
+      renderer?.unmount();
+      renderer = null;
+    });
+    expect(mockRestore).toHaveBeenCalled();
   });
 });

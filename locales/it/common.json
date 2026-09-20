@@ -279,6 +279,27 @@
     "deleteMessage": "Eliminare questa nota? Verranno eliminati anche i file allegati.",
     "errorEmpty": "Scrivi qualcosa o allega un file per salvare la nota."
   },
+  "yearView": {
+    "toggleBook": "Libro",
+    "toggleYear": "Anno",
+    "prevYear": "Anno precedente",
+    "nextYear": "Anno successivo",
+    "today": "Oggi",
+    "calendarLabel": "Calendario dell'anno",
+    "titleYear": "Attività del {{year}}",
+    "titleMonth": "Attività di {{month}} {{year}}",
+    "titleDay": "Attività del {{date}}",
+    "summary": "Attività: {{total}} · Fatte: {{done}}",
+    "showYear": "Mostra tutto l'anno",
+    "openInBook": "Apri nel libro",
+    "empty": "Nessuna attività in questo periodo",
+    "repeatsTitle": "Ripetizioni",
+    "occurrences": "Volte quest'anno: {{count}}",
+    "landscape": "Orizzontale",
+    "portrait": "Verticale",
+    "landscapeLabel": "Vedi l'anno in orizzontale",
+    "portraitLabel": "Torna in verticale"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Elimina attività ripetuta",
     "occurrenceMessage": "Questa attività si ripete. Cosa vuoi eliminare? «Tutta la serie» include l'attività originale.",

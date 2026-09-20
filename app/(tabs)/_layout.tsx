@@ -10,6 +10,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useI18n } from "@/hooks/use-i18n";
 import useLoginStore from "@/stores/login-store";
 
+import useAgendaSectionStore from "@/stores/agenda-section-store";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useCalendarStore from "@/stores/Calendar-store";
@@ -17,11 +18,14 @@ import useFontSettingsStore from "@/stores/font-settings-store";
 import useLanguagePreferencesStore from "@/stores/language-preferences-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import useThemeStore from "@/stores/theme-store";
+import { getTabBarStyle, isLandscapeForced } from "@/utils/agenda-strip";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { isLoggedIn } = useLoginStore();
   const { tCommon } = useI18n();
+  // Con el año forzado en horizontal se oculta la barra de abajo para ganar altura
+  const forcedLandscape = useAgendaSectionStore(isLandscapeForced);
 
   // Obtener todos los states de las stores para logging
   const agendaTasksState = useAgendaTasksStore((state) => state);
@@ -62,7 +66,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         // Ocultar el tab bar cuando no está logueado (solo mostrar login)
-        tabBarStyle: isLoggedIn ? undefined : { display: "none" },
+        tabBarStyle: getTabBarStyle({ isLoggedIn, forcedLandscape }),
       }}
     >
       <Tabs.Screen

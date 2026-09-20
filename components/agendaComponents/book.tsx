@@ -5,6 +5,7 @@ import {
   useDateMigration,
   useForceDateMigration,
 } from "@/hooks/use-date-migration";
+import { useForcedOrientation } from "@/hooks/use-forced-orientation";
 import { useI18n } from "@/hooks/use-i18n";
 import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import { useWidgetSync } from "@/hooks/use-widget-sync";
@@ -34,6 +35,7 @@ import BookActions from "./bookSettings";
 import { createDynamicStyles, getBookBackground } from "./bookStyles";
 import NotesBoard from "./notes/NotesBoard";
 import TypeTabs from "./typeTabs/TypeTabs";
+import YearView from "./yearView/YearView";
 
 export default function Book() {
   const { daysToShow, viewMode } = useBookSettingsStore();
@@ -106,8 +108,8 @@ export default function Book() {
   React.useEffect(() => {
     if (!bookTarget || handledTargetRef.current === bookTarget.requestedAt) return;
     handledTargetRef.current = bookTarget.requestedAt;
-    // Si se estaba en las notas, la página del día no está a la vista para abrir la tarea
-    useAgendaSectionStore.getState().showAgenda();
+    // Si se estaba en las notas o en la vista de año, la página del día no está a la vista para abrir la tarea
+    useAgendaSectionStore.getState().showBook();
     goToPage(
       getPageIndexForDate(getCurrentLocalDateString(), bookTarget.date, daysToShow)
     );
@@ -115,9 +117,13 @@ export default function Book() {
 
   const { tCommon, tAgenda } = useI18n();
 
-  // Agenda (el libro) o notas (que no son tareas). El libro sigue montado en las dos para que sus
-  // hooks (recordatorios de repetidas, migración de fechas, widget) no se detengan
-  const showingNotes = useAgendaSectionStore((state) => state.section === "notes");
+  // El año puede verse forzado en horizontal; al salir de él la pantalla vuelve a como estaba
+  useForcedOrientation();
+
+  // Qué se enseña: el libro, la vista de año o las notas (que no son tareas). El libro sigue montado en
+  // todas para que sus hooks (recordatorios de repetidas, migración de fechas, widget) no se detengan
+  const content = useAgendaSectionStore((state) => (state.section === "notes" ? "notes" : state.agendaView));
+  const showingBook = content === "book";
 
   // Obtener las fechas según la página actual
   const days = calculateDays(currentPageIndex, daysToShow);
@@ -140,14 +146,14 @@ export default function Book() {
             transform: [{ translateX: getTranslateX() }],
           },
         ]}
-        {...(showingNotes ? {} : panResponder.panHandlers)}
+        {...(showingBook ? panResponder.panHandlers : {})}
       >
         {/* Pestañas: tipos de tarea (filtran el libro) y Notas (cambia el contenido de abajo) */}
         <TypeTabs />
 
-        {showingNotes ? (
-          <NotesBoard />
-        ) : (
+        {content === "notes" && <NotesBoard />}
+        {content === "year" && <YearView />}
+        {showingBook && (
           <>
             {/* Contenido principal de páginas, con el giro de hoja y el lomo con aros al cambiar de página */}
             <PageTurn

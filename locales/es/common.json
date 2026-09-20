@@ -275,6 +275,27 @@
     "deleteMessage": "¿Eliminar esta nota? Sus archivos adjuntos también se borrarán.",
     "errorEmpty": "Escribe algo o adjunta un archivo para guardar la nota."
   },
+  "yearView": {
+    "toggleBook": "Libro",
+    "toggleYear": "Año",
+    "prevYear": "Año anterior",
+    "nextYear": "Año siguiente",
+    "today": "Hoy",
+    "calendarLabel": "Calendario del año",
+    "titleYear": "Tareas de {{year}}",
+    "titleMonth": "Tareas de {{month}} {{year}}",
+    "titleDay": "Tareas del {{date}}",
+    "summary": "Tareas: {{total}} · Hechas: {{done}}",
+    "showYear": "Ver todo el año",
+    "openInBook": "Abrir en el libro",
+    "empty": "No hay tareas en este periodo",
+    "repeatsTitle": "Se repiten",
+    "occurrences": "Veces este año: {{count}}",
+    "landscape": "Horizontal",
+    "portrait": "Vertical",
+    "landscapeLabel": "Ver el año en horizontal",
+    "portraitLabel": "Volver a vertical"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Eliminar tarea repetida",
     "occurrenceMessage": "Esta tarea se repite. ¿Qué quieres eliminar? «Toda la serie» incluye la tarea original.",

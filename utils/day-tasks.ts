@@ -33,7 +33,30 @@ export function buildDayTasks(
   patterns: RepeatingTaskPattern[],
   completions: Record<string, boolean>
 ): DayTasksResult {
+  return buildDayTasksWith(
+    createDayTasksContext(tasksByDate, patterns),
+    dateKey,
+    tasksByDate,
+    completions
+  );
+}
+
+/**
+ * Lo que hace falta saber de todas las tareas y patrones para reconstruir cualquier día. Recorrer
+ * todas las tareas cuesta lo mismo para cualquier día, así que quien reconstruye muchos días seguidos
+ * (la vista de año) lo crea una sola vez y llama a `buildDayTasksWith` por cada día.
+ */
+export interface DayTasksContext {
   // id de tarea -> la tarea y la fecha en la que está guardada
+  originalTasksMap: Map<string, { task: AgendaTask; originalDate: string }>;
+  activePatterns: RepeatingTaskPattern[];
+  idsWithActivePattern: Set<string>;
+}
+
+export function createDayTasksContext(
+  tasksByDate: Record<string, DayTasks>,
+  patterns: RepeatingTaskPattern[]
+): DayTasksContext {
   const originalTasksMap = new Map<
     string,
     { task: AgendaTask; originalDate: string }
@@ -51,6 +74,16 @@ export function buildDayTasks(
     activePatterns.map((pattern) => pattern.originalTaskId)
   );
 
+  return { originalTasksMap, activePatterns, idsWithActivePattern };
+}
+
+/** Igual que `buildDayTasks`, con el contexto ya creado (ver `createDayTasksContext`) */
+export function buildDayTasksWith(
+  { originalTasksMap, activePatterns, idsWithActivePattern }: DayTasksContext,
+  dateKey: string,
+  tasksByDate: Record<string, DayTasks>,
+  completions: Record<string, boolean>
+): DayTasksResult {
   // Tareas del día; se quitan las copias de tareas repetidas que pertenecen a otro día
   const normalTasks: DayTasks = { ...tasksByDate[dateKey] };
   for (const [line, task] of Object.entries(normalTasks)) {

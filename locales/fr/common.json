@@ -279,6 +279,27 @@
     "deleteMessage": "Supprimer cette note ? Ses fichiers joints seront aussi supprimés.",
     "errorEmpty": "Écrivez quelque chose ou joignez un fichier pour enregistrer la note."
   },
+  "yearView": {
+    "toggleBook": "Livre",
+    "toggleYear": "Année",
+    "prevYear": "Année précédente",
+    "nextYear": "Année suivante",
+    "today": "Aujourd'hui",
+    "calendarLabel": "Calendrier de l'année",
+    "titleYear": "Tâches de {{year}}",
+    "titleMonth": "Tâches de {{month}} {{year}}",
+    "titleDay": "Tâches du {{date}}",
+    "summary": "Tâches : {{total}} · Faites : {{done}}",
+    "showYear": "Voir toute l'année",
+    "openInBook": "Ouvrir dans le livre",
+    "empty": "Aucune tâche sur cette période",
+    "repeatsTitle": "Récurrentes",
+    "occurrences": "Fois cette année : {{count}}",
+    "landscape": "Paysage",
+    "portrait": "Portrait",
+    "landscapeLabel": "Voir l'année en paysage",
+    "portraitLabel": "Revenir en portrait"
+  },
   "repeatDelete": {
     "occurrenceTitle": "Supprimer la tâche récurrente",
     "occurrenceMessage": "Cette tâche se répète. Que voulez-vous supprimer ? « Toute la série » inclut la tâche d'origine.",

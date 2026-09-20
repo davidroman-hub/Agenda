@@ -166,10 +166,23 @@ const itCalendarLocales = {
   today: "Oggi",
 };
 
+const calendarLocales = {
+  es: esCalendarLocales,
+  en: enCalendarLocales,
+  fr: frCalendarLocales,
+  it: itCalendarLocales,
+};
+
+// Los textos del idioma, o los de inglés si no lo tenemos (igual que el calendario de la app)
+function getCalendarLocale(language: string) {
+  return calendarLocales[language as keyof typeof calendarLocales] ?? enCalendarLocales;
+}
+
 export {
   enCalendarLocales,
   esCalendarLocales,
   frCalendarLocales,
+  getCalendarLocale,
   itCalendarLocales
 };
 
