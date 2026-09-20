@@ -5,6 +5,7 @@ import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useCalendarSettingsStore from "@/stores/Calendar-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import useTaskTypesStore from "@/stores/task-types-store";
+import { Attachment } from "@/utils/attachments";
 import {
   createLocalDateFromString,
   dateToLocalDateString,
@@ -229,9 +230,13 @@ CalendarModalProps) {
     text: string,
     reminder?: string | null,
     repeat?: any,
-    typeId?: string | null
+    typeId?: string | null,
+    attachments?: Attachment[]
   ) => {
     if (!selectedTask) return;
+
+    // Los adjuntos solo se tocan si el modal los envía; una clave `undefined` borraría los que ya tiene
+    const attachmentUpdate = attachments ? { attachments } : {};
 
     try {
       if (selectedTask.isRepeatingTask) {
@@ -249,6 +254,7 @@ CalendarModalProps) {
                 reminder,
                 repeat,
                 typeId,
+                ...attachmentUpdate,
               });
 
               // Si cambia el patrón de repetición
@@ -289,6 +295,7 @@ CalendarModalProps) {
             reminder,
             repeat: repeat || "none",
             typeId,
+            ...attachmentUpdate,
           });
 
           // Si se agregó repetición a una tarea normal
@@ -700,6 +707,9 @@ CalendarModalProps) {
                           {task.reminder && (
                             <ThemedText style={styles.taskIcon}>⏰</ThemedText>
                           )}
+                          {Boolean(task.attachments?.length) && (
+                            <ThemedText style={styles.taskIcon}>📎</ThemedText>
+                          )}
                         </ThemedView>
                       </ThemedView>
                     </TouchableOpacity>
@@ -737,6 +747,7 @@ CalendarModalProps) {
           initialText={selectedTask.text}
           initialReminder={selectedTask.reminder}
           initialTypeId={selectedTask.typeId}
+          initialAttachments={selectedTask.attachments}
           initialRepeat={selectedTask.repeat || "none"}
           onSave={handleSaveTask}
           toggleTaskCompletion={handleToggleCompletion}

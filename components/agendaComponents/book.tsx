@@ -8,6 +8,7 @@ import {
 import { useI18n } from "@/hooks/use-i18n";
 import { useRepeatedTaskNotifications } from "@/hooks/use-repeated-task-notifications";
 import { useWidgetSync } from "@/hooks/use-widget-sync";
+import useAgendaSectionStore from "@/stores/agenda-section-store";
 import useBookNavigationStore from "@/stores/book-navigation-store";
 import useBookSettingsStore from "@/stores/boook-settings";
 import useFontSettingsStore, { FONT_SIZES } from "@/stores/font-settings-store";
@@ -30,8 +31,9 @@ import {
   useBookPageLogic,
 } from "./bookFragments";
 import BookActions from "./bookSettings";
-import TypeTabs from "./typeTabs/TypeTabs";
 import { createDynamicStyles, getBookBackground } from "./bookStyles";
+import NotesBoard from "./notes/NotesBoard";
+import TypeTabs from "./typeTabs/TypeTabs";
 
 export default function Book() {
   const { daysToShow, viewMode } = useBookSettingsStore();
@@ -104,12 +106,18 @@ export default function Book() {
   React.useEffect(() => {
     if (!bookTarget || handledTargetRef.current === bookTarget.requestedAt) return;
     handledTargetRef.current = bookTarget.requestedAt;
+    // Si se estaba en las notas, la página del día no está a la vista para abrir la tarea
+    useAgendaSectionStore.getState().showAgenda();
     goToPage(
       getPageIndexForDate(getCurrentLocalDateString(), bookTarget.date, daysToShow)
     );
   });
 
   const { tCommon, tAgenda } = useI18n();
+
+  // Agenda (el libro) o notas (que no son tareas). El libro sigue montado en las dos para que sus
+  // hooks (recordatorios de repetidas, migración de fechas, widget) no se detengan
+  const showingNotes = useAgendaSectionStore((state) => state.section === "notes");
 
   // Obtener las fechas según la página actual
   const days = calculateDays(currentPageIndex, daysToShow);
@@ -132,60 +140,66 @@ export default function Book() {
             transform: [{ translateX: getTranslateX() }],
           },
         ]}
-        {...panResponder.panHandlers}
+        {...(showingNotes ? {} : panResponder.panHandlers)}
       >
-        {/* Pestañas de tipos de tarea (solo se ven si existe algún tipo) */}
+        {/* Pestañas: tipos de tarea (filtran el libro) y Notas (cambia el contenido de abajo) */}
         <TypeTabs />
 
-        {/* Contenido principal de páginas, con el giro de hoja y el lomo con aros al cambiar de página */}
-        <PageTurn
-          turn={turn}
-          onTurnEnd={endTurn}
-          twoPages={viewMode === "expanded"}
-          backgroundColor={getBookBackground(colorScheme ?? "light")}
-          colorScheme={colorScheme ?? "light"}
-          scrollY={scrollY}
-          renderSpread={(pageIndex) => (
-            <BookSpread
-              inert
-              tCommon={tCommon}
-              days={calculateDays(pageIndex, daysToShow)}
-              tAgenda={tAgenda}
-              viewMode={viewMode}
+        {showingNotes ? (
+          <NotesBoard />
+        ) : (
+          <>
+            {/* Contenido principal de páginas, con el giro de hoja y el lomo con aros al cambiar de página */}
+            <PageTurn
+              turn={turn}
+              onTurnEnd={endTurn}
+              twoPages={viewMode === "expanded"}
+              backgroundColor={getBookBackground(colorScheme ?? "light")}
               colorScheme={colorScheme ?? "light"}
-              colors={colors}
-              dynamicStyles={dynamicStyles}
-            />
-          )}
-        >
-          <BookPagesContent
-            tCommon={tCommon}
-            days={days}
-            tAgenda={tAgenda}
-            viewMode={viewMode}
-            colorScheme={colorScheme ?? "light"}
-            colors={colors}
-            dynamicStyles={dynamicStyles}
-            scrollY={scrollY}
-            onScrollChange={handleScrollChange}
-          />
-        </PageTurn>
+              scrollY={scrollY}
+              renderSpread={(pageIndex) => (
+                <BookSpread
+                  inert
+                  tCommon={tCommon}
+                  days={calculateDays(pageIndex, daysToShow)}
+                  tAgenda={tAgenda}
+                  viewMode={viewMode}
+                  colorScheme={colorScheme ?? "light"}
+                  colors={colors}
+                  dynamicStyles={dynamicStyles}
+                />
+              )}
+            >
+              <BookPagesContent
+                tCommon={tCommon}
+                days={days}
+                tAgenda={tAgenda}
+                viewMode={viewMode}
+                colorScheme={colorScheme ?? "light"}
+                colors={colors}
+                dynamicStyles={dynamicStyles}
+                scrollY={scrollY}
+                onScrollChange={handleScrollChange}
+              />
+            </PageTurn>
 
-        {/* Controles de navegación */}
-        <NavigationControls
-          tCommon={tCommon}
-          currentPageIndex={currentPageIndex}
-          daysToShow={daysToShow}
-          viewMode={viewMode}
-          dynamicStyles={dynamicStyles}
-          goToPrevPage={goToPrevPage}
-          goToNextPage={goToNextPage}
-          goToToday={goToToday}
-        />
-        <BookActions 
-          scrollProgress={scrollProgress}
-          isAtBottom={isAtBottom}
-        />
+            {/* Controles de navegación */}
+            <NavigationControls
+              tCommon={tCommon}
+              currentPageIndex={currentPageIndex}
+              daysToShow={daysToShow}
+              viewMode={viewMode}
+              dynamicStyles={dynamicStyles}
+              goToPrevPage={goToPrevPage}
+              goToNextPage={goToNextPage}
+              goToToday={goToToday}
+            />
+            <BookActions 
+              scrollProgress={scrollProgress}
+              isAtBottom={isAtBottom}
+            />
+          </>
+        )}
       </ThemedView>
     </View>
   );

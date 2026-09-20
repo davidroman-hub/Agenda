@@ -10,6 +10,7 @@ import { dateToLocalDateString } from "@/utils/date-utils";
 import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import { getTotalLines } from "@/utils/book-lines";
 import { findTaskLine } from "@/utils/book-navigation";
+import { Attachment } from "@/utils/attachments";
 import { filterVisibleLines, resolveFilter } from "@/utils/task-types";
 import { buildDayTasks } from "@/utils/day-tasks";
 import {
@@ -240,8 +241,12 @@ export default function BookPage({
     text: string,
     reminder?: string | null,
     repeat?: RepeatOption,
-    typeId?: string | null
+    typeId?: string | null,
+    attachments?: Attachment[]
   ) => {
+    // Los adjuntos solo se tocan si el modal los envía; una clave `undefined` borraría los que ya tiene
+    const attachmentUpdate = attachments ? { attachments } : {};
+
     if (editingLine !== null) {
       const existingTask = getTaskForPageLine(editingLine);
 
@@ -264,6 +269,7 @@ export default function BookPage({
                     reminder,
                     repeat,
                     typeId,
+                    ...attachmentUpdate,
                   });
 
                   // Actualizar el patrón de repetición (la función ya maneja duplicados)
@@ -291,7 +297,7 @@ export default function BookPage({
                 break;
               }
             }
-            await addTask(dateKey, availableLine, text, reminder, "none", typeId);
+            await addTask(dateKey, availableLine, text, reminder, "none", typeId, attachments);
           }
         } else {
           // Verificar si es la tarea original de un patrón de repetición
@@ -306,6 +312,7 @@ export default function BookPage({
                 reminder,
                 repeat,
                 typeId,
+                ...attachmentUpdate,
               });
 
               // Agregar/actualizar patrón de repetición (la función ya maneja duplicados)
@@ -322,6 +329,7 @@ export default function BookPage({
                 reminder,
                 repeat: "none",
                 typeId,
+                ...attachmentUpdate,
               });
             }
           } else if (repeat && repeat !== "none") {
@@ -338,6 +346,7 @@ export default function BookPage({
               reminder,
               repeat,
               typeId,
+              ...attachmentUpdate,
             });
           } else {
             // Actualizar tarea normal usando la línea directamente
@@ -359,6 +368,7 @@ export default function BookPage({
                 reminder,
                 repeat,
                 typeId,
+                ...attachmentUpdate,
               });
             }
           }
@@ -378,7 +388,7 @@ export default function BookPage({
         }
 
         // 1. Crear la tarea normal primero
-        await addTask(dateKey, targetLine, text, reminder, repeat, typeId);
+        await addTask(dateKey, targetLine, text, reminder, repeat, typeId, attachments);
 
         // 2. Obtener la tarea recién creada usando el store directamente
         // Usar un pequeño delay para asegurar que el store se actualice
@@ -416,7 +426,7 @@ export default function BookPage({
             }
           }
         }
-        await addTask(dateKey, targetLine, text, reminder, repeat, typeId);
+        await addTask(dateKey, targetLine, text, reminder, repeat, typeId, attachments);
       }
 
       // No hace falta forzar nada más: la página se recalcula sola porque está
@@ -797,7 +807,9 @@ export default function BookPage({
                           >
                             {`${
                               task.repeat && task.repeat !== "none" ? "🔄 " : ""
-                            }${task.reminder ? "⏰ " : ""}${task.text}`}
+                            }${task.reminder ? "⏰ " : ""}${
+                              task.attachments?.length ? "📎 " : ""
+                            }${task.text}`}
                           </LinkableText>
                         </ThemedView>
                       );
@@ -838,6 +850,9 @@ export default function BookPage({
             }
             initialTypeId={
               editingLine ? getTaskForPageLine(editingLine)?.typeId : undefined
+            }
+            initialAttachments={
+              editingLine ? getTaskForPageLine(editingLine)?.attachments : undefined
             }
             initialRepeat={
               (editingLine

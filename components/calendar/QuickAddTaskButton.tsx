@@ -2,6 +2,7 @@ import { useI18n } from "@/hooks/use-i18n";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
+import { Attachment } from "@/utils/attachments";
 import React, { useState } from "react";
 import { ActivityIndicator, TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -47,7 +48,8 @@ export default function QuickAddTaskButton({
     text: string,
     reminder?: string | null,
     repeat?: RepeatOption,
-    typeId?: string | null
+    typeId?: string | null,
+    attachments?: Attachment[]
   ) => {
     if (availableLines.length === 0) return;
 
@@ -57,7 +59,15 @@ export default function QuickAddTaskButton({
       const targetLine = availableLines[0];
 
       // Agregar la tarea primero
-      await addTask(selectedDate, targetLine, text, reminder, repeat || "none", typeId);
+      await addTask(
+        selectedDate,
+        targetLine,
+        text,
+        reminder,
+        repeat || "none",
+        typeId,
+        attachments
+      );
 
       // Si tiene repetición, necesitamos encontrar la tarea que acabamos de crear
       // para obtener su ID real y crear el patrón de repetición

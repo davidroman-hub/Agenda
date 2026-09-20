@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { changeLogLocales } from "../components/settings/changeLogLocales";
 import { BUG_REPORT_EMAIL } from "../config/bug-report";
+import { ATTACHMENTS_DIR_NAME } from "../utils/attachments";
 import { getChangelogForVersion } from "../utils/changelog-utils";
 
 const root = path.join(__dirname, "..");
@@ -126,6 +127,30 @@ describe("permisos de Android", () => {
   });
 });
 
+describe("copia de seguridad de Android", () => {
+  // La copia automática en la nube tiene un tope (~25 MB) y, si se pasa, falla entera: las tareas también.
+  // Por eso los archivos adjuntos van fuera de ella. android/ se mantiene a mano: si se regenera con
+  // `expo prebuild`, hay que volver a poner estas reglas (android/app/src/main/res/xml/).
+  const rules = (name: string) => read(`android/app/src/main/res/xml/${name}.xml`);
+  const referencedRule = (attribute: string) =>
+    new RegExp(`android:${attribute}="@xml/([\\w]+)"`).exec(manifest)?.[1];
+  const excludesAttachments = (xml: string) =>
+    new RegExp(`<exclude\\s+domain="file"\\s+path="${ATTACHMENTS_DIR_NAME}/"\\s*/>`).test(xml);
+
+  it("Android 11 o anterior: el manifest apunta a unas reglas que excluyen los adjuntos", () => {
+    const rule = referencedRule("fullBackupContent");
+    expect(rule).toBeDefined();
+    expect(excludesAttachments(rules(rule as string))).toBe(true);
+  });
+
+  it("Android 12 o posterior: la copia en la nube excluye los adjuntos", () => {
+    const rule = referencedRule("dataExtractionRules");
+    expect(rule).toBeDefined();
+    const cloudBackup = /<cloud-backup[^>]*>([\s\S]*?)<\/cloud-backup>/.exec(rules(rule as string))?.[1] ?? "";
+    expect(excludesAttachments(cloudBackup)).toBe(true);
+  });
+});
+
 describe("política de privacidad", () => {
   // La política afirma que la app no tiene analítica ni reportes de fallos automáticos.
   // Si añades un SDK así, actualiza la política (privacy-policy-multilang.html) y la Data safety
@@ -177,6 +202,23 @@ describe("política de privacidad multilingüe (la que se publica)", () => {
 
     for (const language of LANGUAGES) {
       expect([language, dayAndYear(language)]).toEqual([language, english]);
+    }
+  });
+
+  it("si la app permite adjuntar archivos, la política lo dice en los cuatro idiomas", () => {
+    const canAttach = Boolean({ ...pkg.dependencies }["expo-document-picker"]);
+    // Una raíz por idioma: adjunt(os) / attach(ments) / joint(es) / allega(ti)
+    const STEMS: Record<string, RegExp> = { es: /adjunt/i, en: /attach/i, fr: /joint/i, it: /allega/i };
+
+    for (const language of LANGUAGES) {
+      expect([language, STEMS[language].test(article(language))]).toEqual([language, canAttach]);
+    }
+  });
+
+  it("si la app tiene notas, la política las presenta (tarjeta 📝) en los cuatro idiomas", () => {
+    const hasNotes = fs.existsSync(path.join(root, "stores/notes-store.ts"));
+    for (const language of LANGUAGES) {
+      expect([language, article(language).includes("📝")]).toEqual([language, hasNotes]);
     }
   });
 

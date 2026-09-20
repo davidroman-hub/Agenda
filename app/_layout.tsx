@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
+import { useAttachmentCleanup } from '@/hooks/use-attachment-cleanup';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNavigationBlock } from '@/hooks/use-navigation-block';
 import { useNotifications } from '@/hooks/use-notifications';
@@ -27,6 +28,9 @@ export default function RootLayout() {
   
   // Sincronizar datos del widget
   useWidgetSync();
+
+  // Borrar los archivos adjuntos que ya no usa ninguna tarea
+  useAttachmentCleanup();
 
   // Inicializar sistema de notificaciones de versión
   useVersionNotification();

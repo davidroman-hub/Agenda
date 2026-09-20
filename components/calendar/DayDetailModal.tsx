@@ -323,6 +323,9 @@ export default function DayDetailModal({
                           {task.reminder && (
                             <ThemedText style={styles.taskIcon}>⏰</ThemedText>
                           )}
+                          {Boolean(task.attachments?.length) && (
+                            <ThemedText style={styles.taskIcon}>📎</ThemedText>
+                          )}
                         </ThemedView>
                       </ThemedView>
 

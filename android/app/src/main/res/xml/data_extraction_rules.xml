@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 o posterior. Igual que backup_rules.xml: los adjuntos no van a la copia en la nube
+     (tiene tope y, si se pasa, falla entera). En el traspaso directo a otro móvil no hay tope,
+     así que ahí sí viajan. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="attachments/" />
+    </cloud-backup>
+</data-extraction-rules>

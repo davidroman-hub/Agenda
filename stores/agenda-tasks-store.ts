@@ -1,5 +1,6 @@
 import { mmkvStorage } from "@/lib/mmkv";
 import useBookSettingsStore from "@/stores/boook-settings";
+import { Attachment } from "@/utils/attachments";
 import { computeLineStatus } from "@/utils/book-lines";
 import { notificationTexts } from "@/utils/notification-texts";
 import { notificationService } from "@/services/notifications/notification-service";
@@ -22,6 +23,7 @@ export interface AgendaTask {
   notificationId?: string | null; // ID de la notificación programada
   repeat?: string; // 'none' | 'daily' | 'weekly' | 'monthly'
   typeId?: string | null; // Tipo de tarea (null o ausente en las tareas antiguas: sin tipo)
+  attachments?: Attachment[]; // Archivos adjuntos (ausente si no tiene); ver utils/attachments.ts
   isRepeatingTask?: boolean; // Flag para identificar tareas repetidas
   repeatingTaskId?: string; // ID de la tarea repetida original
   repeatingPatternId?: string; // ID del patrón de repetición
@@ -47,7 +49,8 @@ export interface AgendaTasksState {
     text: string,
     reminder?: string | null,
     repeat?: string,
-    typeId?: string | null
+    typeId?: string | null,
+    attachments?: Attachment[]
   ) => Promise<void>;
   updateTask: (
     date: string,
@@ -83,7 +86,8 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
         text: string,
         reminder?: string | null,
         repeat?: string,
-        typeId?: string | null
+        typeId?: string | null,
+        attachments?: Attachment[]
       ) => {
         // Normalizar fechas para evitar problemas de zona horaria
         const normalizedDate = normalizeToLocalMidnight(
@@ -100,6 +104,8 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
           notificationId: null,
           repeat: repeat || "none",
           typeId: typeId ?? null,
+          // Sin la clave si no hay adjuntos: así las tareas normales guardan lo mismo que antes
+          ...(attachments?.length ? { attachments } : {}),
         };
 
         // Programar notificación si hay recordatorio
@@ -165,6 +171,8 @@ const useAgendaTasksStore = create<AgendaTasksState>()(
             ...updates,
             updatedAt: normalizeToLocalMidnight(new Date()).toISOString(),
           };
+          // Sin adjuntos no se guarda la clave (igual que en addTask)
+          if (!updatedTask.attachments?.length) delete updatedTask.attachments;
 
           return {
             tasksByDate: {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 o anterior. La copia automática en la nube tiene un tope (unos 25 MB) y, si se pasa,
+     falla entera, tareas incluidas. Los adjuntos (archivos que el usuario añade a sus tareas) se
+     dejan fuera; todo lo demás se copia igual que antes. -->
+<full-backup-content>
+    <exclude domain="file" path="attachments/" />
+</full-backup-content>

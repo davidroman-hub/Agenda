@@ -1,11 +1,14 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { releaseUnusedFiles } from "@/services/attachments-cleanup";
 import { promptForExactAlarmsOnce } from "@/services/exact-alarm-service";
 import useTaskTypesStore from "@/stores/task-types-store";
 import useThemeStore from "@/stores/theme-store";
+import { Attachment, draftAddedFileNames } from "@/utils/attachments";
 import { initialTypeChoice } from "@/utils/task-types";
 import React, { useState } from "react";
-import { Alert, Modal, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Modal, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
+import AttachmentsField from "../attachments/AttachmentsField";
 import { modalStyles } from "./TaskEditionModalStyles";
 import TaskReminder from "./TaskReminder";
 import TaskRepeat, { RepeatOption } from "./TaskRepeat";
@@ -18,11 +21,15 @@ interface TaskEditModalProps {
   readonly initialRepeat?: RepeatOption;
   // Tipo que ya tiene la tarea (null o ausente: sin tipo)
   readonly initialTypeId?: string | null;
+  // Adjuntos que ya tiene la tarea. Pasar siempre la misma referencia mientras no cambien
+  // (no crear un array nuevo en cada render): un cambio reinicia lo que se esté editando
+  readonly initialAttachments?: readonly Attachment[];
   readonly onSave: (
     text: string,
     reminder?: string | null,
     repeat?: RepeatOption,
-    typeId?: string | null
+    typeId?: string | null,
+    attachments?: Attachment[]
   ) => void;
   readonly onCancel: () => void;
   readonly onDelete?: () => void;
@@ -43,6 +50,7 @@ export default function TaskEditModal({
   initialReminder,
   initialRepeat = "none",
   initialTypeId,
+  initialAttachments,
   onSave,
   onCancel,
   onDelete,
@@ -62,6 +70,9 @@ export default function TaskEditModal({
   // no se ha decidido (al guardar hay que elegir uno, o "Sin tipo" expresamente)
   const [typeChoice, setTypeChoice] = useState<string | null | undefined>(null);
   const [typeError, setTypeError] = useState(false);
+  // Adjuntos del borrador: los archivos nuevos ya están copiados en la app, pero no forman parte
+  // de la tarea hasta que se guarda
+  const [attachments, setAttachments] = useState<Attachment[]>([...(initialAttachments ?? [])]);
   const types = useTaskTypesStore((state) => state.types);
 
   const { colorScheme } = useThemeStore();
@@ -95,7 +106,15 @@ export default function TaskEditModal({
       })
     );
     setTypeError(false);
-  }, [initialText, initialReminder, initialRepeat, initialTypeId, visible]);
+
+    setAttachments([...(initialAttachments ?? [])]);
+  }, [initialText, initialReminder, initialRepeat, initialTypeId, initialAttachments, visible]);
+
+  // Si el borrador se descarta (cancelar, borrar la tarea), los archivos que se añadieron en él sobran.
+  // releaseUnusedFiles solo borra los que ninguna tarea usa, así que nunca toca los ya guardados
+  const discardDraftFiles = () => {
+    releaseUnusedFiles(draftAddedFileNames(initialAttachments, attachments));
+  };
 
   const handleSave = () => {
     const trimmedText = taskText.trim();
@@ -109,7 +128,7 @@ export default function TaskEditModal({
       const reminderString =
         reminderEnabled && reminderDate ? reminderDate.toISOString() : null;
       const finalRepeatOption = repeatEnabled ? repeatOption : "none";
-      onSave(trimmedText, reminderString, finalRepeatOption, typeChoice);
+      onSave(trimmedText, reminderString, finalRepeatOption, typeChoice, attachments);
       // Un recordatorio solo suena a su hora si Android permite alarmas exactas; se le explica una vez
       if (reminderString) promptForExactAlarmsOnce(tCommon);
       setTaskText("");
@@ -126,6 +145,8 @@ export default function TaskEditModal({
     const trimmedText = taskText.trim();
     if (trimmedText.length > 0) {
       toggleTaskCompletion(date, lineNumber);
+      // Marcar como completada cierra el modal sin guardar el borrador
+      discardDraftFiles();
       setTaskText("");
       onCancel();
     } else {
@@ -134,6 +155,8 @@ export default function TaskEditModal({
   };
 
   const handleDelete = () => {
+    // Borrado de series: quien lo recibe pregunta qué borrar y puede cancelarlo, así que aquí no se
+    // tiran los archivos del borrador; si al final se borra, los restos los recoge la limpieza de arranque
     if (onDelete && !confirmDelete) {
       onDelete();
       return;
@@ -149,6 +172,7 @@ export default function TaskEditModal({
             text: tCommon("buttons.delete"),
             style: "destructive",
             onPress: () => {
+              discardDraftFiles();
               onDelete();
               setTaskText("");
               setReminderDate(null);
@@ -163,6 +187,7 @@ export default function TaskEditModal({
   };
 
   const handleCancel = () => {
+    discardDraftFiles();
     setTaskText("");
     setReminderDate(null);
     setReminderEnabled(false);
@@ -181,53 +206,65 @@ export default function TaskEditModal({
       onRequestClose={handleCancel}
     >
       <ThemedView style={modalStyles(colorScheme).overlay}>
-        <ThemedView style={modalStyles(colorScheme).container}>
+        <ThemedView style={[modalStyles(colorScheme).container, { maxHeight: "92%" }]}>
           <ThemedText style={modalStyles(colorScheme).title}>
             {initialText
               ? tCommon("taskEditModal.taskEdit")
               : tCommon("taskEditModal.taskCreate")}
           </ThemedText>
 
-          <TextInput
-            style={modalStyles(colorScheme).input}
-            value={taskText}
-            onChangeText={setTaskText}
-            placeholder={tCommon("taskEditModal.writeTaskHere")}
-            placeholderTextColor={
-              colorScheme === "dark" ? "#888888" : "#666666"
-            }
-            multiline
-            maxLength={320}
-            autoFocus
-          />
-          {types.length > 0 && (
-            <TaskTypePicker
-              types={types}
-              value={typeChoice}
-              onChange={(typeId) => {
-                setTypeChoice(typeId);
-                setTypeError(false);
-              }}
-              showError={typeError}
+          <ScrollView
+            style={{ flexGrow: 0 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <TextInput
+              style={modalStyles(colorScheme).input}
+              value={taskText}
+              onChangeText={setTaskText}
+              placeholder={tCommon("taskEditModal.writeTaskHere")}
+              placeholderTextColor={
+                colorScheme === "dark" ? "#888888" : "#666666"
+              }
+              multiline
+              maxLength={320}
+              autoFocus
+            />
+            {types.length > 0 && (
+              <TaskTypePicker
+                types={types}
+                value={typeChoice}
+                onChange={(typeId) => {
+                  setTypeChoice(typeId);
+                  setTypeError(false);
+                }}
+                showError={typeError}
+                colorScheme={colorScheme}
+                tCommon={tCommon}
+              />
+            )}
+            <TaskRepeat
+              repeatOption={repeatOption}
+              onRepeatChange={setRepeatOption}
+              isEnabled={repeatEnabled}
+              onToggleEnabled={setRepeatEnabled}
+              tCommon={tCommon}
+            />
+            <TaskReminder
+              tCommon={tCommon}
+              reminderDate={reminderDate}
+              onReminderChange={setReminderDate}
+              isEnabled={reminderEnabled}
+              onToggleEnabled={setReminderEnabled}
+              taskDate={date}
+            />
+            <AttachmentsField
+              attachments={attachments}
+              onChange={setAttachments}
               colorScheme={colorScheme}
               tCommon={tCommon}
             />
-          )}
-          <TaskRepeat
-            repeatOption={repeatOption}
-            onRepeatChange={setRepeatOption}
-            isEnabled={repeatEnabled}
-            onToggleEnabled={setRepeatEnabled}
-            tCommon={tCommon}
-          />
-          <TaskReminder
-            tCommon={tCommon}
-            reminderDate={reminderDate}
-            onReminderChange={setReminderDate}
-            isEnabled={reminderEnabled}
-            onToggleEnabled={setReminderEnabled}
-            taskDate={date}
-          />
+          </ScrollView>
 
           <View style={modalStyles(colorScheme).buttonsContainer}>
             <TouchableOpacity
