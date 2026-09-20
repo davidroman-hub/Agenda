@@ -1,0 +1,10 @@
+<resources>
+  <string name="widget_label">Agenda di oggi</string>
+  <string name="widget_description">Mostra i compiti del giorno</string>
+  <string name="widget_progress">%1$d di %2$d completati</string>
+  <string name="widget_all_done">Tutto completato!</string>
+  <string name="widget_no_tasks">Nessun compito oggi</string>
+  <string name="widget_more">+%1$d altri</string>
+  <string name="widget_open_app">Apri l\'app per caricare i tuoi compiti</string>
+  <string name="widget_stale">Apri l\'app per aggiornare i compiti di oggi</string>
+</resources>

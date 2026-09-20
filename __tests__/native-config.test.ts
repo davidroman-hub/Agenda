@@ -278,3 +278,33 @@ describe("política de privacidad multilingüe (la que se publica)", () => {
     }
   });
 });
+
+describe("widget de Android: lo que comparten JS y Kotlin", () => {
+  const provider = read("android/app/src/main/java/com/davidroman/justanagenda/widget/AgendaWidgetProvider.kt");
+
+  it("la clave con la que la app guarda los datos es la que lee el widget", () => {
+    const kotlinKey = /const val DATA_KEY = "([^"]+)"/.exec(provider)?.[1];
+    const jsKey = /WIDGET_KEY = "([^"]+)"/.exec(read("stores/widget-store.ts"))?.[1];
+
+    expect(kotlinKey).toBeTruthy();
+    expect(jsKey).toBe(kotlinKey);
+  });
+
+  it("el enlace de las tareas del widget llega a una ruta que existe y a un esquema que el manifest acepta", () => {
+    const authority = /\.authority\("([^"]+)"\)/.exec(provider)?.[1];
+    const scheme = /\.scheme\("([^"]+)"\)/.exec(provider)?.[1];
+
+    expect(fs.existsSync(path.join(root, "app", `${authority}.tsx`))).toBe(true);
+    expect(scheme).toBe(app.scheme);
+    expect(manifest).toContain(`<data android:scheme="${scheme}"/>`);
+  });
+
+  it("el receiver escucha el arranque y los cambios de fecha, hora e idioma para repintarse", () => {
+    const receiver = /<receiver[^>]*AgendaWidgetProvider[\s\S]*?<\/receiver>/.exec(manifest)?.[0] ?? "";
+
+    for (const action of ["BOOT_COMPLETED", "DATE_CHANGED", "TIME_SET", "TIMEZONE_CHANGED", "LOCALE_CHANGED"]) {
+      expect([action, receiver.includes(`android.intent.action.${action}`)]).toEqual([action, true]);
+    }
+    expect(manifestPermissions().active.has("android.permission.RECEIVE_BOOT_COMPLETED")).toBe(true);
+  });
+});

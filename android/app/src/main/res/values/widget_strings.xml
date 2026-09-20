@@ -1,0 +1,10 @@
+<resources>
+  <string name="widget_label">Today\'s agenda</string>
+  <string name="widget_description">Shows today\'s tasks</string>
+  <string name="widget_progress">%1$d of %2$d completed</string>
+  <string name="widget_all_done">All done!</string>
+  <string name="widget_no_tasks">No tasks today</string>
+  <string name="widget_more">+%1$d more</string>
+  <string name="widget_open_app">Open the app to load your tasks</string>
+  <string name="widget_stale">Open the app to update today\'s tasks</string>
+</resources>
