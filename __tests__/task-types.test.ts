@@ -93,8 +93,10 @@ describe("nextTypeColor", () => {
 
   it("cuando se acaban los colores, reparte cíclicamente en vez de fallar", () => {
     const all = TASK_TYPE_COLORS.map((color) => ({ color }));
-    expect(TASK_TYPE_COLORS).toContain(nextTypeColor(all));
-    expect(TASK_TYPE_COLORS).toContain(nextTypeColor([...all, { color: "#000" }]));
+    // Con todos usados, vuelve a empezar: el siguiente color es el que toca por número de tipos
+    expect(nextTypeColor(all)).toBe(TASK_TYPE_COLORS[0]);
+    expect(nextTypeColor([...all, { color: "#000" }])).toBe(TASK_TYPE_COLORS[1]);
+    expect(nextTypeColor([...all, { color: "#000" }, { color: "#111" }])).toBe(TASK_TYPE_COLORS[2]);
   });
 });
 

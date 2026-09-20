@@ -1,6 +1,33 @@
 export const changeLogLocales = {
   en: {
-    changes: `🚀 **Version 1.9.0 - Enhanced Line Management & Smart UI**
+    changes: `🚀 **Version 1.10.0 - Notes, Attachments, Task Types, Year View & Backups**
+
+📝 **What's new:**
+• **Notes**: a new section with colorful post-its, separate from your tasks. Each note can carry files and images
+• **Attachments**: add PDFs, images and documents to tasks and notes (up to 5 per item, 25 MB each). They are stored inside the app and need no permission
+• **Task types**: create your own categories with a name and a color; each type gets a tab above the book and filters the book, the calendar and past tasks
+• **Year view**: all twelve months at a glance, with the tasks of a day, a month or the whole year. On Android and iPad there is a button to switch it to landscape
+• **Backup**: in Settings you can create a file encrypted with a password and restore it on another phone. It includes tasks, notes, types and view settings, but not attachments. No accounts, no servers; if you forget the password, the backup can't be recovered
+
+🔄 **Repeating tasks & reminders:**
+• **Deleting a repeat**: choose between only this one, this and the following ones, or the whole series
+• **Reminders ahead of time**: reminders for repeating tasks are scheduled 14 days in advance and ring even if you don't open the app
+• **Tapping a notification** opens the task directly
+• **Exact alarms on Android 14+**: the app explains how to turn them on, with a shortcut in Settings
+
+📖 **Book & calendar:**
+• The book can now go backwards from today (pages -1, -2…)
+• Lowering the lines per page no longer hides tasks on the lowest lines
+
+🐛 **Fixes:**
+• Dates now use your local time zone: the calendar, page headers and past tasks no longer shift by a day
+• "Every 2/3/5 days" now matches between the book and notifications
+• Notification texts appear in your language
+• The "new version installed" notice now shows the real changes
+
+🔒 **Privacy:** the policy has been updated to cover notes, attachments and backups. Your data stays on your phone
+
+🎯 **Version 1.9.0 - Enhanced Line Management & Smart UI**
 
 📝 **Major Line Management Improvements:**
 • **Extra Lines per Page**: Enhanced linesPerPage functionality to include extraLines in available lines calculation
@@ -60,7 +87,34 @@ export const changeLogLocales = {
 • **Seamless Language Switching**: Both app and widget update language without restart`,
   },
   es: {
-    changes: `🚀 **Versión 1.9.0 - Gestión Avanzada de Líneas e Interfaz Inteligente**
+    changes: `🚀 **Versión 1.10.0 - Notas, Adjuntos, Tipos de Tarea, Vista de Año y Copia de Seguridad**
+
+📝 **Novedades:**
+• **Notas**: una sección nueva con post-its de colores, aparte de tus tareas. Cada nota puede llevar archivos e imágenes
+• **Archivos adjuntos**: añade PDF, imágenes y documentos a tareas y notas (hasta 5 por elemento y 25 MB cada uno). Se guardan dentro de la app y no hace falta ningún permiso
+• **Tipos de tarea**: crea tus propias categorías con nombre y color; cada tipo tiene su pestaña encima del libro y filtra el libro, el calendario y las tareas pasadas
+• **Vista de año**: los doce meses de un vistazo, con las tareas de un día, de un mes o del año entero. En Android y iPad hay un botón para ponerla en horizontal
+• **Copia de seguridad**: en Ajustes puedes crear un archivo cifrado con una contraseña y restaurarlo en otro móvil. Incluye tareas, notas, tipos y ajustes de vista, pero no los archivos adjuntos. Sin cuentas ni servidores; si olvidas la contraseña, la copia no se puede recuperar
+
+🔄 **Tareas repetidas y avisos:**
+• **Borrar una repetición**: elige entre solo esta, esta y las siguientes, o toda la serie
+• **Avisos por adelantado**: los de las tareas repetidas se programan con 14 días de antelación y suenan aunque no abras la app
+• **Tocar una notificación** abre directamente la tarea
+• **Alarmas exactas en Android 14+**: la app te explica cómo activarlas, con un acceso directo en Ajustes
+
+📖 **Libro y calendario:**
+• El libro ya puede ir hacia atrás desde hoy (páginas -1, -2…)
+• Al bajar las líneas por página ya no se ocultan las tareas de las líneas más bajas
+
+🐛 **Correcciones:**
+• Las fechas usan tu zona horaria: el calendario, las cabeceras de página y las tareas pasadas ya no se desplazan un día
+• «Cada 2/3/5 días» ahora coincide en el libro y en las notificaciones
+• Los textos de las notificaciones salen en tu idioma
+• El aviso de «nueva versión instalada» ahora enseña los cambios reales
+
+🔒 **Privacidad:** la política se ha actualizado para incluir notas, adjuntos y copias de seguridad. Tus datos siguen en tu teléfono
+
+🎯 **Versión 1.9.0 - Gestión Avanzada de Líneas e Interfaz Inteligente**
 
 📝 **Mejoras Importantes en Gestión de Líneas:**
 • **Líneas Extra por Página**: Funcionalidad linesPerPage mejorada para incluir líneas extra en el cálculo de líneas disponibles
@@ -120,7 +174,34 @@ export const changeLogLocales = {
 • **Cambio de Idioma Fluido**: Tanto la app como el widget actualizan el idioma sin reiniciar`,
   },
   fr: {
-    changes: `🚀 **Version 1.9.0 - Gestion Avancée des Lignes et Interface Intelligente**
+    changes: `🚀 **Version 1.10.0 - Notes, Pièces jointes, Types de tâche, Vue annuelle et Sauvegarde**
+
+📝 **Nouveautés :**
+• **Notes** : une nouvelle section avec des post-it de couleur, séparée de vos tâches. Chaque note peut contenir des fichiers et des images
+• **Pièces jointes** : ajoutez des PDF, images et documents aux tâches et aux notes (jusqu'à 5 par élément, 25 Mo chacun). Ils sont stockés dans l'application et ne demandent aucune autorisation
+• **Types de tâche** : créez vos propres catégories avec un nom et une couleur ; chaque type a son onglet au-dessus du livre et filtre le livre, le calendrier et les tâches passées
+• **Vue annuelle** : les douze mois d'un coup d'œil, avec les tâches d'un jour, d'un mois ou de l'année entière. Sur Android et iPad, un bouton permet de la passer en paysage
+• **Sauvegarde** : dans les Paramètres, vous pouvez créer un fichier chiffré par mot de passe et le restaurer sur un autre téléphone. Il contient les tâches, les notes, les types et les réglages d'affichage, mais pas les pièces jointes. Ni compte ni serveur ; si vous oubliez le mot de passe, la sauvegarde est irrécupérable
+
+🔄 **Tâches récurrentes et rappels :**
+• **Supprimer une occurrence** : choisissez entre celle-ci seulement, celle-ci et les suivantes, ou toute la série
+• **Rappels programmés à l'avance** : ceux des tâches récurrentes sont programmés 14 jours à l'avance et sonnent même si vous n'ouvrez pas l'application
+• **Toucher une notification** ouvre directement la tâche
+• **Alarmes exactes sous Android 14+** : l'application explique comment les activer, avec un raccourci dans les Paramètres
+
+📖 **Livre et calendrier :**
+• Le livre peut maintenant remonter en arrière depuis aujourd'hui (pages -1, -2…)
+• Réduire le nombre de lignes par page ne masque plus les tâches des lignes les plus basses
+
+🐛 **Corrections :**
+• Les dates utilisent désormais votre fuseau horaire : le calendrier, les en-têtes de page et les tâches passées ne se décalent plus d'un jour
+• « Tous les 2/3/5 jours » est maintenant identique dans le livre et dans les notifications
+• Les textes des notifications s'affichent dans votre langue
+• L'avis « nouvelle version installée » montre maintenant les vrais changements
+
+🔒 **Confidentialité :** la politique a été mise à jour pour inclure les notes, les pièces jointes et les sauvegardes. Vos données restent sur votre téléphone
+
+🎯 **Version 1.9.0 - Gestion Avancée des Lignes et Interface Intelligente**
 
 📝 **Améliorations Majeures de Gestion des Lignes:**
 • **Lignes Supplémentaires par Page**: Fonctionnalité linesPerPage améliorée pour inclure les lignes extra dans le calcul des lignes disponibles
@@ -180,7 +261,34 @@ export const changeLogLocales = {
 • **Changement de Langue Fluide**: L'app et le widget mettent à jour la langue sans redémarrage`,
   },
   it: {
-    changes: `🚀 **Versione 1.9.0 - Gestione Avanzata Righe e Interfaccia Intelligente**
+    changes: `🚀 **Versione 1.10.0 - Note, Allegati, Tipi di Attività, Vista Annuale e Backup**
+
+📝 **Novità:**
+• **Note**: una nuova sezione con post-it colorati, separata dalle attività. Ogni nota può contenere file e immagini
+• **Allegati**: aggiungi PDF, immagini e documenti ad attività e note (fino a 5 per elemento, 25 MB ciascuno). Vengono salvati nell'app e non richiedono alcuna autorizzazione
+• **Tipi di attività**: crea le tue categorie con nome e colore; ogni tipo ha una scheda sopra il libro e filtra il libro, il calendario e le attività passate
+• **Vista annuale**: i dodici mesi a colpo d'occhio, con le attività di un giorno, di un mese o dell'intero anno. Su Android e iPad c'è un pulsante per metterla in orizzontale
+• **Backup**: nelle Impostazioni puoi creare un file cifrato con una password e ripristinarlo su un altro telefono. Include attività, note, tipi e impostazioni di visualizzazione, ma non gli allegati. Nessun account, nessun server; se dimentichi la password, il backup non può essere recuperato
+
+🔄 **Attività ripetute e promemoria:**
+• **Eliminare una ripetizione**: scegli tra solo questa, questa e le successive, o l'intera serie
+• **Promemoria in anticipo**: quelli delle attività ripetute vengono pianificati 14 giorni prima e suonano anche se non apri l'app
+• **Toccare una notifica** apre direttamente l'attività
+• **Sveglie esatte su Android 14+**: l'app spiega come attivarle, con una scorciatoia nelle Impostazioni
+
+📖 **Libro e calendario:**
+• Il libro ora può andare indietro a partire da oggi (pagine -1, -2…)
+• Riducendo le righe per pagina non si nascondono più le attività nelle righe più basse
+
+🐛 **Correzioni:**
+• Le date ora usano il tuo fuso orario: calendario, intestazioni delle pagine e attività passate non si spostano più di un giorno
+• «Ogni 2/3/5 giorni» ora coincide tra libro e notifiche
+• I testi delle notifiche appaiono nella tua lingua
+• L'avviso «nuova versione installata» ora mostra le modifiche reali
+
+🔒 **Privacy:** l'informativa è stata aggiornata per includere note, allegati e backup. I tuoi dati restano sul telefono
+
+🎯 **Versione 1.9.0 - Gestione Avanzata Righe e Interfaccia Intelligente**
 
 📝 **Miglioramenti Maggiori Gestione Righe:**
 • **Righe Extra per Pagina**: Funzionalità linesPerPage migliorata per includere righe extra nel calcolo delle righe disponibili

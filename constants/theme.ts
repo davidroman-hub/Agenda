@@ -13,6 +13,9 @@ export const Colors = {
     text: '#11181C',
     background: '#fff',
     tint: tintColorLight,
+    // Único color de acento de la agenda (botones, "+", día de la página); onAccent va encima
+    accent: '#0a7ea4',
+    onAccent: '#ffffff',
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
@@ -21,6 +24,8 @@ export const Colors = {
     text: '#ECEDEE',
     background: '#151718',
     tint: tintColorDark,
+    accent: '#4db8d9',
+    onAccent: '#04202a',
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,

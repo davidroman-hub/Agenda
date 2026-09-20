@@ -562,19 +562,7 @@ export default function BookPage({
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.externalLinkButton,
-                {
-                  backgroundColor:
-                    colorScheme === "dark"
-                      ? "rgba(255, 107, 53, 0.2)"
-                      : "rgba(255, 107, 53, 0.15)",
-                  borderColor:
-                    colorScheme === "dark"
-                      ? "rgba(255, 107, 53, 0.4)"
-                      : "rgba(255, 107, 53, 0.3)",
-                },
-              ]}
+              style={[styles.externalLinkButton, dynamicStyles.calendarButton]}
               onPress={() => {
                 console.log(dateToLocalDateString(day), "day local date");
                 setCalendarIsOpen(!calendarIsopen);
@@ -584,7 +572,7 @@ export default function BookPage({
               <Icon
                 name="calendar"
                 size={12}
-                color={colorScheme === "dark" ? "#FF8A65" : "#FF6B35"}
+                color={colors.accent}
               />
             </TouchableOpacity>
           </ThemedView>

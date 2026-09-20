@@ -1,7 +1,7 @@
 {
   "name": "david_roman_a-app",
   "main": "expo-router/entry",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-tests.js",
     "test:watch": "jest --watch",
+    "mutation": "node scripts/mutation-check.js",
     "version:sync": "node scripts/sync-version.js"
   },
   "jest": {
@@ -25,6 +26,8 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@noble/ciphers": "^1.3.0",
+    "@noble/hashes": "^1.8.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/bottom-tabs": "^7.4.0",
@@ -34,6 +37,7 @@
     "expo-background-fetch": "~14.0.7",
     "expo-clipboard": "~8.0.7",
     "expo-constants": "~18.0.10",
+    "expo-crypto": "~15.0.9",
     "expo-device": "~8.0.9",
     "expo-document-picker": "~14.0.8",
     "expo-file-system": "~19.0.24",

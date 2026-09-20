@@ -93,9 +93,7 @@ export const styles = StyleSheet.create({
     marginBottom: 2,
     
     borderRadius: 6,
-    backgroundColor: "rgba(255, 107, 53, 0.15)",
     borderWidth: 1,
-    borderColor: "rgba(255, 107, 53, 0.3)",
   },
   dayNumber: {
     fontSize: isLargeScreen ? 36 : 32, // Vista normal: más grande
@@ -202,7 +200,6 @@ export const styles = StyleSheet.create({
   navButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: "#007AFF",
     borderRadius: 8,
     minWidth: 80,
     alignItems: "center",
@@ -212,7 +209,6 @@ export const styles = StyleSheet.create({
     opacity: 0.6,
   },
   navButtonText: {
-    color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -253,13 +249,26 @@ export const createDynamicStyles = (
     page: {
       ...styles.page,
       backgroundColor: colorScheme === "dark" ? "#2c2c2c" : "#ffffff",
-      borderLeftColor: colors.tint,
+      borderLeftColor: colors.accent,
     },
     pageHeaderBorder: {
-      borderBottomColor: colors.tint,
+      borderBottomColor: colors.accent,
     },
     dayNumber: {
-      color: colors.tint,
+      color: colors.accent,
+    },
+    // Botón del calendario junto al día: el mismo acento, en tono suave
+    calendarButton: {
+      backgroundColor: `${colors.accent}26`,
+      borderColor: `${colors.accent}4D`,
+    },
+    navButton: {
+      ...styles.navButton,
+      backgroundColor: colors.accent,
+    },
+    navButtonText: {
+      ...styles.navButtonText,
+      color: colors.onAccent,
     },
     line: {
       ...styles.line,

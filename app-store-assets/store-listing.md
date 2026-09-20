@@ -38,6 +38,11 @@ Just an Agenda - The Perfect Task Manager
 🌐 Multi-language support (ES, EN, FR, IT)
 📱 Beautiful, intuitive interface
 🔗 Clickable links in tasks
+🏷️ Task types with their own tabs and filters
+📝 Colorful post-it notes
+📎 Attach files and images to tasks and notes
+🗓️ Year view with all twelve months
+💾 Encrypted backup to move your agenda to a new phone
 📋 No cloud sync - your privacy matters
 
 Perfect for:
@@ -49,7 +54,9 @@ Features:
 • Task creation with rich text support
 • Smart reminders and notifications
 • Repeating tasks automation
-• Built-in calendar view
+• Built-in calendar view and year view
+• Notes, attachments and task types
+• Password-encrypted backup and restore (no account, no server)
 • Offline-first design
 • Dark/light theme support
 
@@ -65,4 +72,56 @@ agenda, tasks, todo, reminders, productivity, calendar, organizer, scheduler
 - **Target Audience**: Everyone
 - **Content**: No objectionable content
 - **Rating**: Suitable for all ages
+```
+
+## Release notes v1.10.0 (Play Console → "What's new", máx. 500 caracteres por idioma)
+
+```
+<en-US>
+New in 1.10:
+• Notes: colorful post-its with attachments
+• Attach PDFs, images and files to tasks and notes
+• Task types with tabs and filters
+• Year view with all twelve months
+• Encrypted backup to move your agenda to another phone
+• Delete just one repeat, the following ones or the whole series
+• Tap a notification to open its task
+• Fixes: time zones, repeat reminders, notification texts
+</en-US>
+
+<es-ES>
+Novedades de la 1.10:
+• Notas: post-its de colores con archivos adjuntos
+• Adjunta PDF, imágenes y archivos a tareas y notas
+• Tipos de tarea con pestañas y filtros
+• Vista de año con los doce meses
+• Copia de seguridad cifrada para pasar tu agenda a otro móvil
+• Borra solo una repetición, las siguientes o toda la serie
+• Toca una notificación para abrir su tarea
+• Correcciones: zonas horarias, avisos de repetidas y textos de notificaciones
+</es-ES>
+
+<fr-FR>
+Nouveautés de la 1.10 :
+• Notes : post-it de couleur avec pièces jointes
+• Joignez PDF, images et fichiers aux tâches et aux notes
+• Types de tâche avec onglets et filtres
+• Vue annuelle avec les douze mois
+• Sauvegarde chiffrée pour transférer votre agenda vers un autre téléphone
+• Supprimez une seule occurrence, les suivantes ou toute la série
+• Touchez une notification pour ouvrir sa tâche
+• Corrections : fuseaux horaires, rappels récurrents, textes des notifications
+</fr-FR>
+
+<it-IT>
+Novità della 1.10:
+• Note: post-it colorati con allegati
+• Allega PDF, immagini e file ad attività e note
+• Tipi di attività con schede e filtri
+• Vista annuale con tutti i dodici mesi
+• Backup cifrato per spostare la tua agenda su un altro telefono
+• Elimina solo una ripetizione, le successive o l'intera serie
+• Tocca una notifica per aprire la sua attività
+• Correzioni: fusi orari, promemoria ripetuti, testi delle notifiche
+</it-IT>
 ```

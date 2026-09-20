@@ -222,6 +222,28 @@ describe("política de privacidad multilingüe (la que se publica)", () => {
     }
   });
 
+  it("si la app tiene copia de seguridad, la política la presenta (tarjeta 💾) en los cuatro idiomas", () => {
+    const hasBackup = fs.existsSync(path.join(root, "services/backup-service.ts"));
+    for (const language of LANGUAGES) {
+      expect([language, article(language).includes("💾")]).toEqual([language, hasBackup]);
+    }
+  });
+
+  it("si la app cifra las copias de seguridad, la política no afirma que no añade cifrado propio", () => {
+    const encrypts = Boolean({ ...pkg.dependencies }["@noble/ciphers"]);
+    const OLD_CLAIM: Record<string, RegExp> = {
+      es: /No añadimos un cifrado propio/,
+      en: /We don[’']t add our own encryption/,
+      fr: /Nous n[’']ajoutons pas de chiffrement propre/,
+      it: /Non aggiungiamo una cifratura nostra/,
+    };
+    if (!encrypts) return;
+
+    for (const language of LANGUAGES) {
+      expect([language, OLD_CLAIM[language].test(article(language))]).toEqual([language, false]);
+    }
+  });
+
   it("el correo de contacto es al que la app envía los reportes de bug", () => {
     for (const language of LANGUAGES) {
       expect([language, article(language).includes(`mailto:${BUG_REPORT_EMAIL}`)]).toEqual([language, true]);

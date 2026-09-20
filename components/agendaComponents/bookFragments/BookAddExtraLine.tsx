@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -10,6 +11,8 @@ const AddExtraLine = ({
   date: string;
 }) => {
   const editing = false;
+  const accent = useThemeColor({}, "accent");
+  const onAccent = useThemeColor({}, "onAccent");
   const { setAdditionalLinesForDate, linesStatus } = useAgendaTasksStore();
   const additionalLine = linesStatus[date]?.extraLines || 0;
 
@@ -23,7 +26,7 @@ const AddExtraLine = ({
       style={[
         styles.addButton,
         {
-          backgroundColor: "#007AFF",
+          backgroundColor: accent,
         },
       ]}
       onPress={() => {
@@ -31,9 +34,9 @@ const AddExtraLine = ({
       }}
     >
       {editing ? (
-        <ActivityIndicator size="small" color="white" />
+        <ActivityIndicator size="small" color={onAccent} />
       ) : (
-        <Icon name="plus" size={10} color="white" />
+        <Icon name="plus" size={10} color={onAccent} />
       )}
     </TouchableOpacity>
   );

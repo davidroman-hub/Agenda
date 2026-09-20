@@ -246,91 +246,93 @@ export default function NotificationSettings() {
     </ThemedView>
   );
 
+  // Toda la pantalla hace scroll: en una pantalla pequeña las secciones no caben y la lista de
+  // recordatorios programados (al final) quedaba cortada e inalcanzable
   return (
-    <ThemedView style={[styles.container, { backgroundColor }]}>
-      <ThemedText style={[styles.title, { color: textColor }]}>
-        {tCommon("reminders.reminderConfigTitle")}
-      </ThemedText>
-
-      <ThemedView style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          {tCommon("reminders.testActions")}
+    <ThemedView style={[styles.screen, { backgroundColor }]}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <ThemedText style={[styles.title, { color: textColor }]}>
+          {tCommon("reminders.reminderConfigTitle")}
         </ThemedText>
 
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#2196f3" }]}
-          onPress={handleTestNotification}
-        >
-          <ThemedText style={styles.actionButtonText}>
-            {tCommon("reminders.turnOnNotifications")}
+        <ThemedView style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+            {tCommon("reminders.testActions")}
           </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
 
-      <ThemedView style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          {tCommon("reminders.repeatedTasks")}
-        </ThemedText>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#4CAF50" }]}
-          onPress={handleForceRepeatedTaskCheck}
-          disabled={isLoading}
-        >
-          <ThemedText style={styles.actionButtonText}>
-            {isLoading
-              ? tCommon("reminders.verifying")
-              : tCommon("reminders.repeatedTaskCheck")}
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-
-      <ThemedView style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          ℹ️ {tCommon("reminders.information")}
-        </ThemedText>
-
-        <ThemedView
-          style={[
-            styles.infoBox,
-            { backgroundColor: tintColor + "20", borderColor: tintColor },
-          ]}
-        >
-          <ThemedText style={[styles.infoText, { color: textColor }]}>
-            {tCommon("reminders.infoOne")}
-            {"\n"}📆 {tCommon("reminders.infoTwo")}
-          </ThemedText>
-        </ThemedView>
-      </ThemedView>
-
-      <ThemedView style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          {tCommon("reminders.scheduledReminders")} (
-          {scheduledNotifications.length})
-          {isLoading && (
-            <ThemedText style={{ color: tintColor }}> 🔄</ThemedText>
-          )}
-        </ThemedText>
-
-        {isLoading && (
-          <ThemedText style={[styles.loadingText, { color: tintColor }]}>
-            {tCommon("reminders.loadingReminders")}
-          </ThemedText>
-        )}
-
-        {!isLoading && scheduledNotifications.length === 0 && (
-          <ThemedText style={[styles.emptyText, { color: textColor }]}>
-            {tCommon("reminders.noReminders")}
-            {"\n"}
-            {tCommon("reminders.infoFour")}
-          </ThemedText>
-        )}
-
-        {!isLoading && scheduledNotifications.length > 0 && (
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            style={{ maxHeight: 250 }}
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: "#2196f3" }]}
+            onPress={handleTestNotification}
           >
+            <ThemedText style={styles.actionButtonText}>
+              {tCommon("reminders.turnOnNotifications")}
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+
+        <ThemedView style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+            {tCommon("reminders.repeatedTasks")}
+          </ThemedText>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: "#4CAF50" }]}
+            onPress={handleForceRepeatedTaskCheck}
+            disabled={isLoading}
+          >
+            <ThemedText style={styles.actionButtonText}>
+              {isLoading
+                ? tCommon("reminders.verifying")
+                : tCommon("reminders.repeatedTaskCheck")}
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+
+        <ThemedView style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+            ℹ️ {tCommon("reminders.information")}
+          </ThemedText>
+
+          <ThemedView
+            style={[
+              styles.infoBox,
+              { backgroundColor: tintColor + "20", borderColor: tintColor },
+            ]}
+          >
+            <ThemedText style={[styles.infoText, { color: textColor }]}>
+              {tCommon("reminders.infoOne")}
+              {"\n"}📆 {tCommon("reminders.infoTwo")}
+            </ThemedText>
+          </ThemedView>
+        </ThemedView>
+
+        <ThemedView style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+            {tCommon("reminders.scheduledReminders")} (
+            {scheduledNotifications.length})
+            {isLoading && (
+              <ThemedText style={{ color: tintColor }}> 🔄</ThemedText>
+            )}
+          </ThemedText>
+
+          {isLoading && (
+            <ThemedText style={[styles.loadingText, { color: tintColor }]}>
+              {tCommon("reminders.loadingReminders")}
+            </ThemedText>
+          )}
+
+          {!isLoading && scheduledNotifications.length === 0 && (
+            <ThemedText style={[styles.emptyText, { color: textColor }]}>
+              {tCommon("reminders.noReminders")}
+              {"\n"}
+              {tCommon("reminders.infoFour")}
+            </ThemedText>
+          )}
+
+          {!isLoading && scheduledNotifications.length > 0 && (
             <FlatList
               data={scheduledNotifications}
               renderItem={renderNotificationItem}
@@ -338,11 +340,10 @@ export default function NotificationSettings() {
               showsVerticalScrollIndicator={false}
               scrollEnabled={false}
             />
-          </ScrollView>
-        )}
-      </ThemedView>
+          )}
+        </ThemedView>
 
-      {/* Sección de información */}
+      </ScrollView>
     </ThemedView>
   );
 }

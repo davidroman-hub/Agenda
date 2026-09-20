@@ -1,9 +1,13 @@
 import { StyleSheet } from 'react-native';
 
 export const notificationSettingsStyles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
+  },
+  // Contenido del ScrollView: sin flex, para que crezca con las secciones y haga scroll
+  container: {
     padding: 16,
+    paddingBottom: 32,
   },
   title: {
     fontSize: 24,

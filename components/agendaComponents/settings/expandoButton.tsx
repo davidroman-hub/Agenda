@@ -1,4 +1,5 @@
 import { useI18n } from "@/hooks/use-i18n";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import useBookSettingsStore from "@/stores/boook-settings";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -19,6 +20,8 @@ export default function ExpandoButton({
   isAtBottom = false,
 }: ExpandoButtonProps) {
   const { tCommon } = useI18n();
+  const accent = useThemeColor({}, "accent");
+  const onAccent = useThemeColor({}, "onAccent");
 
   console.group("ExpandoButton Render", scrollProgress);
   const { setDaysToShow, daysToShow, setViewMode } = useBookSettingsStore();
@@ -114,20 +117,22 @@ export default function ExpandoButton({
           {optiones.map((option) => (
             <TouchableOpacity
               key={option.id}
-              style={styles.optionButton}
+              style={[styles.optionButton, { backgroundColor: accent }]}
               onPress={() => manageOptions(option.id)}
             >
-              <Text style={styles.optionText}>{option.label}</Text>
+              <Text style={[styles.optionText, { color: onAccent }]}>
+                {option.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
       )}
       <TouchableOpacity
         disabled={scrollProgress > 0.153104}
-        style={styles.floatingButton}
+        style={[styles.floatingButton, { backgroundColor: accent }]}
         onPress={handlePress}
       >
-        <Text style={styles.floatingButtonText}>☰</Text>
+        <Text style={[styles.floatingButtonText, { color: onAccent }]}>☰</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -150,7 +155,6 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 25,
-    backgroundColor: "#007AFF",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -163,7 +167,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   optionText: {
-    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -171,7 +174,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#FF6B35",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -184,7 +186,6 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   floatingButtonText: {
-    color: "#fff",
     fontSize: 24,
     fontWeight: "bold",
   },

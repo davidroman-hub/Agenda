@@ -11,7 +11,7 @@ import itCommon from "../locales/it/common.json";
 
 const root = path.join(__dirname, "..");
 const LANGUAGES = ["es", "en", "fr", "it"] as const;
-const GROUPS = ["attachments", "notes", "yearView"] as const;
+const GROUPS = ["attachments", "notes", "yearView", "backup"] as const;
 const files: Record<string, Record<string, unknown>> = {
   es: esCommon,
   en: enCommon,
@@ -81,5 +81,13 @@ describe("datos que el código pasa a las traducciones de adjuntos", () => {
     expect(placeholders(locales.es.attachments.errorTooLarge)).toEqual(["max"]);
     expect(placeholders(locales.es.attachments.errorTooMany)).toEqual(["max"]);
     expect(placeholders(locales.es.attachments.counter)).toEqual(["count", "max"]);
+  });
+});
+
+describe("datos que el código pasa a las traducciones de la copia de seguridad", () => {
+  it("las claves con {{dato}} que necesita el código existen (min, total, date)", () => {
+    expect(placeholders(locales.es.backup.passwordTooShort)).toEqual(["min"]);
+    expect(placeholders(locales.es.backup.droppedNotes)).toEqual(["total"]);
+    expect(placeholders(locales.es.backup.restoredMessage)).toEqual(["date"]);
   });
 });

@@ -28,8 +28,8 @@ export default function NavigationControls({
 }: NavigationControlsProps) {
   return (
     <ThemedView style={dynamicStyles.navigationControls}>
-      <TouchableOpacity style={styles.navButton} onPress={goToPrevPage}>
-        <ThemedText style={styles.navButtonText}>
+      <TouchableOpacity style={dynamicStyles.navButton} onPress={goToPrevPage}>
+        <ThemedText style={dynamicStyles.navButtonText}>
           ← {tCommon("general.previous")}
         </ThemedText>
       </TouchableOpacity>
@@ -55,8 +55,8 @@ export default function NavigationControls({
         </TouchableOpacity>
       </ThemedView>
 
-      <TouchableOpacity style={styles.navButton} onPress={goToNextPage}>
-        <ThemedText style={styles.navButtonText}>{`${tCommon(
+      <TouchableOpacity style={dynamicStyles.navButton} onPress={goToNextPage}>
+        <ThemedText style={dynamicStyles.navButtonText}>{`${tCommon(
           "general.next"
         )} →`}</ThemedText>
       </TouchableOpacity>
