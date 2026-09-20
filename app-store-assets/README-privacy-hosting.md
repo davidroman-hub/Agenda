@@ -1,5 +1,14 @@
 # Hospedar Política de Privacidad
 
+## Dónde está publicada hoy
+
+- **URL:** https://just-an-agenda.netlify.app/ (la página elige el idioma del navegador y trae selector)
+- **Archivo que se sube:** `app-store-assets/privacy-policy-multilang.html`, publicado con el nombre `index.html`
+- **Cada vez que cambie la política:** vuelve a desplegar en Netlify (Deploys → arrastrar la carpeta con el `index.html` nuevo) y comprueba que la página muestra el cambio. Pon la misma URL en Play Console (política de privacidad de la ficha).
+- El enlace de la app está en `app/(tabs)/settings.tsx` (`PRIVACY_POLICY_URL`).
+
+Lo que sigue son las opciones generales de hosting (histórico).
+
 ## Opción 1: GitHub Pages (Recomendado - GRATIS)
 
 ### Pasos:

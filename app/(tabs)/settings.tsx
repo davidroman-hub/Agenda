@@ -1,8 +1,8 @@
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import BackupButton from "@/components/settings/BackupButton";
 import BugReportButton from "@/components/settings/BugReportButton";
-import ExactAlarmButton from "@/components/settings/ExactAlarmButton";
 import ChangeThemeButton from "@/components/settings/changeThemeButton";
+import ExactAlarmButton from "@/components/settings/ExactAlarmButton";
 import TaskFontSizeButton from "@/components/settings/taskFontSizeButton";
 import TaskTypesButton from "@/components/settings/TaskTypesButton";
 import VersionInfoButton from "@/components/settings/versionInfoButton";
@@ -26,9 +26,11 @@ const handleDavidRomanPress = () => {
   Linking.openURL("https://aulaconnect.davidroman-hub.deno.net/work-with-me");
 };
 
+// Política de privacidad publicada en Netlify (el HTML está en app-store-assets/privacy-policy-multilang.html)
+const PRIVACY_POLICY_URL = "https://just-an-agenda.netlify.app/";
+
 const handlePrivacyPolicyPress = () => {
-  // Temporary link - replace with your hosted privacy policy URL
-  Linking.openURL("https://davidroman-hub.github.io/justagenda-privacy-policy");
+  Linking.openURL(PRIVACY_POLICY_URL);
 };
 
 export default function SettingsPage() {
@@ -82,7 +84,6 @@ export default function SettingsPage() {
         }}
       >
         <TranslationTest />
-  
       </TouchableOpacity>
       <ThemedText style={dynamicStyles.text}>
         Creado con ❤️‍🔥 desde 🇲🇽 por{" "}
@@ -96,13 +97,13 @@ export default function SettingsPage() {
 
       {/* Privacy Policy Link */}
       <TouchableOpacity
-        style={{ 
-          justifyContent: "center", 
-          alignItems: "center", 
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
           padding: 15,
           marginTop: 20,
           borderTopWidth: 1,
-          borderTopColor: '#E0E0E0'
+          borderTopColor: "#E0E0E0",
         }}
         onPress={handlePrivacyPolicyPress}
       >
@@ -110,7 +111,6 @@ export default function SettingsPage() {
           {tCommon("settings.privacyPolicy")}
         </ThemedText>
       </TouchableOpacity>
-      
     </ParallaxScrollView>
   );
 }
