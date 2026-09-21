@@ -1,10 +1,20 @@
 <resources>
   <string name="widget_label">Agenda di oggi</string>
-  <string name="widget_description">Mostra i compiti del giorno</string>
+  <string name="widget_description">I tuoi compiti per giorno, su un post-it</string>
   <string name="widget_progress">%1$d di %2$d completati</string>
   <string name="widget_all_done">Tutto completato!</string>
-  <string name="widget_no_tasks">Nessun compito oggi</string>
+  <string name="widget_no_tasks">Nessun compito</string>
   <string name="widget_more">+%1$d altri</string>
   <string name="widget_open_app">Apri l\'app per caricare i tuoi compiti</string>
   <string name="widget_stale">Apri l\'app per aggiornare i compiti di oggi</string>
+  <string name="widget_today">Oggi</string>
+  <string name="widget_tomorrow">Domani</string>
+  <string name="widget_yesterday">Ieri</string>
+  <string name="widget_prev_day">Giorno precedente</string>
+  <string name="widget_next_day">Giorno successivo</string>
+  <string name="widget_add_task">Aggiungi compito</string>
+  <string name="widget_add_note">Aggiungi nota</string>
+  <string name="notes_widget_label">Bacheca di note</string>
+  <string name="notes_widget_description">Le tue ultime note, appuntate come post-it</string>
+  <string name="notes_widget_empty">Ancora nessuna nota</string>
 </resources>

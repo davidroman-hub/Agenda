@@ -1,10 +1,20 @@
 <resources>
   <string name="widget_label">Agenda du jour</string>
-  <string name="widget_description">Affiche les tâches du jour</string>
+  <string name="widget_description">Vos tâches par jour, sur un post-it</string>
   <string name="widget_progress">%1$d sur %2$d terminées</string>
   <string name="widget_all_done">Tout est terminé !</string>
-  <string name="widget_no_tasks">Aucune tâche aujourd\'hui</string>
+  <string name="widget_no_tasks">Aucune tâche</string>
   <string name="widget_more">+%1$d de plus</string>
   <string name="widget_open_app">Ouvrez l\'app pour charger vos tâches</string>
   <string name="widget_stale">Ouvrez l\'app pour mettre à jour les tâches du jour</string>
+  <string name="widget_today">Aujourd\'hui</string>
+  <string name="widget_tomorrow">Demain</string>
+  <string name="widget_yesterday">Hier</string>
+  <string name="widget_prev_day">Jour précédent</string>
+  <string name="widget_next_day">Jour suivant</string>
+  <string name="widget_add_task">Ajouter une tâche</string>
+  <string name="widget_add_note">Ajouter une note</string>
+  <string name="notes_widget_label">Tableau de notes</string>
+  <string name="notes_widget_description">Vos dernières notes, épinglées comme des post-it</string>
+  <string name="notes_widget_empty">Pas encore de notes</string>
 </resources>

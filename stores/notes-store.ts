@@ -8,6 +8,7 @@ import {
   NoteColorId,
   normalizeNotes,
   sanitizeNoteText,
+  sortNotes,
 } from "@/utils/notes";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -30,6 +31,10 @@ interface NotesState {
   updateNote: (id: string, updates: NoteUpdates) => boolean;
   // Sus archivos adjuntos se borran solos (ver services/attachments-cleanup.ts)
   deleteNote: (id: string) => void;
+  // Fija el orden del tablero: `orderedIds` es la lista de ids de la primera a la última. Las notas que no
+  // vengan en ella (no debería pasar) van detrás, en su orden actual; los ids desconocidos se ignoran. No cuenta
+  // como editar la nota: no toca sus fechas.
+  reorderNotes: (orderedIds: readonly string[]) => void;
 }
 
 const newNoteId = () => `note-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
@@ -88,6 +93,22 @@ const useNotesStore = create<NotesState>()(
 
       deleteNote: (id) => {
         set((state) => ({ notes: state.notes.filter((note) => note.id !== id) }));
+      },
+
+      reorderNotes: (orderedIds) => {
+        set((state) => {
+          const known = new Set(state.notes.map((note) => note.id));
+          const listed = orderedIds.filter((id, index) => known.has(id) && orderedIds.indexOf(id) === index);
+          if (listed.length === 0) return state;
+
+          const listedSet = new Set(listed);
+          const full = [...listed, ...sortNotes(state.notes).map((note) => note.id).filter((id) => !listedSet.has(id))];
+          const rank = new Map(full.map((id, index) => [id, index]));
+
+          // Sin cambios (p. ej. se soltó en su sitio): no se toca lo guardado
+          if (state.notes.every((note) => note.order === rank.get(note.id))) return state;
+          return { notes: state.notes.map((note) => ({ ...note, order: rank.get(note.id) })) };
+        });
       },
     }),
     {

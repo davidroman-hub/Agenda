@@ -49,5 +49,12 @@
       </intent-filter>
       <meta-data android:name="android.appwidget.provider" android:resource="@xml/agenda_widget_info"/>
     </receiver>
+    <receiver android:name=".widget.NotesWidgetProvider" android:label="@string/notes_widget_label" android:exported="true">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+        <action android:name="android.intent.action.LOCALE_CHANGED"/>
+      </intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/notes_widget_info"/>
+    </receiver>
   </application>
 </manifest>

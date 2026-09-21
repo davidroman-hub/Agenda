@@ -280,31 +280,64 @@ describe("política de privacidad multilingüe (la que se publica)", () => {
 });
 
 describe("widget de Android: lo que comparten JS y Kotlin", () => {
-  const provider = read("android/app/src/main/java/com/davidroman/justanagenda/widget/AgendaWidgetProvider.kt");
+  const kotlin = (file: string) => read(`android/app/src/main/java/com/davidroman/justanagenda/widget/${file}`);
+  const intents = kotlin("WidgetIntents.kt");
 
-  it("la clave con la que la app guarda los datos es la que lee el widget", () => {
-    const kotlinKey = /const val DATA_KEY = "([^"]+)"/.exec(provider)?.[1];
+  it("la clave con la que la app guarda los datos es la que leen los widgets", () => {
+    const kotlinKey = /const val DATA_KEY = "([^"]+)"/.exec(kotlin("WidgetData.kt"))?.[1];
     const jsKey = /WIDGET_KEY = "([^"]+)"/.exec(read("stores/widget-store.ts"))?.[1];
 
     expect(kotlinKey).toBeTruthy();
     expect(jsKey).toBe(kotlinKey);
   });
 
-  it("el enlace de las tareas del widget llega a una ruta que existe y a un esquema que el manifest acepta", () => {
-    const authority = /\.authority\("([^"]+)"\)/.exec(provider)?.[1];
-    const scheme = /\.scheme\("([^"]+)"\)/.exec(provider)?.[1];
+  it("los enlaces de los widgets llegan a rutas que existen y a un esquema que el manifest acepta", () => {
+    const routes = [...intents.matchAll(/link\(context, "([^"]+)"/g)].map((match) => match[1]);
+    const scheme = /\.scheme\("([^"]+)"\)/.exec(intents)?.[1];
 
-    expect(fs.existsSync(path.join(root, "app", `${authority}.tsx`))).toBe(true);
+    expect(new Set(routes)).toEqual(new Set(["widget-task", "widget-note"]));
+    for (const route of routes) {
+      expect([route, fs.existsSync(path.join(root, "app", `${route}.tsx`))]).toEqual([route, true]);
+    }
     expect(scheme).toBe(app.scheme);
     expect(manifest).toContain(`<data android:scheme="${scheme}"/>`);
   });
 
-  it("el receiver escucha el arranque y los cambios de fecha, hora e idioma para repintarse", () => {
+  it("los parámetros que Kotlin manda a cada ruta son los que la ruta lee", () => {
+    const params = (route: string) =>
+      new Set([...intents.matchAll(new RegExp(`link\\(context, "${route}"([^)]*)\\)`, "g"))].flatMap((match) =>
+        [...match[1].matchAll(/"(\w+)" to /g)].map((param) => param[1])
+      ));
+    const readBy = (route: string) =>
+      new Set(/useLocalSearchParams<\{([^}]*)\}>/.exec(read(`app/${route}.tsx`))?.[1].match(/\w+(?=\??:)/g));
+
+    for (const route of ["widget-task", "widget-note"]) {
+      for (const param of params(route)) {
+        expect([route, param, readBy(route).has(param)]).toEqual([route, param, true]);
+      }
+    }
+  });
+
+  it("el receiver de tareas escucha el arranque y los cambios de fecha, hora e idioma para repintarse", () => {
     const receiver = /<receiver[^>]*AgendaWidgetProvider[\s\S]*?<\/receiver>/.exec(manifest)?.[0] ?? "";
 
     for (const action of ["BOOT_COMPLETED", "DATE_CHANGED", "TIME_SET", "TIMEZONE_CHANGED", "LOCALE_CHANGED"]) {
       expect([action, receiver.includes(`android.intent.action.${action}`)]).toEqual([action, true]);
     }
     expect(manifestPermissions().active.has("android.permission.RECEIVE_BOOT_COMPLETED")).toBe(true);
+  });
+
+  it("los dos widgets están en el manifest y cada uno apunta a su descripción", () => {
+    for (const [provider, info] of [["AgendaWidgetProvider", "agenda_widget_info"], ["NotesWidgetProvider", "notes_widget_info"]]) {
+      const receiver = new RegExp(`<receiver[^>]*\\.widget\\.${provider}[\\s\\S]*?</receiver>`).exec(manifest)?.[0] ?? "";
+      expect([provider, receiver.includes(`@xml/${info}`)]).toEqual([provider, true]);
+      expect(fs.existsSync(path.join(root, `android/app/src/main/res/xml/${info}.xml`))).toBe(true);
+    }
+  });
+
+  it("MainActivity guarda el intent que llega con la app a medio arrancar (si no, el enlace del widget se pierde)", () => {
+    const activity = read("android/app/src/main/java/com/davidroman/justanagenda/MainActivity.kt");
+
+    expect(activity).toMatch(/override fun onNewIntent\(intent: Intent\)[\s\S]*setIntent\(intent\)/);
   });
 });

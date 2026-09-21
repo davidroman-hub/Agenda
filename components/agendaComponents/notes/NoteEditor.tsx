@@ -33,6 +33,7 @@ const COLOR_LABEL_KEY: Record<NoteColorId, string> = {
   orange: "notes.colorOrange",
   pink: "notes.colorPink",
   green: "notes.colorGreen",
+  mint: "notes.colorMint",
   blue: "notes.colorBlue",
 };
 

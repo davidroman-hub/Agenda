@@ -1,10 +1,20 @@
 <resources>
   <string name="widget_label">Today\'s agenda</string>
-  <string name="widget_description">Shows today\'s tasks</string>
+  <string name="widget_description">Your tasks by day, on a floating post-it</string>
   <string name="widget_progress">%1$d of %2$d completed</string>
   <string name="widget_all_done">All done!</string>
-  <string name="widget_no_tasks">No tasks today</string>
+  <string name="widget_no_tasks">No tasks</string>
   <string name="widget_more">+%1$d more</string>
   <string name="widget_open_app">Open the app to load your tasks</string>
   <string name="widget_stale">Open the app to update today\'s tasks</string>
+  <string name="widget_today">Today</string>
+  <string name="widget_tomorrow">Tomorrow</string>
+  <string name="widget_yesterday">Yesterday</string>
+  <string name="widget_prev_day">Previous day</string>
+  <string name="widget_next_day">Next day</string>
+  <string name="widget_add_task">Add task</string>
+  <string name="widget_add_note">Add note</string>
+  <string name="notes_widget_label">Notes board</string>
+  <string name="notes_widget_description">Your latest notes, pinned like post-its</string>
+  <string name="notes_widget_empty">No notes yet</string>
 </resources>

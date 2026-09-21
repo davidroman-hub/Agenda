@@ -12,7 +12,11 @@ import {
   NOTE_COLORS,
   noteColorHex,
   normalizeNotes,
+  NOTE_TEXT_COLOR,
+  notePin,
   noteRotation,
+  PIN_COLORS,
+  PIN_MAX_OFFSET,
   sanitizeNoteText,
   sortNotes,
   splitIntoColumns,
@@ -54,6 +58,58 @@ describe("colores", () => {
     expect(noteColorHex("nope")).toBe(noteColorHex("yellow"));
     expect(noteColorHex(undefined)).toBe(noteColorHex("yellow"));
     expect(noteColorHex(null)).toBe(noteColorHex("yellow"));
+  });
+});
+
+describe("legibilidad", () => {
+  // Contraste WCAG entre dos colores "#RRGGBB"
+  const luminance = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((start) => {
+      const channel = parseInt(hex.slice(start, start + 2), 16) / 255;
+      return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (a: string, b: string) => {
+    const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (light + 0.05) / (dark + 0.05);
+  };
+
+  it("el texto se lee bien sobre todos los colores de post-it (contraste AA, 4,5)", () => {
+    for (const { id, hex } of NOTE_COLORS) {
+      expect({ id, ratio: contrast(NOTE_TEXT_COLOR, hex) >= 4.5 }).toEqual({ id, ratio: true });
+    }
+  });
+
+  it("los ids de siempre siguen en la paleta (hay notas guardadas con ellos)", () => {
+    for (const id of ["yellow", "orange", "pink", "green", "blue"]) expect(isNoteColorId(id)).toBe(true);
+  });
+});
+
+describe("notePin", () => {
+  it("es siempre la misma para la misma nota", () => {
+    expect(notePin("note-abc")).toEqual(notePin("note-abc"));
+  });
+
+  it("el color es uno de los de la lista y el desplazamiento no se sale del post-it", () => {
+    for (let index = 0; index < 300; index++) {
+      const pin = notePin(`note-${index}-${index * 7919}`);
+      expect(PIN_COLORS.some((color) => color.head === pin.head && color.dark === pin.dark)).toBe(true);
+      expect(Number.isInteger(pin.offset)).toBe(true);
+      expect(Math.abs(pin.offset)).toBeLessThanOrEqual(PIN_MAX_OFFSET);
+    }
+  });
+
+  it("reparte los colores y las posiciones (no todas las chinchetas iguales)", () => {
+    const pins = Array.from({ length: 60 }, (_, index) => notePin(`note-${index}`));
+    expect(new Set(pins.map((pin) => pin.head)).size).toBeGreaterThan(3);
+    expect(new Set(pins.map((pin) => pin.offset)).size).toBeGreaterThan(8);
+  });
+
+  it("aguanta un id vacío", () => {
+    const pin = notePin("");
+    expect(Number.isFinite(pin.offset)).toBe(true);
+    expect(pin.head).toMatch(/^#[0-9A-F]{6}$/);
   });
 });
 

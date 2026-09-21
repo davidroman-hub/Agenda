@@ -112,7 +112,7 @@ describe("abrir en el libro", () => {
     openEntryInBook(entry);
 
     expect(target()).toMatchObject({ date: "2026-03-02", taskId: entry.task.id });
-    expect(lineInBook(target()!.date, target()!.taskId)).toBe(3);
+    expect(lineInBook(target()!.date, target()!.taskId!)).toBe(3);
   });
 
   it("una ocurrencia repetida: pide el id de la ORIGINAL (no el virtual), que es el que el libro busca", () => {
@@ -123,7 +123,7 @@ describe("abrir en el libro", () => {
 
     expect(target()).toMatchObject({ date: "2026-03-09", taskId: original.id });
     // Las ocurrencias se dibujan tras las líneas de escribir: TOTAL_LINES + 1
-    expect(lineInBook("2026-03-09", target()!.taskId)).toBe(TOTAL_LINES + 1);
+    expect(lineInBook("2026-03-09", target()!.taskId!)).toBe(TOTAL_LINES + 1);
   });
 
   it("con el id virtual el libro NO la encontraría (por eso se usa el de la original)", () => {

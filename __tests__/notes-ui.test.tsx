@@ -38,6 +38,7 @@ import useAgendaTasksStore from "../stores/agenda-tasks-store";
 import useNotesStore from "../stores/notes-store";
 import useTaskTypesStore from "../stores/task-types-store";
 import { buildStoredFileName, createAttachmentId } from "../utils/attachments";
+import { noteColorHex } from "../utils/notes";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -143,7 +144,7 @@ describe("NoteEditor", () => {
     await act(async () => { r.root.findByType(TextInput).props.onChangeText("Con color"); });
     await act(async () => { byLabel(r.root, "notes.colorBlue")[0].props.onPress(); });
     const input = r.root.findByType(TextInput);
-    expect(JSON.stringify(input.props.style)).toContain("#8ED1FC");
+    expect(JSON.stringify(input.props.style)).toContain(noteColorHex("blue"));
 
     const save = r.root.findAllByType(TouchableOpacity).filter((n) => n.findAllByType(Text).some((t) => t.props.children === "buttons.save"))[0];
     await act(async () => { save.props.onPress(); });
@@ -194,7 +195,7 @@ describe("NoteEditor", () => {
 describe("NoteCard", () => {
   it("una nota solo con archivo (sin texto) se dibuja sin romper", async () => {
     const note = useNotesStore.getState().addNote({ text: "", attachments: [att("a.pdf", "application/pdf", 0.4)] })!;
-    const r = await render(<NoteCard note={note} previewUri={null} onPress={jest.fn()} />);
+    const r = await render(<NoteCard note={note} previewUri={null} minHeight={160} onPress={jest.fn()} />);
     expect(texts(r.root).some((t) => String(t).includes("📎"))).toBe(true);
   });
 });

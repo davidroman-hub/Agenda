@@ -9,7 +9,7 @@ import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { dateToLocalDateString } from "@/utils/date-utils";
 import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import { getTotalLines } from "@/utils/book-lines";
-import { findTaskLine } from "@/utils/book-navigation";
+import { findFreeLine, findTaskLine } from "@/utils/book-navigation";
 import { Attachment } from "@/utils/attachments";
 import { filterVisibleLines, resolveFilter } from "@/utils/task-types";
 import { buildDayTasks } from "@/utils/day-tasks";
@@ -225,7 +225,7 @@ export default function BookPage({
     setModalVisible(true);
   };
 
-  // Si se ha pedido mostrar una tarea de este día (p. ej. al tocar una notificación), se abre.
+  // Si se ha pedido mostrar una tarea de este día (p. ej. al tocar una notificación) o crear una, se abre.
   // La petición se consume siempre que sea de esta página, se encuentre la tarea o no
   const bookTarget = useBookNavigationStore((state) => state.target);
   const clearBookTarget = useBookNavigationStore((state) => state.clearTarget);
@@ -233,7 +233,11 @@ export default function BookPage({
     if (inert || !bookTarget || bookTarget.date !== dateKey) return;
 
     clearBookTarget();
-    const line = findTaskLine(bookTarget.taskId, allTasks, repeatedTasks, totalUserLines);
+    // Sin id: se pide una tarea nueva, que va en la primera línea libre
+    const line =
+      bookTarget.taskId === null
+        ? findFreeLine(allTasks, totalUserLines)
+        : findTaskLine(bookTarget.taskId, allTasks, repeatedTasks, totalUserLines);
     if (line !== null) handleLinePress(line);
   });
 

@@ -41,3 +41,14 @@ export function findTaskLine(
   const index = repeatedTasks.findIndex((task) => task.repeatingTaskId === taskId);
   return index === -1 ? null : totalLines + index + 1;
 }
+
+/**
+ * Primera línea de escribir sin tarea de un día (de 1 a `totalLines`), o null si están todas ocupadas.
+ * Es donde se pone la tarea nueva que se pide desde fuera del libro (p. ej. desde el widget).
+ */
+export function findFreeLine(normalTasks: DayTasks, totalLines: number): number | null {
+  for (let line = 1; line <= totalLines; line++) {
+    if (!normalTasks[line]) return line;
+  }
+  return null;
+}

@@ -311,6 +311,7 @@
     "colorOrange": "Orange",
     "colorPink": "Rose",
     "colorGreen": "Vert",
+    "colorMint": "Menthe",
     "colorBlue": "Bleu",
     "deleteTitle": "Supprimer la note",
     "deleteMessage": "Supprimer cette note ? Ses fichiers joints seront aussi supprimés.",

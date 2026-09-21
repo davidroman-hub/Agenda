@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El tablero y los post-its son un Bitmap que dibuja NotesWidgetProvider en notes_board. Encima solo hay
+     zonas táctiles (FrameLayout: RemoteViews no admite View a secas): una rejilla con el mismo margen y las mismas celdas que el dibujo (ver PostItArt.GRID_INSET)
+     y el botón "+" en la posición del que se dibuja (PostItArt.FAB_*) -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/notes_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/notes_board"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <LinearLayout
+            android:id="@+id/notes_row1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <FrameLayout android:id="@+id/notes_cell1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"></FrameLayout>
+            <FrameLayout android:id="@+id/notes_cell2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"></FrameLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/notes_row2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <FrameLayout android:id="@+id/notes_cell3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"></FrameLayout>
+            <FrameLayout android:id="@+id/notes_cell4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"></FrameLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/notes_row3"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <FrameLayout android:id="@+id/notes_cell5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"></FrameLayout>
+            <FrameLayout android:id="@+id/notes_cell6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"></FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/notes_add"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="18dp"
+        android:contentDescription="@string/widget_add_note"></FrameLayout>
+
+</FrameLayout>

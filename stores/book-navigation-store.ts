@@ -4,7 +4,8 @@ import { create } from "zustand";
 export interface BookTarget {
   /** YYYY-MM-DD */
   date: string;
-  taskId: string;
+  /** La tarea que hay que abrir; null pide una tarea nueva en la primera línea libre del día */
+  taskId: string | null;
   /** Distingue dos peticiones al mismo destino */
   requestedAt: number;
 }
@@ -12,6 +13,7 @@ export interface BookTarget {
 interface BookNavigationState {
   target: BookTarget | null;
   requestTarget: (date: string, taskId: string) => void;
+  requestNewTask: (date: string) => void;
   clearTarget: () => void;
 }
 
@@ -22,6 +24,8 @@ const useBookNavigationStore = create<BookNavigationState>()((set) => ({
   target: null,
   requestTarget: (date, taskId) =>
     set({ target: { date, taskId, requestedAt: Date.now() } }),
+  requestNewTask: (date) =>
+    set({ target: { date, taskId: null, requestedAt: Date.now() } }),
   clearTarget: () => set({ target: null }),
 }));
 

@@ -10,11 +10,12 @@ import {
 } from "./attachments";
 
 export const NOTE_COLORS = [
-  { id: "yellow", hex: "#FFE66D" },
-  { id: "orange", hex: "#FFB86B" },
-  { id: "pink", hex: "#FF9EBB" },
-  { id: "green", hex: "#B8E986" },
-  { id: "blue", hex: "#8ED1FC" },
+  { id: "yellow", hex: "#FBE164" },
+  { id: "orange", hex: "#F39257" },
+  { id: "pink", hex: "#EC7A9C" },
+  { id: "green", hex: "#C4D66C" },
+  { id: "mint", hex: "#86DEC3" },
+  { id: "blue", hex: "#A9ACEE" },
 ] as const;
 
 export type NoteColorId = (typeof NOTE_COLORS)[number]["id"];
@@ -24,8 +25,8 @@ export const MAX_NOTE_LENGTH = 2000;
 /** Líneas de texto que se ven en la tarjeta (el resto se lee al abrir la nota) */
 export const NOTE_CARD_MAX_LINES = 8;
 
-/** El tablero es de un amarillo oscuro; los post-it, claros, y por eso su texto es siempre oscuro */
-export const NOTES_BOARD_BACKGROUND = { light: "#C79A2B", dark: "#5C4513" } as const;
+/** El tablero es de corcho (su textura va encima de este color); los post-it son claros y su texto, oscuro */
+export const NOTES_BOARD_BACKGROUND = { light: "#C4965F", dark: "#4A3623" } as const;
 export const NOTES_ACCENT = "#B8860B";
 export const NOTE_TEXT_COLOR = "#3B3200";
 
@@ -37,6 +38,11 @@ export interface Note {
   updatedAt: string;
   /** Ausente si no tiene */
   attachments?: Attachment[];
+  /**
+   * Su sitio en el tablero, si el usuario las ha reordenado arrastrándolas (0 = la primera). Ausente en las
+   * que nunca se han movido y en las creadas después: van delante, las más recientes primero (ver sortNotes)
+   */
+  order?: number;
 }
 
 export function isNoteColorId(value: unknown): value is NoteColorId {
@@ -59,16 +65,45 @@ export function isNoteEmpty(note: { text?: string | null; attachments?: readonly
   return sanitizeNoteText(note.text ?? "") === "" && !note.attachments?.length;
 }
 
+/** Un número que sale del id: el mismo id da siempre el mismo (para lo que es "al azar" pero fijo) */
+const hashOf = (id: string) => {
+  let hash = 5381;
+  for (let index = 0; index < id.length; index++) {
+    hash = ((hash * 33) ^ id.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+};
+
 /**
  * Inclinación de cada post-it, en grados: pequeña, y siempre la misma para la misma nota (sale de su
  * id), para que el tablero no "baile" cada vez que se dibuja. Entre -2,5° y 2,5°.
  */
 export function noteRotation(id: string): number {
-  let hash = 5381;
-  for (let index = 0; index < id.length; index++) {
-    hash = ((hash * 33) ^ id.charCodeAt(index)) >>> 0;
-  }
-  return ((hash % 11) - 5) * 0.5;
+  return ((hashOf(id) % 11) - 5) * 0.5;
+}
+
+/** Chinchetas: color de la cabeza y un tono más oscuro para el borde y el pie */
+export const PIN_COLORS = [
+  { head: "#F0742A", dark: "#B4500F" },
+  { head: "#9FCB36", dark: "#6E9418" },
+  { head: "#E23E76", dark: "#A6224F" },
+  { head: "#1FA79A", dark: "#127367" },
+  { head: "#3D5A9E", dark: "#263C70" },
+  { head: "#D93A3A", dark: "#9C2020" },
+] as const;
+
+/** Lo máximo que se aparta una chincheta del centro del post-it, en puntos */
+export const PIN_MAX_OFFSET = 14;
+
+/**
+ * La chincheta de cada post-it: color y desplazamiento horizontal (entre -14 y 14) que salen de su
+ * id, como la inclinación, para que sea siempre la misma.
+ */
+export function notePin(id: string): { head: string; dark: string; offset: number } {
+  const hash = hashOf(id);
+  const color = PIN_COLORS[hash % PIN_COLORS.length];
+  const offset = (Math.floor(hash / 7) % (PIN_MAX_OFFSET * 2 + 1)) - PIN_MAX_OFFSET;
+  return { head: color.head, dark: color.dark, offset };
 }
 
 const timeOf = (iso: string) => {
@@ -76,11 +111,37 @@ const timeOf = (iso: string) => {
   return Number.isNaN(time) ? 0 : time;
 };
 
-/** Las más recientes primero; a igualdad, por id, para que el orden no cambie de un arranque a otro */
-export function sortNotes<T extends Pick<Note, "id" | "createdAt">>(notes: readonly T[]): T[] {
-  return [...notes].sort(
-    (a, b) => timeOf(b.createdAt) - timeOf(a.createdAt) || a.id.localeCompare(b.id)
-  );
+/**
+ * El orden del tablero (y el del widget de notas). Primero las que no tienen `order` (las que nunca se han
+ * movido y las nuevas), las más recientes primero; después las que sí, por su `order`. A igualdad, por id, para
+ * que el orden no cambie de un arranque a otro. Sin ninguna reordenada es simplemente "las más recientes primero".
+ */
+export function sortNotes<T extends Pick<Note, "id" | "createdAt"> & { order?: number }>(
+  notes: readonly T[]
+): T[] {
+  return [...notes].sort((a, b) => {
+    const aOrder = typeof a.order === "number" ? a.order : null;
+    const bOrder = typeof b.order === "number" ? b.order : null;
+
+    if (aOrder !== null && bOrder !== null) return aOrder - bOrder || a.id.localeCompare(b.id);
+    if (aOrder !== null) return 1;
+    if (bOrder !== null) return -1;
+    return timeOf(b.createdAt) - timeOf(a.createdAt) || a.id.localeCompare(b.id);
+  });
+}
+
+/**
+ * La lista de ids con `id` movido a la posición `toIndex` (el resto se corre para hacerle sitio). Si el id no
+ * está, o ya está ahí, devuelve la lista tal cual. `toIndex` se acota a los límites de la lista.
+ */
+export function moveInOrder(ids: readonly string[], id: string, toIndex: number): string[] {
+  const from = ids.indexOf(id);
+  if (from === -1) return [...ids];
+
+  const target = Math.min(Math.max(Math.trunc(toIndex) || 0, 0), ids.length - 1);
+  const next = ids.filter((existing) => existing !== id);
+  next.splice(target, 0, id);
+  return next;
 }
 
 /** El primer archivo que es una imagen (se enseña como vista previa en la tarjeta) */
@@ -102,7 +163,7 @@ export function normalizeNotes(value: unknown): Note[] {
 
   for (const entry of value) {
     if (!entry || typeof entry !== "object") continue;
-    const { id, text, color, createdAt, updatedAt, attachments } = entry as Record<string, unknown>;
+    const { id, text, color, createdAt, updatedAt, attachments, order } = entry as Record<string, unknown>;
     if (typeof id !== "string" || id === "" || seen.has(id)) continue;
 
     const cleanText = sanitizeNoteText(text);
@@ -121,6 +182,8 @@ export function normalizeNotes(value: unknown): Note[] {
       createdAt: created ?? fallback,
       updatedAt: updated ?? fallback,
       ...(cleanAttachments.length > 0 ? { attachments: cleanAttachments } : {}),
+      // Solo un número válido; cualquier otra cosa cuenta como "nunca reordenada"
+      ...(typeof order === "number" && Number.isFinite(order) ? { order } : {}),
     });
   }
 

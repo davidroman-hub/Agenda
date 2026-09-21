@@ -1,7 +1,7 @@
 import { calculateDays } from "../components/agendaComponents/bookFragments/bookUtils";
 import type { AgendaTask } from "../stores/agenda-tasks-store";
 import { dateToLocalDateString } from "../utils/date-utils";
-import { findTaskLine, getPageIndexForDate, getPageNumber } from "../utils/book-navigation";
+import { findFreeLine, findTaskLine, getPageIndexForDate, getPageNumber } from "../utils/book-navigation";
 import { addDaysToDateKey } from "../utils/repeat-utils";
 
 const TODAY = "2026-09-20";
@@ -96,5 +96,27 @@ describe("findTaskLine", () => {
 
   it("ignora las entradas nulas del día", () => {
     expect(findTaskLine("a", { 1: null, 2: task("a") }, [], 12)).toBe(2);
+  });
+});
+
+describe("findFreeLine (dónde va la tarea nueva pedida desde el widget)", () => {
+  const filled = (lines: number[]): Record<number, AgendaTask> =>
+    Object.fromEntries(lines.map((line) => [line, { id: `t${line}`, text: "x", completed: false, createdAt: "", updatedAt: "" }]));
+
+  it("la primera línea libre del día", () => {
+    expect(findFreeLine({}, 12)).toBe(1);
+    expect(findFreeLine(filled([1, 2, 4]), 12)).toBe(3);
+  });
+
+  it("una línea con null cuenta como libre", () => {
+    expect(findFreeLine({ 1: null, 2: filled([2])[2] }, 12)).toBe(1);
+  });
+
+  it("si están todas ocupadas, no hay ninguna", () => {
+    expect(findFreeLine(filled([1, 2, 3]), 3)).toBeNull();
+  });
+
+  it("solo mira las líneas de escribir: una tarea fuera de ese rango no cuenta", () => {
+    expect(findFreeLine(filled([13]), 12)).toBe(1);
   });
 });

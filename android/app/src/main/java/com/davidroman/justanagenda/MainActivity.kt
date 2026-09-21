@@ -1,6 +1,7 @@
 package com.davidroman.justanagenda
 import expo.modules.splashscreen.SplashScreenManager
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 
@@ -21,6 +22,16 @@ class MainActivity : ReactActivity() {
     SplashScreenManager.registerOnActivity(this)
     // @generated end expo-splashscreen
     super.onCreate(null)
+  }
+
+  /**
+   * Si Android ya tenía la tarea pero había matado el proceso, un enlace (p. ej. el toque en una tarea
+   * o una nota del widget) llega aquí antes de que React esté listo y React lo descarta. Guardándolo
+   * como el intent de la actividad, expo-router lo lee al arrancar con `Linking.getInitialURL()`.
+   */
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
   }
 
   /**

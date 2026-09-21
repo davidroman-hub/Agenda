@@ -306,6 +306,7 @@
     "colorOrange": "Orange",
     "colorPink": "Pink",
     "colorGreen": "Green",
+    "colorMint": "Mint",
     "colorBlue": "Blue",
     "deleteTitle": "Delete note",
     "deleteMessage": "Delete this note? Its attached files will be deleted too.",

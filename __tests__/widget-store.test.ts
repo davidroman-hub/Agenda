@@ -15,6 +15,7 @@ import type { WidgetPayload } from "../utils/widget-data";
 
 const payload = (total: number): WidgetPayload => ({
   days: { "2026-09-21": { total, completed: 0, tasks: [] } },
+  notes: [],
 });
 
 beforeEach(() => {
@@ -31,7 +32,7 @@ describe("WidgetStore.updateWidgetData", () => {
   it("guarda con la clave que lee el widget y lo repinta", async () => {
     await WidgetStore.updateWidgetData(payload(1));
 
-    expect(mockSave).toHaveBeenCalledWith("widget-days-v2", JSON.stringify(payload(1)));
+    expect(mockSave).toHaveBeenCalledWith("widget-data-v3", JSON.stringify(payload(1)));
     expect(mockForce).toHaveBeenCalledTimes(1);
   });
 

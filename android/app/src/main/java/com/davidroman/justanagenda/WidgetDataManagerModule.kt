@@ -2,12 +2,14 @@ package com.davidroman.justanagenda
 
 import android.content.Context
 import com.davidroman.justanagenda.widget.AgendaWidgetProvider
+import com.davidroman.justanagenda.widget.NotesWidgetProvider
+import com.davidroman.justanagenda.widget.WidgetStorage
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 
-// Puente JS -> nativo: la app guarda aquí el resumen del día y el widget lo lee de SharedPreferences.
+// Puente JS -> nativo: la app guarda aquí el resumen de tareas y notas y los widgets lo leen de SharedPreferences.
 // Expo no ofrece widgets, por eso vive en código nativo.
 class WidgetDataManagerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -18,7 +20,7 @@ class WidgetDataManagerModule(reactContext: ReactApplicationContext) :
   fun saveWidgetData(key: String, data: String, promise: Promise) {
     try {
       reactApplicationContext
-          .getSharedPreferences(AgendaWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE)
+          .getSharedPreferences(WidgetStorage.PREFS_NAME, Context.MODE_PRIVATE)
           .edit()
           .putString(key, data)
           .apply()
@@ -32,6 +34,7 @@ class WidgetDataManagerModule(reactContext: ReactApplicationContext) :
   fun forceWidgetUpdate(promise: Promise) {
     try {
       AgendaWidgetProvider.updateAll(reactApplicationContext)
+      NotesWidgetProvider.updateAll(reactApplicationContext)
       promise.resolve(null)
     } catch (e: Exception) {
       promise.reject("WIDGET_UPDATE_ERROR", e.message, e)
