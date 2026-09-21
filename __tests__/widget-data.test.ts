@@ -191,4 +191,70 @@ describe("buildWidgetPayload: notas", () => {
     const { notes } = buildWidgetPayload(TODAY, {}, [], {}, [], [note("n1", { text: "x".repeat(1000) })]);
     expect(notes[0].text.length).toBeLessThanOrEqual(200);
   });
+
+  it("una nota con una imagen adjunta manda su nombre de archivo, y sin texto no aparece el del archivo", () => {
+    const image = {
+      id: "a1",
+      name: "foto.jpg",
+      fileName: "att_abc123_xyz789.jpg",
+      mimeType: "image/jpeg",
+      size: 1,
+      addedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const { notes } = buildWidgetPayload(TODAY, {}, [], {}, [], [
+      note("con-foto", { text: "  ", attachments: [image] }),
+    ]);
+
+    expect(notes).toEqual([
+      {
+        id: "con-foto",
+        text: "",
+        color: noteColorHex("yellow"),
+        rotation: noteRotation("con-foto"),
+        pin: notePin("con-foto"),
+        image: "att_abc123_xyz789.jpg",
+      },
+    ]);
+  });
+
+  it("con texto e imagen manda los dos", () => {
+    const image = {
+      id: "a1",
+      name: "foto.jpg",
+      fileName: "att_abc123_xyz789.jpg",
+      mimeType: "image/jpeg",
+      size: 1,
+      addedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const { notes } = buildWidgetPayload(TODAY, {}, [], {}, [], [
+      note("con-foto-y-texto", { text: "recuerda esto", attachments: [image] }),
+    ]);
+
+    expect(notes[0].text).toBe("recuerda esto");
+    expect(notes[0].image).toBe("att_abc123_xyz789.jpg");
+  });
+
+  it("una imagen con nombre de archivo que no es el nuestro no manda `image` (por seguridad); cae al nombre", () => {
+    const image = {
+      id: "a1",
+      name: "foto.jpg",
+      fileName: "../escape.jpg",
+      mimeType: "image/jpeg",
+      size: 1,
+      addedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const { notes } = buildWidgetPayload(TODAY, {}, [], {}, [], [
+      note("archivo-raro", { text: "  ", attachments: [image] }),
+    ]);
+
+    expect(notes).toEqual([
+      {
+        id: "archivo-raro",
+        text: "📎 foto.jpg",
+        color: noteColorHex("yellow"),
+        rotation: noteRotation("archivo-raro"),
+        pin: notePin("archivo-raro"),
+      },
+    ]);
+  });
 });

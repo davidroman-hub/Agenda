@@ -27,6 +27,8 @@ class NoteItem(
     val pinHead: Int,
     val pinDark: Int,
     val pinOffset: Float,
+    /** Nombre guardado de la primera imagen adjunta (ver isStoredFileName en utils/attachments.ts); null si no tiene */
+    val imageFileName: String?,
 )
 
 class WidgetData(val days: TreeMap<String, DayData>, val notes: List<NoteItem>)
@@ -70,7 +72,7 @@ object WidgetStorage {
 
     val notesJson = root.optJSONArray("notes")
     val notes = List(notesJson?.length() ?: 0) { notesJson!!.optJSONObject(it) }
-        .filter { it != null && it.optString("text").isNotBlank() }
+        .filter { it != null && (it.optString("text").isNotBlank() || it.optString("image").isNotBlank()) }
         .map {
           val pin = it!!.optJSONObject("pin")
           NoteItem(
@@ -81,6 +83,7 @@ object WidgetStorage {
               pinHead = color(pin?.optString("head") ?: "") ?: DEFAULT_PIN_HEAD,
               pinDark = color(pin?.optString("dark") ?: "") ?: DEFAULT_PIN_DARK,
               pinOffset = pin?.optDouble("offset", 0.0)?.toFloat() ?: 0f,
+              imageFileName = storedFileName(it.optString("image")),
           )
         }
     return WidgetData(days, notes)
@@ -91,4 +94,10 @@ object WidgetStorage {
   private const val DEFAULT_PIN_DARK = 0xFF9C2020.toInt()
 
   private fun color(hex: String): Int? = runCatching { Color.parseColor(hex) }.getOrNull()
+
+  // Mismo patrón que STORED_FILE_NAME en utils/attachments.ts: el dato viene de SharedPreferences (que
+  // podría venir de una copia de seguridad), así que se exige antes de que PostItArt lo use para leer un archivo
+  private val STORED_FILE_NAME = Regex("^att_[0-9a-z]+_[0-9a-z]+(\\.[a-z0-9]{1,8})?$")
+
+  private fun storedFileName(name: String): String? = name.takeIf { STORED_FILE_NAME.matches(it) }
 }

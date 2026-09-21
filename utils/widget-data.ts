@@ -1,8 +1,17 @@
 import type { DayTasks } from "../stores/agenda-tasks-store";
 import type { RepeatingTaskPattern } from "../stores/repeating-tasks-store";
+import { isStoredFileName } from "./attachments";
 import { buildDayTasksWith, createDayTasksContext } from "./day-tasks";
 import { dateToLocalDateString } from "./date-utils";
-import { type Note, noteColorHex, notePin, noteRotation, sanitizeNoteText, sortNotes } from "./notes";
+import {
+  firstImageAttachment,
+  type Note,
+  noteColorHex,
+  notePin,
+  noteRotation,
+  sanitizeNoteText,
+  sortNotes,
+} from "./notes";
 import { addDaysToDateKey } from "./repeat-utils";
 
 /** Días anteriores a hoy que se mandan al widget (para poder mirar ayer con la flecha) */
@@ -46,6 +55,8 @@ export interface WidgetNote {
   rotation: number;
   /** La chincheta que la clava: colores (#rrggbb) y desplazamiento horizontal desde el centro, en dp */
   pin: { head: string; dark: string; offset: number };
+  /** Nombre guardado (ver isStoredFileName) de la primera imagen adjunta; ausente si no tiene */
+  image?: string;
 }
 
 /** Lo que lee el widget de Android (AgendaWidgetProvider.kt y NotesWidgetProvider.kt) */
@@ -70,10 +81,14 @@ function reminderMinutes(reminder: string | null | undefined, dateKey: string, r
   return date.getHours() * 60 + date.getMinutes();
 }
 
-/** Lo que se escribe en el post-it del widget: el texto, o el primer archivo si la nota solo lleva adjuntos */
-function noteWidgetText(note: Note): string {
+/**
+ * Lo que se escribe en el post-it del widget: el texto, o el nombre del primer archivo si la nota solo
+ * lleva adjuntos sin imagen. Con imagen, el widget la dibuja y no hace falta ningún nombre.
+ */
+function noteWidgetText(note: Note, hasImage: boolean): string {
   const text = sanitizeNoteText(note.text);
   if (text) return text.slice(0, WIDGET_NOTE_MAX_CHARS);
+  if (hasImage) return "";
 
   const first = note.attachments?.[0];
   return first ? `📎 ${first.name}`.slice(0, WIDGET_NOTE_MAX_CHARS) : "";
@@ -134,16 +149,20 @@ export function buildWidgetPayload(
 
   const widgetNotes: WidgetNote[] = [];
   for (const note of sortNotes(notes)) {
-    const text = noteWidgetText(note);
-    if (!text) continue;
+    const image = firstImageAttachment(note.attachments);
+    const imageFileName = image && isStoredFileName(image.fileName) ? image.fileName : null;
+    const text = noteWidgetText(note, imageFileName !== null);
+    if (!text && !imageFileName) continue;
 
-    widgetNotes.push({
+    const widgetNote: WidgetNote = {
       id: note.id,
       text,
       color: noteColorHex(note.color),
       rotation: noteRotation(note.id),
       pin: notePin(note.id),
-    });
+    };
+    if (imageFileName) widgetNote.image = imageFileName;
+    widgetNotes.push(widgetNote);
     if (widgetNotes.length === WIDGET_MAX_NOTES) break;
   }
 

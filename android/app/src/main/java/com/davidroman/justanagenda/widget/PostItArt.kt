@@ -20,6 +20,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import com.davidroman.justanagenda.R
+import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
@@ -57,6 +58,11 @@ object PostItArt {
   const val FAB_RADIUS = 19f
   const val FAB_CENTER_FROM_RIGHT = 38f
   const val FAB_CENTER_FROM_BOTTOM = 42f
+  // Los post-it del tablero se ven algo apagados junto al corcho oscuro; se aclaran un poco al dibujarlos
+  // (el corcho y el marco se quedan tal cual, solo el papel de la nota)
+  const val NOTE_BRIGHTEN = 1.12f
+  // Alto (dp, a escala de la nota) de la miniatura de la primera imagen adjunta, como en NoteCard.tsx
+  const val NOTE_IMAGE_HEIGHT = 100f
 
   private const val MAX_SIDE_PX = 1400f
 
@@ -136,7 +142,7 @@ object PostItArt {
         board.bottom + 9 * d - GRID_INSET * d)
     val cellW = grid.width() / columns
     val cellH = grid.height() / rows
-    val shade = texture(context, R.drawable.widget_paper_shade)
+    val shadeTexture = texture(context, R.drawable.widget_paper_shade)
 
     if (notes.isEmpty()) {
       drawCenteredText(canvas, emptyText, grid, d, if (night) 0xCCF3E3C2.toInt() else 0xCC3B2A00.toInt())
@@ -153,9 +159,25 @@ object PostItArt {
       canvas.save()
       // La app inclina cada post-it 1,5 veces lo que dice su rotación (ver PostIt.tsx)
       canvas.rotate(note.rotation * 1.5f, paper.centerX(), paper.centerY())
-      drawPostIt(canvas, paper, note.color, d, foldDp = 0f, paperShade = shade, appShadows = true)
+      drawPostIt(canvas, paper, shade(note.color, NOTE_BRIGHTEN), d, foldDp = 0f, paperShade = shadeTexture, appShadows = true)
       val scale = (paper.width() / d / NOTE_REFERENCE_WIDTH).coerceIn(NOTE_MIN_SCALE, 1f)
-      drawNoteText(canvas, note.text, paper, d, scale)
+
+      // Igual que NoteCard.tsx: la imagen (si tiene) arriba, y el texto (si tiene) debajo de ella
+      var textTop = paper.top + 34 * scale * d
+      if (note.imageFileName != null) {
+        val imageHeight = min(NOTE_IMAGE_HEIGHT * scale * d, paper.bottom - 10 * d - textTop)
+        if (imageHeight >= 4 * d) {
+          val imageRect = RectF(paper.left + 14 * scale * d, textTop, paper.right - 14 * scale * d, textTop + imageHeight)
+          val bitmap = loadAttachmentBitmap(
+              context, note.imageFileName, imageRect.width().toInt(), imageRect.height().toInt())
+          if (bitmap != null) {
+            drawCoverImage(canvas, bitmap, imageRect, 2 * scale * d)
+            textTop = imageRect.bottom + 8 * scale * d
+          }
+        }
+      }
+      if (note.text.isNotEmpty()) drawNoteText(canvas, note.text, paper, d, scale, textTop)
+
       drawPin(
           canvas,
           paper.centerX() + note.pinOffset * scale * d,
@@ -218,9 +240,10 @@ object PostItArt {
         canvas.drawRoundRect(box, radiusDp * d, radiusDp * d, paint)
         canvas.restore()
       }
-      layer(RectF(l - 4 * d, t + 4 * d, r + 4 * d, b + 10 * d), 8f, 18)
-      layer(RectF(l - 3 * d, t + 6 * d, r - 3 * d, b + 7 * d), 4f, 41, -1.4f)
-      layer(RectF(l - 1 * d, t + 2 * d, r + 1 * d, b + 3 * d), 3f, 56)
+      // Más claras que la sombra "de verdad" (18/41/56): al lado del corcho oscuro se veían las notas apagadas
+      layer(RectF(l - 4 * d, t + 4 * d, r + 4 * d, b + 10 * d), 8f, 14)
+      layer(RectF(l - 3 * d, t + 6 * d, r - 3 * d, b + 7 * d), 4f, 31, -1.4f)
+      layer(RectF(l - 1 * d, t + 2 * d, r + 1 * d, b + 3 * d), 3f, 42)
     } else {
       // Una grande y suave, y otra pegada al papel
       paint.color = color
@@ -266,6 +289,49 @@ object PostItArt {
     textures.getOrPut(resId) {
       BitmapFactory.decodeResource(context.resources, resId, BitmapFactory.Options().apply { inScaled = false })
     }
+  }
+
+  /**
+   * La imagen adjunta de una nota, reducida para no gastar memoria de más; null si el archivo no está o no
+   * se puede decodificar (entonces el post-it se dibuja sin ella, como si no la tuviera). El nombre ya se
+   * validó al leer SharedPreferences (WidgetStorage.storedFileName) y `context.filesDir` es el mismo
+   * `Paths.document` que usa expo-file-system en el lado de la app (ver services/attachments-service.ts).
+   */
+  private fun loadAttachmentBitmap(context: Context, fileName: String, reqWidthPx: Int, reqHeightPx: Int): Bitmap? {
+    if (reqWidthPx <= 0 || reqHeightPx <= 0) return null
+    val file = File(File(context.filesDir, "attachments"), fileName)
+    if (!file.isFile) return null
+    return runCatching {
+      val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+      BitmapFactory.decodeFile(file.path, bounds)
+      if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@runCatching null
+      val options = BitmapFactory.Options().apply {
+        inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight, reqWidthPx, reqHeightPx)
+      }
+      BitmapFactory.decodeFile(file.path, options)
+    }.getOrNull()
+  }
+
+  /** La mayor potencia de 2 que deja la imagen decodificada todavía más grande que lo que hace falta dibujar */
+  private fun sampleSize(width: Int, height: Int, reqWidth: Int, reqHeight: Int): Int {
+    var sample = 1
+    while (width / (sample * 2) >= reqWidth && height / (sample * 2) >= reqHeight) sample *= 2
+    return sample
+  }
+
+  /** `bitmap` recortado para llenar `rect` (como contentFit="cover" en NoteCard.tsx), con esquinas redondeadas */
+  private fun drawCoverImage(canvas: Canvas, bitmap: Bitmap, rect: RectF, radius: Float) {
+    canvas.save()
+    canvas.clipPath(Path().apply { addRoundRect(rect, radius, radius, Path.Direction.CW) })
+    val scale = max(rect.width() / bitmap.width, rect.height() / bitmap.height)
+    val matrix = Matrix().apply {
+      setScale(scale, scale)
+      postTranslate(
+          rect.left + (rect.width() - bitmap.width * scale) / 2f,
+          rect.top + (rect.height() - bitmap.height * scale) / 2f)
+    }
+    canvas.drawBitmap(bitmap, matrix, Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG))
+    canvas.restore()
   }
 
   /** El corcho: su textura (que encaja sin costuras) repetida hasta cubrir el tablero */
@@ -385,10 +451,10 @@ object PostItArt {
     canvas.drawLine(cx, cy - 7 * d, cx, cy + 7 * d, paint)
   }
 
-  private fun drawNoteText(canvas: Canvas, text: String, paper: RectF, d: Float, scale: Float) {
+  private fun drawNoteText(canvas: Canvas, text: String, paper: RectF, d: Float, scale: Float, top: Float) {
     val area = RectF(
         paper.left + 14 * scale * d,
-        paper.top + 34 * scale * d,
+        top,
         paper.right - 14 * scale * d,
         paper.bottom - 10 * d)
     if (area.width() < 4 * d || area.height() < 4 * d) return
