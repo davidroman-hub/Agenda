@@ -61,6 +61,8 @@ object PostItArt {
   // Los post-it del tablero se ven algo apagados junto al corcho oscuro; se aclaran un poco al dibujarlos
   // (el corcho y el marco se quedan tal cual, solo el papel de la nota)
   const val NOTE_BRIGHTEN = 1.12f
+  // Lo que se oscurece el corcho y el marco de noche: el mismo NIGHT_DIM (rgba(15,8,0,0.5)) de NotesBoard.tsx
+  const val NIGHT_DIM = 0x800F0800.toInt()
   // Alto (dp, a escala de la nota) de la miniatura de la primera imagen adjunta, como en NoteCard.tsx
   const val NOTE_IMAGE_HEIGHT = 100f
 
@@ -134,6 +136,12 @@ object PostItArt {
     canvas.clipPath(Path().apply { addRoundRect(board, radius, radius, Path.Direction.CW) })
     drawCork(context, canvas, board, d)
     drawFrameShadow(canvas, board, d)
+    // De noche se oscurece el corcho, pero ANTES de pegar los post-it: en la app los papeles van encima del
+    // oscurecido (NotesBoard.tsx) y conservan todo su brillo. Oscurecerlo todo al final los dejaba apagados
+    if (night) {
+      paint.color = NIGHT_DIM
+      canvas.drawRect(board, paint)
+    }
 
     val grid = RectF(
         board.left - 3 * d + GRID_INSET * d,
@@ -190,10 +198,18 @@ object PostItArt {
     }
 
     drawWoodFrame(context, canvas, board, d)
-    // De noche todo el tablero se oscurece, marco incluido (como en la app)
+    // El marco también se oscurece de noche, pero solo él (el anillo entre el borde y el corcho), no los post-it
     if (night) {
-      paint.color = 0x800F0800.toInt()
-      canvas.drawRect(board, paint)
+      val frame = FRAME * d
+      val ring = Path().apply {
+        fillType = Path.FillType.EVEN_ODD
+        addRect(board, Path.Direction.CW)
+        addRect(
+            RectF(board.left + frame, board.top + frame, board.right - frame, board.bottom - frame),
+            Path.Direction.CW)
+      }
+      paint.color = NIGHT_DIM
+      canvas.drawPath(ring, paint)
     }
     canvas.restore()
 
