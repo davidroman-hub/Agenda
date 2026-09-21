@@ -3,11 +3,16 @@ export const changeLogLocales = {
     changes: `🚀 **Version 1.10.0 - Notes, Attachments, Task Types, Year View & Backups**
 
 📝 **What's new:**
-• **Notes**: a new section with colorful post-its, separate from your tasks. Each note can carry files and images
+• **Notes**: a new section with colorful post-its pinned on a cork board, separate from your tasks. Press and hold one to drag it and reorder them. Each note can carry files and images
 • **Attachments**: add PDFs, images and documents to tasks and notes (up to 5 per item, 25 MB each). They are stored inside the app and need no permission
 • **Task types**: create your own categories with a name and a color; each type gets a tab above the book and filters the book, the calendar and past tasks
 • **Year view**: all twelve months at a glance, with the tasks of a day, a month or the whole year. On Android and iPad there is a button to switch it to landscape
 • **Backup**: in Settings you can create a file encrypted with a password and restore it on another phone. It includes tasks, notes, types and view settings, but not attachments. No accounts, no servers; if you forget the password, the backup can't be recovered
+
+📱 **Android widgets:**
+• **Today's agenda**: a floating post-it with your tasks, their reminder time and type color, and the completed ones crossed out. Use ‹ › to look at yesterday or the coming days and ＋ to add a task; tap a task to open it
+• **Notes board**: the cork board with your latest notes. Tap a note to open it, or ＋ to write a new one
+• Both follow your system language and switch to the new day at midnight even if you don't open the app
 
 🔄 **Repeating tasks & reminders:**
 • **Deleting a repeat**: choose between only this one, this and the following ones, or the whole series
@@ -25,7 +30,7 @@ export const changeLogLocales = {
 • Notification texts appear in your language
 • The "new version installed" notice now shows the real changes
 
-🔒 **Privacy:** the policy has been updated to cover notes, attachments and backups. Your data stays on your phone
+🔒 **Privacy:** the policy has been updated to cover notes, attachments, backups and widgets. Your data stays on your phone
 
 🎯 **Version 1.9.0 - Enhanced Line Management & Smart UI**
 
@@ -90,11 +95,16 @@ export const changeLogLocales = {
     changes: `🚀 **Versión 1.10.0 - Notas, Adjuntos, Tipos de Tarea, Vista de Año y Copia de Seguridad**
 
 📝 **Novedades:**
-• **Notas**: una sección nueva con post-its de colores, aparte de tus tareas. Cada nota puede llevar archivos e imágenes
+• **Notas**: una sección nueva con post-its de colores clavados en un tablero de corcho, aparte de tus tareas. Mantén pulsado uno para arrastrarlo y reordenarlos. Cada nota puede llevar archivos e imágenes
 • **Archivos adjuntos**: añade PDF, imágenes y documentos a tareas y notas (hasta 5 por elemento y 25 MB cada uno). Se guardan dentro de la app y no hace falta ningún permiso
 • **Tipos de tarea**: crea tus propias categorías con nombre y color; cada tipo tiene su pestaña encima del libro y filtra el libro, el calendario y las tareas pasadas
 • **Vista de año**: los doce meses de un vistazo, con las tareas de un día, de un mes o del año entero. En Android y iPad hay un botón para ponerla en horizontal
 • **Copia de seguridad**: en Ajustes puedes crear un archivo cifrado con una contraseña y restaurarlo en otro móvil. Incluye tareas, notas, tipos y ajustes de vista, pero no los archivos adjuntos. Sin cuentas ni servidores; si olvidas la contraseña, la copia no se puede recuperar
+
+📱 **Widgets de Android:**
+• **Agenda de hoy**: un post-it que flota con tus tareas, su hora de recordatorio y el color de su tipo, y las completadas tachadas. Usa ‹ › para mirar ayer o los próximos días y ＋ para añadir una tarea; toca una tarea para abrirla
+• **Tablero de notas**: el corcho con tus últimas notas. Toca una nota para abrirla, o ＋ para escribir una nueva
+• Los dos siguen el idioma del sistema y pasan al día nuevo a medianoche aunque no abras la app
 
 🔄 **Tareas repetidas y avisos:**
 • **Borrar una repetición**: elige entre solo esta, esta y las siguientes, o toda la serie
@@ -112,7 +122,7 @@ export const changeLogLocales = {
 • Los textos de las notificaciones salen en tu idioma
 • El aviso de «nueva versión instalada» ahora enseña los cambios reales
 
-🔒 **Privacidad:** la política se ha actualizado para incluir notas, adjuntos y copias de seguridad. Tus datos siguen en tu teléfono
+🔒 **Privacidad:** la política se ha actualizado para incluir notas, adjuntos, copias de seguridad y widgets. Tus datos siguen en tu teléfono
 
 🎯 **Versión 1.9.0 - Gestión Avanzada de Líneas e Interfaz Inteligente**
 
@@ -177,11 +187,16 @@ export const changeLogLocales = {
     changes: `🚀 **Version 1.10.0 - Notes, Pièces jointes, Types de tâche, Vue annuelle et Sauvegarde**
 
 📝 **Nouveautés :**
-• **Notes** : une nouvelle section avec des post-it de couleur, séparée de vos tâches. Chaque note peut contenir des fichiers et des images
+• **Notes** : une nouvelle section avec des post-it de couleur épinglés sur un tableau de liège, séparée de vos tâches. Maintenez-en un appuyé pour le faire glisser et les réordonner. Chaque note peut contenir des fichiers et des images
 • **Pièces jointes** : ajoutez des PDF, images et documents aux tâches et aux notes (jusqu'à 5 par élément, 25 Mo chacun). Ils sont stockés dans l'application et ne demandent aucune autorisation
 • **Types de tâche** : créez vos propres catégories avec un nom et une couleur ; chaque type a son onglet au-dessus du livre et filtre le livre, le calendrier et les tâches passées
 • **Vue annuelle** : les douze mois d'un coup d'œil, avec les tâches d'un jour, d'un mois ou de l'année entière. Sur Android et iPad, un bouton permet de la passer en paysage
 • **Sauvegarde** : dans les Paramètres, vous pouvez créer un fichier chiffré par mot de passe et le restaurer sur un autre téléphone. Il contient les tâches, les notes, les types et les réglages d'affichage, mais pas les pièces jointes. Ni compte ni serveur ; si vous oubliez le mot de passe, la sauvegarde est irrécupérable
+
+📱 **Widgets Android :**
+• **Agenda du jour** : un post-it flottant avec vos tâches, leur heure de rappel et la couleur de leur type, les tâches terminées étant barrées. Utilisez ‹ › pour voir hier ou les jours suivants et ＋ pour ajouter une tâche ; touchez une tâche pour l'ouvrir
+• **Tableau de notes** : le tableau de liège avec vos dernières notes. Touchez une note pour l'ouvrir, ou ＋ pour en écrire une nouvelle
+• Les deux suivent la langue du système et passent au nouveau jour à minuit même si vous n'ouvrez pas l'application
 
 🔄 **Tâches récurrentes et rappels :**
 • **Supprimer une occurrence** : choisissez entre celle-ci seulement, celle-ci et les suivantes, ou toute la série
@@ -199,7 +214,7 @@ export const changeLogLocales = {
 • Les textes des notifications s'affichent dans votre langue
 • L'avis « nouvelle version installée » montre maintenant les vrais changements
 
-🔒 **Confidentialité :** la politique a été mise à jour pour inclure les notes, les pièces jointes et les sauvegardes. Vos données restent sur votre téléphone
+🔒 **Confidentialité :** la politique a été mise à jour pour inclure les notes, les pièces jointes, les sauvegardes et les widgets. Vos données restent sur votre téléphone
 
 🎯 **Version 1.9.0 - Gestion Avancée des Lignes et Interface Intelligente**
 
@@ -264,11 +279,16 @@ export const changeLogLocales = {
     changes: `🚀 **Versione 1.10.0 - Note, Allegati, Tipi di Attività, Vista Annuale e Backup**
 
 📝 **Novità:**
-• **Note**: una nuova sezione con post-it colorati, separata dalle attività. Ogni nota può contenere file e immagini
+• **Note**: una nuova sezione con post-it colorati appuntati su una bacheca di sughero, separata dalle attività. Tieni premuto uno per trascinarlo e riordinarli. Ogni nota può contenere file e immagini
 • **Allegati**: aggiungi PDF, immagini e documenti ad attività e note (fino a 5 per elemento, 25 MB ciascuno). Vengono salvati nell'app e non richiedono alcuna autorizzazione
 • **Tipi di attività**: crea le tue categorie con nome e colore; ogni tipo ha una scheda sopra il libro e filtra il libro, il calendario e le attività passate
 • **Vista annuale**: i dodici mesi a colpo d'occhio, con le attività di un giorno, di un mese o dell'intero anno. Su Android e iPad c'è un pulsante per metterla in orizzontale
 • **Backup**: nelle Impostazioni puoi creare un file cifrato con una password e ripristinarlo su un altro telefono. Include attività, note, tipi e impostazioni di visualizzazione, ma non gli allegati. Nessun account, nessun server; se dimentichi la password, il backup non può essere recuperato
+
+📱 **Widget Android:**
+• **Agenda di oggi**: un post-it che fluttua con le tue attività, l'orario del promemoria e il colore del tipo, e quelle completate barrate. Usa ‹ › per vedere ieri o i giorni successivi e ＋ per aggiungere un'attività; tocca un'attività per aprirla
+• **Bacheca di note**: la bacheca di sughero con le tue ultime note. Tocca una nota per aprirla, o ＋ per scriverne una nuova
+• Entrambi seguono la lingua del sistema e passano al nuovo giorno a mezzanotte anche se non apri l'app
 
 🔄 **Attività ripetute e promemoria:**
 • **Eliminare una ripetizione**: scegli tra solo questa, questa e le successive, o l'intera serie
@@ -286,7 +306,7 @@ export const changeLogLocales = {
 • I testi delle notifiche appaiono nella tua lingua
 • L'avviso «nuova versione installata» ora mostra le modifiche reali
 
-🔒 **Privacy:** l'informativa è stata aggiornata per includere note, allegati e backup. I tuoi dati restano sul telefono
+🔒 **Privacy:** l'informativa è stata aggiornata per includere note, allegati, backup e widget. I tuoi dati restano sul telefono
 
 🎯 **Versione 1.9.0 - Gestione Avanzata Righe e Interfaccia Intelligente**
 

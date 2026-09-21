@@ -39,7 +39,8 @@ Just an Agenda - The Perfect Task Manager
 📱 Beautiful, intuitive interface
 🔗 Clickable links in tasks
 🏷️ Task types with their own tabs and filters
-📝 Colorful post-it notes
+📝 Post-it notes on a cork board (drag to reorder)
+🧩 Home screen widgets: today's agenda and a notes board
 📎 Attach files and images to tasks and notes
 🗓️ Year view with all twelve months
 💾 Encrypted backup to move your agenda to a new phone
@@ -56,6 +57,7 @@ Features:
 • Repeating tasks automation
 • Built-in calendar view and year view
 • Notes, attachments and task types
+• Two Android home screen widgets
 • Password-encrypted backup and restore (no account, no server)
 • Offline-first design
 • Dark/light theme support
@@ -79,11 +81,12 @@ agenda, tasks, todo, reminders, productivity, calendar, organizer, scheduler
 ```
 <en-US>
 New in 1.10:
-• Notes: colorful post-its with attachments
+• Notes: colorful post-its on a cork board, drag to reorder
+• Widgets: today's agenda and a notes board
 • Attach PDFs, images and files to tasks and notes
 • Task types with tabs and filters
 • Year view with all twelve months
-• Encrypted backup to move your agenda to another phone
+• Encrypted backup to move to another phone
 • Delete just one repeat, the following ones or the whole series
 • Tap a notification to open its task
 • Fixes: time zones, repeat reminders, notification texts
@@ -91,37 +94,40 @@ New in 1.10:
 
 <es-ES>
 Novedades de la 1.10:
-• Notas: post-its de colores con archivos adjuntos
+• Notas: post-its en un tablero de corcho, reordenables arrastrando
+• Widgets: la agenda de hoy y un tablero de notas
 • Adjunta PDF, imágenes y archivos a tareas y notas
 • Tipos de tarea con pestañas y filtros
 • Vista de año con los doce meses
-• Copia de seguridad cifrada para pasar tu agenda a otro móvil
+• Copia de seguridad cifrada para cambiar de móvil
 • Borra solo una repetición, las siguientes o toda la serie
 • Toca una notificación para abrir su tarea
-• Correcciones: zonas horarias, avisos de repetidas y textos de notificaciones
+• Correcciones: zonas horarias, avisos y textos
 </es-ES>
 
 <fr-FR>
 Nouveautés de la 1.10 :
-• Notes : post-it de couleur avec pièces jointes
+• Notes : post-it sur un tableau de liège, à réordonner en les faisant glisser
+• Widgets : l’agenda du jour et un tableau de notes
 • Joignez PDF, images et fichiers aux tâches et aux notes
 • Types de tâche avec onglets et filtres
 • Vue annuelle avec les douze mois
-• Sauvegarde chiffrée pour transférer votre agenda vers un autre téléphone
-• Supprimez une seule occurrence, les suivantes ou toute la série
+• Sauvegarde chiffrée pour changer de téléphone
+• Supprimez une occurrence, les suivantes ou toute la série
 • Touchez une notification pour ouvrir sa tâche
-• Corrections : fuseaux horaires, rappels récurrents, textes des notifications
+• Corrections : fuseaux horaires, rappels, textes
 </fr-FR>
 
 <it-IT>
 Novità della 1.10:
-• Note: post-it colorati con allegati
+• Note: post-it su una bacheca di sughero, riordinabili trascinando
+• Widget: l’agenda di oggi e una bacheca di note
 • Allega PDF, immagini e file ad attività e note
 • Tipi di attività con schede e filtri
 • Vista annuale con tutti i dodici mesi
-• Backup cifrato per spostare la tua agenda su un altro telefono
+• Backup cifrato per cambiare telefono
 • Elimina solo una ripetizione, le successive o l'intera serie
 • Tocca una notifica per aprire la sua attività
-• Correzioni: fusi orari, promemoria ripetuti, testi delle notifiche
+• Correzioni: fusi orari, promemoria, testi
 </it-IT>
 ```

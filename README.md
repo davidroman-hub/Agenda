@@ -23,7 +23,17 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 ### 🗓️ Gestión de Fechas
 - Compatibilidad global con zonas horarias
 - Migración automática de fechas
-- Widget de Android integrado
+- Widgets de Android (ver más abajo)
+
+### 📌 Notas
+- Post-its de colores (con su chincheta) sobre un tablero de corcho, con archivos e imágenes adjuntos
+- Se reordenan arrastrándolos (pulsación larga); el orden se guarda y va en las copias de seguridad
+
+### 🧩 Widgets de Android
+Nativos, en Kotlin (`android/app/src/main/java/com/davidroman/justanagenda/widget/`), porque Expo no ofrece widgets.
+- **Agenda de hoy**: un post-it con las tareas del día (hora, color de tipo, completadas tachadas), flechas ‹ › para cambiar de día y ＋ para añadir una tarea
+- **Tablero de notas**: el corcho con las últimas notas; tocar una abre su editor y ＋ crea una nueva
+- Pasan solos al día nuevo a medianoche. La app les manda los datos (`utils/widget-data.ts`) y se abren con enlaces `justagenda://widget-task` y `justagenda://widget-note`
 
 ### Ejemplos de tareas con enlaces:
 ```
