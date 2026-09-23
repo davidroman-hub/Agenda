@@ -16,7 +16,7 @@ const blankPage = StyleSheet.create({
 
 interface BookSpreadProps {
   readonly days: Date[];
-  readonly viewMode: string;
+  readonly columns: number;
   readonly colorScheme: string;
   readonly colors: any;
   readonly dynamicStyles: any;
@@ -26,11 +26,11 @@ interface BookSpreadProps {
   tCommon: (key: string, options?: any) => string;
 }
 
-// Las páginas de una hoja del libro: en vista expandida, los días de dos en dos lado a lado
+// Las páginas de una hoja del libro: con varias columnas, los días en filas lado a lado
 // (como una agenda abierta, con el hueco del lomo en medio); en las demás, uno tras otro.
 export default function BookSpread({
   days,
-  viewMode,
+  columns,
   colorScheme,
   colors,
   dynamicStyles,
@@ -39,7 +39,7 @@ export default function BookSpread({
   tCommon,
 }: BookSpreadProps) {
   const pageProps = {
-    viewMode,
+    columns,
     colorScheme,
     colors,
     dynamicStyles,
@@ -48,42 +48,45 @@ export default function BookSpread({
     tCommon,
   };
 
-  if (viewMode === "expanded") {
+  if (columns > 1) {
     return (
       <>
-        {Array.from({ length: Math.ceil(days.length / 2) }, (_, pairIndex) => {
-          const leftDay = days[pairIndex * 2];
-          const rightDay = days[pairIndex * 2 + 1];
+        {Array.from({ length: Math.ceil(days.length / columns) }, (_, rowIndex) => {
+          // Las páginas de la fila; el lomo cae en medio (tras la mitad de las columnas)
+          const half = columns / 2;
 
           return (
-            <ThemedView key={`pair-${pairIndex}`} style={styles.expandedContainer}>
-              {leftDay && (
-                <BookPage
-                  {...pageProps}
-                  day={leftDay}
-                  dayIndex={pairIndex * 2}
-                  isLeftPage={true}
-                />
-              )}
+            <ThemedView key={`row-${rowIndex}`} style={styles.expandedContainer}>
+              {Array.from({ length: columns }, (_, col) => {
+                const dayIndex = rowIndex * columns + col;
+                const day = days[dayIndex];
 
-              {/* Hueco del lomo: los aros se dibujan encima (BookSpine) */}
-              <ThemedView style={styles.spineGap} />
-
-              {rightDay ? (
-                <BookPage
-                  {...pageProps}
-                  day={rightDay}
-                  dayIndex={pairIndex * 2 + 1}
-                  isLeftPage={false}
-                />
-              ) : (
-                // Con un número impar de días la última página queda sola: la derecha se deja
-                // en blanco para que no ocupe todo el ancho ni la cruce el lomo. Lleva el mismo
-                // padding y borde que una página real para repartir el ancho a partes iguales
-                <View
-                  style={[dynamicStyles.page, styles.rightPage, blankPage.style]}
-                />
-              )}
+                return (
+                  <React.Fragment key={col}>
+                    {/* Hueco del lomo: los aros se dibujan encima (BookSpine) */}
+                    {col === half && <ThemedView style={styles.spineGap} />}
+                    {day ? (
+                      <BookPage
+                        {...pageProps}
+                        day={day}
+                        dayIndex={dayIndex}
+                        isLeftPage={col < half}
+                      />
+                    ) : (
+                      // Si la última fila no se llena, los huecos quedan en blanco para que las
+                      // páginas no ocupen más ancho ni las cruce el lomo. Llevan el mismo padding
+                      // y borde que una página real para repartir el ancho a partes iguales
+                      <View
+                        style={[
+                          dynamicStyles.page,
+                          col < half ? styles.leftPage : styles.rightPage,
+                          blankPage.style,
+                        ]}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </ThemedView>
           );
         })}

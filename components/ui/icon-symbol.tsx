@@ -26,6 +26,8 @@ const MAPPING = {
   bell: "notifications",
   "bell.fill": "check-circle",
   "agenda": "book",
+  calendar: "calendar-today",
+  "note.text": "sticky-note-2",
 } as const;
 
 /**

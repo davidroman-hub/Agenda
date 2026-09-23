@@ -14,6 +14,7 @@
 
   "tabs": {
     "agenda": "Agenda",
+    "calendar": "Calendar",
     "pastTasks": "Past Tasks",
     "reminders": "Reminders",
     "settings": "Settings",
@@ -323,8 +324,14 @@
     "titleMonth": "Tasks in {{month}} {{year}}",
     "titleDay": "Tasks on {{date}}",
     "summary": "Tasks: {{total}} · Done: {{done}}",
+    "summaryTotal": "Tasks: {{total}}",
+    "summaryDone": "Done: {{done}}",
+    "summaryPending": "Pending: {{pending}}",
+    "emptyFiltered": "No tasks match this filter",
     "showYear": "Show the whole year",
+    "resizeLabel": "Resize the task panel",
     "openInBook": "Open in the book",
+    "addTask": "Add task",
     "empty": "No tasks in this period",
     "repeatsTitle": "Repeating",
     "occurrences": "Times this year: {{count}}",

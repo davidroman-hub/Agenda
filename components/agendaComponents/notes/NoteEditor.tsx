@@ -18,6 +18,7 @@ import {
 } from "@/utils/notes";
 import React, { useEffect, useState } from "react";
 import { Alert, Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 import AttachmentsField from "../attachments/AttachmentsField";
 import { modalStyles } from "../bookFragments/TaskEditionModalStyles";
 
@@ -163,24 +164,33 @@ export default function NoteEditor({ visible, note, onClose }: NoteEditorProps) 
           </ScrollView>
 
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
-              <ThemedText style={[styles.buttonText, styles.cancelButtonText]}>
-                {tCommon("buttons.cancel")}
-              </ThemedText>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={handleCancel}
+              accessibilityRole="button"
+              accessibilityLabel={tCommon("buttons.cancel")}
+            >
+              <Icon name="times" size={24} color={colorScheme === "dark" ? "#ffffff" : "#333333"} />
             </TouchableOpacity>
 
             {note && (
-              <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDelete}>
-                <ThemedText style={[styles.buttonText, styles.deleteButtonText]}>
-                  {tCommon("buttons.delete")}
-                </ThemedText>
+              <TouchableOpacity
+                style={[styles.button, styles.deleteButton]}
+                onPress={handleDelete}
+                accessibilityRole="button"
+                accessibilityLabel={tCommon("buttons.delete")}
+              >
+                <Icon name="trash" size={22} color="#ffffff" />
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
-              <ThemedText style={[styles.buttonText, styles.saveButtonText]}>
-                {tCommon("buttons.save")}
-              </ThemedText>
+            <TouchableOpacity
+              style={[styles.button, styles.saveButton]}
+              onPress={handleSave}
+              accessibilityRole="button"
+              accessibilityLabel={tCommon("buttons.save")}
+            >
+              <Icon name="save" size={22} color="#ffffff" />
             </TouchableOpacity>
           </View>
         </ThemedView>

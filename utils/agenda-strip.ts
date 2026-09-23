@@ -49,7 +49,7 @@ export function isLandscapeForced(state: {
 }
 
 /**
- * Estilo de la barra de pestañas de abajo (Agenda, Tareas pasadas, Ajustes…): oculta sin sesión y,
+ * Estilo de la barra de pestañas de abajo (Agenda, Calendario, Notas, Ajustes…): oculta sin sesión y,
  * en horizontal, para ganar altura (con la pantalla tumbada cada píxel de alto cuenta). En horizontal
  * se vuelve a ver al volver a vertical desde el botón de la vista de año.
  */

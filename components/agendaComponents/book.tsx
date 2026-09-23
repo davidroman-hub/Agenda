@@ -38,7 +38,7 @@ import TypeTabs from "./typeTabs/TypeTabs";
 import YearView from "./yearView/YearView";
 
 export default function Book() {
-  const { daysToShow, viewMode } = useBookSettingsStore();
+  const { daysToShow, columns } = useBookSettingsStore();
   const { taskFontSize } = useFontSettingsStore(); // Suscribirse al valor directamente para trigger re-render
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
@@ -148,8 +148,8 @@ export default function Book() {
         ]}
         {...(showingBook ? panResponder.panHandlers : {})}
       >
-        {/* Pestañas: tipos de tarea (filtran el libro) y Notas (cambia el contenido de abajo) */}
-        <TypeTabs />
+        {/* Pestañas de tipos de tarea (filtran el libro y el año); las notas no son tareas y no las llevan */}
+        {content !== "notes" && <TypeTabs />}
 
         {content === "notes" && <NotesBoard />}
         {content === "year" && <YearView />}
@@ -159,7 +159,7 @@ export default function Book() {
             <PageTurn
               turn={turn}
               onTurnEnd={endTurn}
-              twoPages={viewMode === "expanded"}
+              twoPages={columns > 1}
               backgroundColor={getBookBackground(colorScheme ?? "light")}
               colorScheme={colorScheme ?? "light"}
               scrollY={scrollY}
@@ -169,7 +169,7 @@ export default function Book() {
                   tCommon={tCommon}
                   days={calculateDays(pageIndex, daysToShow)}
                   tAgenda={tAgenda}
-                  viewMode={viewMode}
+                  columns={columns}
                   colorScheme={colorScheme ?? "light"}
                   colors={colors}
                   dynamicStyles={dynamicStyles}
@@ -180,7 +180,7 @@ export default function Book() {
                 tCommon={tCommon}
                 days={days}
                 tAgenda={tAgenda}
-                viewMode={viewMode}
+                columns={columns}
                 colorScheme={colorScheme ?? "light"}
                 colors={colors}
                 dynamicStyles={dynamicStyles}
@@ -194,7 +194,7 @@ export default function Book() {
               tCommon={tCommon}
               currentPageIndex={currentPageIndex}
               daysToShow={daysToShow}
-              viewMode={viewMode}
+              columns={columns}
               dynamicStyles={dynamicStyles}
               goToPrevPage={goToPrevPage}
               goToNextPage={goToNextPage}

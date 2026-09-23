@@ -8,7 +8,7 @@ import { styles } from "../bookStyles";
 interface NavigationControlsProps {
   readonly currentPageIndex: number;
   readonly daysToShow: number;
-  readonly viewMode: string;
+  readonly columns: number;
   readonly dynamicStyles: any;
   readonly goToPrevPage: () => void;
   readonly goToNextPage: () => void;
@@ -19,7 +19,7 @@ interface NavigationControlsProps {
 export default function NavigationControls({
   currentPageIndex,
   daysToShow,
-  viewMode,
+  columns,
   dynamicStyles,
   goToPrevPage,
   goToNextPage,
@@ -47,8 +47,6 @@ export default function NavigationControls({
           <ThemedText style={styles.modeIndicator}>
             {(() => {
               if (currentPageIndex !== 0) return `↩ ${tCommon("general.today")}`;
-              if (viewMode === "expanded") return `6 ${tCommon("general.days")}`;
-              if (viewMode === "single") return `1 ${tCommon("general.day")}`;
               return `${daysToShow} ${tCommon("general.days")}`;
             })()}
           </ThemedText>

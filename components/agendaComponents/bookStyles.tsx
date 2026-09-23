@@ -28,6 +28,9 @@ export const SPINE_WIDTH = isSmallScreen ? 14 : 22;
 export const RING_WIDTH = SPINE_WIDTH + (isSmallScreen ? 8 : 12);
 export const RING_HEIGHT = isSmallScreen ? 8 : 11;
 export const RING_PITCH = isSmallScreen ? 30 : 42; // distancia entre aros
+// Lomo compacto (móvil en horizontal en la vista de año): una columna estrecha con aros más chicos
+export const COMPACT_SPINE_WIDTH = 8;
+export const COMPACT_RING_WIDTH = 14;
 export const SCROLL_PADDING = isSmallScreen ? 2 : 20;
 
 // Estilos base para el componente Book

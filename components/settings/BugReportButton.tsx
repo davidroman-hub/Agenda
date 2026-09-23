@@ -6,6 +6,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { getCurrentLocalDateString } from "@/utils/date-utils";
 import React, { useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Linking,
     Modal,
@@ -213,9 +214,12 @@ export default function BugReportButton() {
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Header del modal */}
               <View style={styles.modalHeader}>
-                <ThemedText style={styles.modalTitle}>
-                  {tCommon("settings.bugReport.reportBug")}
-                </ThemedText>
+                <View style={styles.titleRow}>
+                  <Icon name="bug" size={20} color={tintColor} />
+                  <ThemedText style={styles.modalTitle}>
+                    {tCommon("settings.bugReport.reportBug")}
+                  </ThemedText>
+                </View>
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}
                   style={styles.closeButton}
@@ -230,9 +234,12 @@ export default function BugReportButton() {
               </ThemedText>
 
               {/* Campo de email (opcional) */}
-              <ThemedText style={[styles.label, { color: textColor }]}>
-                {tCommon("settings.bugReport.emailLabel")} ({tCommon("settings.bugReport.optional")})
-              </ThemedText>
+              <View style={styles.labelRow}>
+                <Icon name="envelope-o" size={16} color={tintColor} />
+                <ThemedText style={[styles.label, styles.labelText, { color: textColor }]}>
+                  {tCommon("settings.bugReport.emailLabel")} ({tCommon("settings.bugReport.optional")})
+                </ThemedText>
+              </View>
               <TextInput
                 style={[
                   styles.input,
@@ -252,9 +259,12 @@ export default function BugReportButton() {
               />
 
               {/* Campo de descripción del bug */}
-              <ThemedText style={[styles.label, { color: textColor }]}>
-                {tCommon("settings.bugReport.bugDescription")} *
-              </ThemedText>
+              <View style={styles.labelRow}>
+                <Icon name="pencil" size={16} color={tintColor} />
+                <ThemedText style={[styles.label, styles.labelText, { color: textColor }]}>
+                  {tCommon("settings.bugReport.bugDescription")} *
+                </ThemedText>
+              </View>
               <TextInput
                 style={[
                   styles.input,
@@ -289,10 +299,10 @@ export default function BugReportButton() {
                     { borderColor: textColor + "40" },
                   ]}
                   onPress={() => setModalVisible(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={tCommon("buttons.cancel")}
                 >
-                  <ThemedText style={[styles.actionButtonText, { color: textColor }]}>
-                    {tCommon("buttons.cancel")}
-                  </ThemedText>
+                  <Icon name="times" size={24} color={textColor} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -304,19 +314,34 @@ export default function BugReportButton() {
                   ]}
                   onPress={handleSendBugReport}
                   disabled={sending}
+                  accessibilityRole="button"
+                  accessibilityLabel={tCommon(
+                    sending
+                      ? "settings.bugReport.sending"
+                      : "settings.bugReport.sendReport"
+                  )}
                 >
-                  <ThemedText
-                    style={[styles.actionButtonText, { color: backgroundColor }]}
-                  >
-                    {tCommon(
-                      sending
-                        ? "settings.bugReport.sending"
-                        : "settings.bugReport.sendReport"
-                    )}
-                  </ThemedText>
+                  {sending ? (
+                    <ActivityIndicator size="small" color={backgroundColor} />
+                  ) : (
+                    <Icon name="paper-plane" size={22} color={backgroundColor} />
+                  )}
                 </TouchableOpacity>
               </View>
             </ScrollView>
+
+            {/* Mientras se envía: un velo con spinner encima del formulario, que también impide tocarlo */}
+            {sending && (
+              <View
+                style={[styles.sendingOverlay, { backgroundColor: withAlpha(backgroundColor, "E6") }]}
+                accessibilityLiveRegion="polite"
+              >
+                <ActivityIndicator size="large" color={tintColor} />
+                <ThemedText style={[styles.sendingText, { color: textColor }]}>
+                  {tCommon("settings.bugReport.sending")}
+                </ThemedText>
+              </View>
+            )}
           </ThemedView>
         </View>
       </Modal>
@@ -367,6 +392,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  labelText: {
+    flex: 1,
+    marginBottom: 0,
+    marginTop: 0,
   },
   modalTitle: {
     fontSize: 20,
@@ -421,6 +464,17 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     // backgroundColor will be set dynamically
+  },
+  sendingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+  },
+  sendingText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
   sendingButton: {
     opacity: 0.6,

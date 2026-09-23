@@ -1,6 +1,10 @@
 import { useI18n } from "@/hooks/use-i18n";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import useBookSettingsStore from "@/stores/boook-settings";
+import useBookSettingsStore, {
+  COLUMN_OPTIONS,
+  DAYS_OPTIONS,
+} from "@/stores/boook-settings";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -23,8 +27,8 @@ export default function ExpandoButton({
   const accent = useThemeColor({}, "accent");
   const onAccent = useThemeColor({}, "onAccent");
 
-  console.group("ExpandoButton Render", scrollProgress);
-  const { setDaysToShow, daysToShow, setViewMode } = useBookSettingsStore();
+  const { setDaysToShow, daysToShow, setColumns, columns } =
+    useBookSettingsStore();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Animaciones
@@ -78,30 +82,6 @@ export default function ExpandoButton({
     setIsExpanded(!isExpanded);
   };
 
-  const optiones = [
-    {
-      id: 1,
-      label:
-        daysToShow === 6
-          ? `3 ${tCommon("general.days")}`
-          : `6 ${tCommon("general.days")}`,
-    },
-    { id: 2, label: "•  •\n•  •\n•  •" },
-    { id: 3, label: "•" },
-  ];
-
-  const manageOptions = (optionId: number) => {
-    if (optionId === 1) {
-      const newDays = daysToShow === 6 ? 3 : 6;
-      setDaysToShow(newDays);
-    } else if (optionId === 2) {
-      setViewMode("expanded");
-    } else if (optionId === 3) {
-      setViewMode("single");
-    }
-    setIsExpanded(false);
-  };
-
   return (
     <Animated.View
       style={[
@@ -113,18 +93,78 @@ export default function ExpandoButton({
       ]}
     >
       {isExpanded && (
-        <View style={styles.optionsContainer}>
-          {optiones.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[styles.optionButton, { backgroundColor: accent }]}
-              onPress={() => manageOptions(option.id)}
-            >
-              <Text style={[styles.optionText, { color: onAccent }]}>
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View style={[styles.optionsContainer, { backgroundColor: accent }]}>
+          {/* Días por hoja */}
+          <View style={styles.optionsRow}>
+            <MaterialCommunityIcons
+              name="calendar-week"
+              size={22}
+              color={onAccent}
+            />
+            {DAYS_OPTIONS.map((days) => (
+              <TouchableOpacity
+                key={days}
+                accessibilityRole="button"
+                accessibilityLabel={`${days} ${tCommon("general.days")}`}
+                style={[
+                  styles.optionButton,
+                  days === daysToShow && { backgroundColor: onAccent },
+                ]}
+                onPress={() => {
+                  setDaysToShow(days);
+                  setIsExpanded(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    { color: days === daysToShow ? accent : onAccent },
+                  ]}
+                >
+                  {days}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Páginas una junto a otra */}
+          <View style={styles.optionsRow}>
+            <MaterialCommunityIcons
+              name="book-open-page-variant-outline"
+              size={22}
+              color={onAccent}
+            />
+            {COLUMN_OPTIONS.map((count) => {
+              const active = count === columns;
+              const color = active ? accent : onAccent;
+              return (
+                <TouchableOpacity
+                  key={count}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${count}`}
+                  style={[
+                    styles.optionButton,
+                    active && { backgroundColor: onAccent },
+                  ]}
+                  onPress={() => {
+                    setColumns(count);
+                    setIsExpanded(false);
+                  }}
+                >
+                  {/* Una barra por página que se ve a la vez */}
+                  <View style={styles.columnsGlyph}>
+                    {Array.from({ length: count }, (_, i) => (
+                      <View
+                        key={i}
+                        style={[styles.columnBar, { borderColor: color }]}
+                      />
+                    ))}
+                  </View>
+                  <Text style={[styles.columnCount, { color }]}>{count}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       )}
       <TouchableOpacity
@@ -148,27 +188,45 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     marginBottom: 15,
-    alignItems: "center",
+    padding: 10,
+    borderRadius: 20,
     gap: 10,
-  },
-  optionButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
+  optionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  optionButton: {
+    width: 44,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   optionText: {
     fontSize: 18,
     fontWeight: "bold",
+  },
+  columnsGlyph: {
+    flexDirection: "row",
+    gap: 2,
+  },
+  columnBar: {
+    width: 5,
+    height: 20,
+    borderWidth: 1.5,
+    borderRadius: 1.5,
+  },
+  columnCount: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginTop: 2,
   },
   floatingButton: {
     width: 60,

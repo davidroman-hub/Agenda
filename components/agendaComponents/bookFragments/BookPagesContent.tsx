@@ -9,7 +9,7 @@ import BookSpread from "./BookSpread";
 
 interface BookPagesContentProps {
   readonly days: Date[];
-  readonly viewMode: string;
+  readonly columns: number;
   readonly colorScheme: string;
   readonly colors: any;
   readonly dynamicStyles: any;
@@ -26,7 +26,7 @@ interface BookPagesContentProps {
 
 export default function BookPagesContent({
   days,
-  viewMode,
+  columns,
   colorScheme,
   colors,
   dynamicStyles,
@@ -74,7 +74,7 @@ export default function BookPagesContent({
     >
       <BookSpread
         days={days}
-        viewMode={viewMode}
+        columns={columns}
         colorScheme={colorScheme}
         colors={colors}
         dynamicStyles={dynamicStyles}

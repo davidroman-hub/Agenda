@@ -173,7 +173,9 @@ export default function TaskTypesManager({ visible, onClose }: TaskTypesManagerP
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
-  const tintColor = useThemeColor({}, "tint");
+  // El botón lleva el acento y su color de texto: `tint` es blanco en oscuro y el texto también, y no se veía
+  const accentColor = useThemeColor({}, "accent");
+  const onAccentColor = useThemeColor({}, "onAccent");
   const borderColor = "rgba(128,128,128,0.35)";
 
   const [newName, setNewName] = useState("");
@@ -230,9 +232,9 @@ export default function TaskTypesManager({ visible, onClose }: TaskTypesManagerP
               <TouchableOpacity
                 onPress={handleAdd}
                 accessibilityRole="button"
-                style={[styles.addButton, { backgroundColor: tintColor }]}
+                style={[styles.addButton, { backgroundColor: accentColor }]}
               >
-                <ThemedText style={styles.addButtonText}>{tCommon("taskTypes.add")}</ThemedText>
+                <ThemedText style={[styles.addButtonText, { color: onAccentColor }]}>{tCommon("taskTypes.add")}</ThemedText>
               </TouchableOpacity>
             </View>
             <ColorPalette selected={color} onSelect={setNewColor} textColor={textColor} />

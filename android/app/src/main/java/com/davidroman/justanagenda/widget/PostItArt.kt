@@ -15,6 +15,7 @@ import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.media.ExifInterface
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -321,11 +322,56 @@ object PostItArt {
       val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
       BitmapFactory.decodeFile(file.path, bounds)
       if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@runCatching null
+
+      // Las fotos de la cámara guardan los píxeles tumbados y anotan en EXIF cuánto girarlas; BitmapFactory
+      // no lo aplica, y las verticales salían horizontales. Con un cuarto de giro el ancho y el alto se cambian
+      val orientation = readOrientation(file)
+      val quarterTurn = orientation in QUARTER_TURNS
       val options = BitmapFactory.Options().apply {
-        inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight, reqWidthPx, reqHeightPx)
+        inSampleSize =
+            if (quarterTurn) sampleSize(bounds.outHeight, bounds.outWidth, reqWidthPx, reqHeightPx)
+            else sampleSize(bounds.outWidth, bounds.outHeight, reqWidthPx, reqHeightPx)
       }
-      BitmapFactory.decodeFile(file.path, options)
+      val decoded = BitmapFactory.decodeFile(file.path, options) ?: return@runCatching null
+      applyOrientation(decoded, orientation)
     }.getOrNull()
+  }
+
+  private val QUARTER_TURNS = setOf(
+      ExifInterface.ORIENTATION_ROTATE_90,
+      ExifInterface.ORIENTATION_ROTATE_270,
+      ExifInterface.ORIENTATION_TRANSPOSE,
+      ExifInterface.ORIENTATION_TRANSVERSE)
+
+  private fun readOrientation(file: File): Int =
+      runCatching {
+            ExifInterface(file.path)
+                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+          }
+          .getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+
+  /** `bitmap` girado o volteado como pide su orientación EXIF, para que se vea como se hizo la foto */
+  private fun applyOrientation(bitmap: Bitmap, orientation: Int): Bitmap {
+    val matrix = Matrix()
+    when (orientation) {
+      ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+      ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+      ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.setScale(1f, -1f)
+      ExifInterface.ORIENTATION_TRANSPOSE -> {
+        matrix.setRotate(90f)
+        matrix.postScale(-1f, 1f)
+      }
+      ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+      ExifInterface.ORIENTATION_TRANSVERSE -> {
+        matrix.setRotate(-90f)
+        matrix.postScale(-1f, 1f)
+      }
+      ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+      else -> return bitmap
+    }
+    val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    if (rotated !== bitmap) bitmap.recycle()
+    return rotated
   }
 
   /** La mayor potencia de 2 que deja la imagen decodificada todavía más grande que lo que hace falta dibujar */

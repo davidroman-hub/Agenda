@@ -16,6 +16,7 @@ jest.mock("../hooks/use-i18n", () => ({
     currentLanguage: "es",
   }),
 }));
+jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 jest.mock("react-native-reanimated", () => ({ useSharedValue: (value: unknown) => ({ value }) }));
 jest.mock("../components/agendaComponents/bookFragments/BookSpine", () => {
   const React = require("react");
@@ -42,14 +43,17 @@ jest.mock("react-native/Libraries/Utilities/useWindowDimensions", () => ({
 }));
 
 import React from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import TestRenderer, { act, ReactTestInstance, ReactTestRenderer } from "react-test-renderer";
+import { COMPACT_RING_WIDTH, COMPACT_SPINE_WIDTH, RING_WIDTH, SPINE_WIDTH } from "../components/agendaComponents/bookStyles";
 import YearView from "../components/agendaComponents/yearView/YearView";
 import useAgendaSectionStore from "../stores/agenda-section-store";
 import useAgendaTasksStore from "../stores/agenda-tasks-store";
 import useBookNavigationStore from "../stores/book-navigation-store";
 import useRepeatingTasksStore from "../stores/repeating-tasks-store";
 import useTaskTypesStore from "../stores/task-types-store";
+import useYearSplitStore from "../stores/year-split-store";
+import { getSideSplit, SIDE_HANDLE_WIDTH } from "../utils/year-view";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -164,9 +168,11 @@ describe("al abrir", () => {
     expect(has(root, `yearView.occurrences{"count":${weeklyOccurrences}}`)).toBe(true);
   });
 
-  it("enseña cuántas tareas hay y cuántas están hechas", async () => {
+  it("enseña cuántas tareas hay, cuántas están hechas y cuántas faltan", async () => {
     const root = await renderYear();
-    expect(has(root, 'yearView.summary{"total":3,"done":0}')).toBe(true);
+    expect(has(root, 'yearView.summaryTotal{"total":3}')).toBe(true);
+    expect(has(root, 'yearView.summaryDone{"done":0}')).toBe(true);
+    expect(has(root, 'yearView.summaryPending{"pending":3}')).toBe(true);
   });
 
   it("sin ninguna tarea, dice que no hay", async () => {
@@ -414,7 +420,9 @@ describe("marcar tareas", () => {
 
     expect(agenda().getTaskForLine("2026-03-02", 3)?.completed).toBe(true);
     expect(root.findAllByType(TouchableOpacity).filter((n) => n.props.accessibilityRole === "checkbox").map((n) => n.props.accessibilityState.checked)).toEqual([false, true]);
-    expect(has(root, 'yearView.summary{"total":2,"done":1}')).toBe(true);
+    expect(has(root, 'yearView.summaryTotal{"total":2}')).toBe(true);
+    expect(has(root, 'yearView.summaryDone{"done":1}')).toBe(true);
+    expect(has(root, 'yearView.summaryPending{"pending":1}')).toBe(true);
   });
 
   it("la casilla de una ocurrencia repetida la marca solo ese día", async () => {
@@ -435,22 +443,36 @@ describe("marcar tareas", () => {
 });
 
 describe("abrir en el libro", () => {
-  it("pulsar una tarea pide al libro ese día y esa tarea", async () => {
+  // El modal que se abre en el sitio, con el borrador que trae la tarea
+  const editor = (root: ReactTestInstance) => root.findAll((n) => typeof n.props.onSave === "function" && "initialText" in n.props)[0];
+
+  it("pulsar una tarea la edita aquí mismo, sin llevar al libro", async () => {
     const root = await renderYear();
-    const suelta = agenda().getTaskForLine("2026-03-02", 3)!;
     await press(root, "2 Marzo 2026");
     await pressText(root, "Suelta");
 
-    expect(useBookNavigationStore.getState().target).toMatchObject({ date: "2026-03-02", taskId: suelta.id });
+    expect(editor(root).props).toMatchObject({ visible: true, initialText: "Suelta", date: "2026-03-02", lineNumber: 3 });
+    expect(useBookNavigationStore.getState().target).toBeNull();
   });
 
-  it("pulsar una ocurrencia repetida pide el id de la serie, que es el que el libro busca", async () => {
+  it("pulsar una ocurrencia repetida abre la de ese día", async () => {
     const root = await renderYear();
-    const weekly = agenda().getTaskForLine("2026-03-02", 1)!;
     await press(root, "16 Marzo 2026");
     await pressText(root, "Semanal");
 
-    expect(useBookNavigationStore.getState().target).toMatchObject({ date: "2026-03-16", taskId: weekly.id });
+    expect(editor(root).props).toMatchObject({ visible: true, initialText: "Semanal", date: "2026-03-16" });
+    expect(useBookNavigationStore.getState().target).toBeNull();
+  });
+
+  it("cancelar cierra el editor y la vista sigue donde estaba", async () => {
+    const root = await renderYear();
+    await press(root, "2 Marzo 2026");
+    await pressText(root, "Suelta");
+    await act(async () => {
+      editor(root).props.onCancel();
+    });
+
+    expect(editor(root)).toBeUndefined();
   });
 
   it("«Abrir en el libro» en un día pide solo ese día", async () => {
@@ -461,15 +483,14 @@ describe("abrir en el libro", () => {
     expect(useBookNavigationStore.getState().target).toMatchObject({ date: "2026-03-02", taskId: "" });
   });
 
-  it("pulsar una serie lleva a su primera ocurrencia del año", async () => {
+  it("pulsar una serie edita su primera ocurrencia del año", async () => {
     const root = await renderYear();
-    const weekly = agenda().getTaskForLine("2026-03-02", 1)!;
     const seriesRow = root.findAllByType(TouchableOpacity).find((n) => n.findAllByType(Text).some((t) => String(t.props.children).includes("taskRepeat.weekly")))!;
     await act(async () => {
       seriesRow.props.onPress();
     });
 
-    expect(useBookNavigationStore.getState().target).toMatchObject({ date: "2026-03-09", taskId: weekly.id });
+    expect(editor(root).props).toMatchObject({ visible: true, date: "2026-03-09" });
   });
 });
 
@@ -564,5 +585,220 @@ describe("distribución", () => {
     });
     const tablet = await renderYear({ width: 1000, height: 800 });
     expect(monthProps(tablet, 1).metrics.cellHeight).toBeGreaterThanOrEqual(phoneCell);
+  });
+});
+
+describe("filtrar por hechas y faltantes", () => {
+  const DONE = 'yearView.summaryDone{"done":1}';
+  const PENDING = 'yearView.summaryPending{"pending":1}';
+  const TOTAL = 'yearView.summaryTotal{"total":2}';
+
+  const summaryButton = (root: ReactTestInstance, text: string) =>
+    root.findAllByType(TouchableOpacity).find((node) => node.findAllByType(Text).some((t) => t.props.children === text))!;
+  const isSelected = (root: ReactTestInstance, text: string) => summaryButton(root, text).props.accessibilityState.selected;
+  const checkboxes = (root: ReactTestInstance) => root.findAllByType(TouchableOpacity).filter((n) => n.props.accessibilityRole === "checkbox");
+
+  // El 2 de marzo tiene dos tareas: "Suelta" hecha y "Semanal" por hacer
+  async function openMixedDay() {
+    const root = await renderYear();
+    await press(root, "2 Marzo 2026");
+    await act(async () => {
+      checkboxes(root)[1].props.onPress();
+    });
+    expect(has(root, DONE)).toBe(true);
+    return root;
+  }
+
+  it("«Hechas» deja solo las hechas, y los números no cambian", async () => {
+    const root = await openMixedDay();
+    await pressText(root, DONE);
+
+    expect(has(root, "Suelta")).toBe(true);
+    expect(has(root, "Semanal")).toBe(false);
+    expect(has(root, 'yearView.summaryTotal{"total":2}')).toBe(true);
+    expect(has(root, DONE)).toBe(true);
+    expect(has(root, PENDING)).toBe(true);
+    expect(isSelected(root, DONE)).toBe(true);
+    expect(isSelected(root, PENDING)).toBe(false);
+  });
+
+  it("«Faltantes» deja solo las que faltan", async () => {
+    const root = await openMixedDay();
+    await pressText(root, PENDING);
+
+    expect(has(root, "Semanal")).toBe(true);
+    expect(has(root, "Suelta")).toBe(false);
+    expect(isSelected(root, PENDING)).toBe(true);
+    expect(isSelected(root, DONE)).toBe(false);
+  });
+
+  it("volver a tocar el filtro lo quita", async () => {
+    const root = await openMixedDay();
+    await pressText(root, DONE);
+    await pressText(root, DONE);
+
+    expect(has(root, "Suelta")).toBe(true);
+    expect(has(root, "Semanal")).toBe(true);
+    expect(isSelected(root, DONE)).toBe(false);
+  });
+
+  it("«Tareas» quita el filtro y enseña hechas y faltantes juntas", async () => {
+    const root = await openMixedDay();
+    expect(isSelected(root, TOTAL)).toBe(true); // sin filtro, «Tareas» es lo marcado
+
+    await pressText(root, DONE);
+    expect(has(root, "Semanal")).toBe(false);
+    expect(isSelected(root, TOTAL)).toBe(false);
+
+    await pressText(root, TOTAL);
+    expect(has(root, "Suelta")).toBe(true);
+    expect(has(root, "Semanal")).toBe(true);
+    expect(isSelected(root, TOTAL)).toBe(true);
+    expect(isSelected(root, DONE)).toBe(false);
+
+    await pressText(root, PENDING);
+    expect(has(root, "Suelta")).toBe(false);
+    await pressText(root, TOTAL);
+    expect(has(root, "Suelta")).toBe(true);
+    expect(has(root, "Semanal")).toBe(true);
+    expect(isSelected(root, PENDING)).toBe(false);
+  });
+
+  it("tocar «Tareas» sin filtro no cambia nada", async () => {
+    const root = await openMixedDay();
+    await pressText(root, TOTAL);
+
+    expect(has(root, "Suelta")).toBe(true);
+    expect(has(root, "Semanal")).toBe(true);
+    expect(isSelected(root, TOTAL)).toBe(true);
+  });
+
+  it("desde una lista vacía por el filtro, «Tareas» devuelve las tareas", async () => {
+    const root = await renderYear(); // ninguna hecha todavía
+    await pressText(root, 'yearView.summaryDone{"done":0}');
+    expect(has(root, "yearView.emptyFiltered")).toBe(true);
+
+    await pressText(root, 'yearView.summaryTotal{"total":3}');
+    expect(has(root, "yearView.emptyFiltered")).toBe(false);
+    expect(has(root, "Suelta")).toBe(true);
+    expect(has(root, "De septiembre")).toBe(true);
+  });
+
+  it("pasar de un filtro al otro cambia la lista sin quitarlo antes", async () => {
+    const root = await openMixedDay();
+    await pressText(root, DONE);
+    await pressText(root, PENDING);
+
+    expect(has(root, "Semanal")).toBe(true);
+    expect(has(root, "Suelta")).toBe(false);
+    expect(isSelected(root, PENDING)).toBe(true);
+    expect(isSelected(root, DONE)).toBe(false);
+  });
+
+  it("marcar una tarea con «Faltantes» activo la saca de la lista", async () => {
+    const root = await openMixedDay();
+    await pressText(root, PENDING);
+    expect(checkboxes(root)).toHaveLength(1);
+
+    await act(async () => {
+      checkboxes(root)[0].props.onPress(); // "Semanal"
+    });
+
+    expect(has(root, "Semanal")).toBe(false);
+    expect(has(root, "yearView.emptyFiltered")).toBe(true);
+    expect(has(root, 'yearView.summaryDone{"done":2}')).toBe(true);
+    expect(has(root, 'yearView.summaryPending{"pending":0}')).toBe(true);
+  });
+
+  it("si no hay ninguna de esa clase, no dice que no hay tareas", async () => {
+    const root = await renderYear(); // ninguna hecha todavía
+    await pressText(root, 'yearView.summaryDone{"done":0}');
+
+    expect(has(root, "yearView.emptyFiltered")).toBe(true);
+    expect(has(root, "yearView.empty")).toBe(false);
+    expect(has(root, 'yearView.summaryTotal{"total":3}')).toBe(true);
+  });
+
+  it("en el año, con un filtro puesto se ocultan las series, que no tienen estado propio", async () => {
+    const root = await renderYear();
+    expect(has(root, "yearView.repeatsTitle")).toBe(true);
+
+    await pressText(root, 'yearView.summaryPending{"pending":3}');
+    expect(has(root, "yearView.repeatsTitle")).toBe(false);
+    expect(has(root, "Suelta")).toBe(true);
+    expect(has(root, "De septiembre")).toBe(true);
+
+    await pressText(root, 'yearView.summaryPending{"pending":3}');
+    expect(has(root, "yearView.repeatsTitle")).toBe(true);
+  });
+});
+
+describe("reparto en horizontal", () => {
+  beforeEach(() => {
+    useYearSplitStore.setState({ calendarShare: null, stackedShare: null });
+  });
+
+  const flat = (node: ReactTestInstance) => StyleSheet.flatten(node.props.style) as Record<string, number | undefined>;
+  const calendarPage = (root: ReactTestInstance) => root.findAll((n) => n.props.testID === "year-calendar-page")[0];
+  const handle = (root: ReactTestInstance) => root.findAll((n) => n.props.testID === "year-split-handle")[0];
+  const measureSpread = async (root: ReactTestInstance, width: number, height: number) => {
+    const spread = root.findAll((n) => n.props.testID === "year-spread" && typeof n.props.onLayout === "function")[0];
+    await act(async () => {
+      spread.props.onLayout({ nativeEvent: { layout: { width, height } } });
+    });
+  };
+
+  // Un móvil en horizontal: lomo compacto (8 + 2 de aire a cada lado) y argollas chicas
+  const phone = { width: 900, height: 400 };
+  const phoneSplit = (share: number) =>
+    getSideSplit({ spreadWidth: phone.width, padding: 8, share, seamGap: COMPACT_SPINE_WIDTH + 4, ringWidth: COMPACT_RING_WIDTH });
+
+  it("el asa no sale hasta que se ha medido el contenedor", async () => {
+    const root = await renderYear(phone);
+    expect(handle(root)).toBeUndefined();
+    await measureSpread(root, phone.width, phone.height - 100);
+    expect(handle(root)).toBeDefined();
+  });
+
+  it("en un móvil en horizontal el calendario tiene un ancho explícito, no una fracción de flex", async () => {
+    const root = await renderYear(phone);
+    await measureSpread(root, phone.width, phone.height - 100);
+
+    const style = flat(calendarPage(root));
+    expect(style.width).toBeCloseTo(phoneSplit(1 / 3).calendarWidth, 6);
+    expect(style.flex).toBeUndefined();
+  });
+
+  it("el asa va pegada a las argollas, dentro del hueco entre las dos páginas", async () => {
+    const root = await renderYear(phone);
+    await measureSpread(root, phone.width, phone.height - 100);
+
+    const split = phoneSplit(1 / 3);
+    const style = flat(handle(root));
+    expect(style.left).toBeCloseTo(split.handleLeft, 6);
+    expect(style.width).toBe(SIDE_HANDLE_WIDTH);
+    // A la derecha de las argollas y no dentro del calendario, que era donde salía
+    expect(style.left!).toBeGreaterThanOrEqual(split.spineCenter + COMPACT_RING_WIDTH / 2);
+    expect(style.left!).toBeGreaterThan(8 + flat(calendarPage(root)).width!);
+  });
+
+  it("en una tablet el reparto es la mitad y el asa también va junto a las argollas", async () => {
+    const tablet = { width: 1200, height: 800 };
+    const root = await renderYear(tablet);
+    await measureSpread(root, tablet.width, tablet.height - 100);
+
+    const split = getSideSplit({ spreadWidth: tablet.width, padding: 8, share: 0.5, seamGap: SPINE_WIDTH, ringWidth: RING_WIDTH });
+    expect(flat(calendarPage(root)).width).toBeCloseTo(split.calendarWidth, 6);
+    expect(flat(handle(root)).left).toBeCloseTo(split.handleLeft, 6);
+    expect(split.handleLeft).toBeGreaterThanOrEqual(split.spineCenter + RING_WIDTH / 2);
+  });
+
+  it("respeta el reparto que eligió el usuario", async () => {
+    useYearSplitStore.setState({ calendarShare: 0.5 });
+    const root = await renderYear(phone);
+    await measureSpread(root, phone.width, phone.height - 100);
+
+    expect(flat(calendarPage(root)).width).toBeCloseTo(phoneSplit(0.5).calendarWidth, 6);
+    expect(flat(handle(root)).left).toBeCloseTo(phoneSplit(0.5).handleLeft, 6);
   });
 });

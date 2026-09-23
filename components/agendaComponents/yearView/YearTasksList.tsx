@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { formatDayLabel, YearEntry, YearListRow, YearSeries } from "@/utils/year-view";
 import React from "react";
 import {
@@ -25,6 +26,10 @@ interface YearTasksListProps {
   readonly onToggle: (entry: YearEntry) => void;
   readonly onOpen: (entry: YearEntry) => void;
   readonly onOpenSeries: (series: YearSeries) => void;
+  // Si se da, cada fecha de la lista lleva un "+" que añade una tarea a ese día, salvo las anteriores
+  // a `addFromDate` (YYYY-MM-DD): a los días pasados no se añaden tareas
+  readonly onAddToDay?: (dateKey: string) => void;
+  readonly addFromDate?: string;
   readonly onScrollOffset?: (offsetY: number) => void;
   readonly listRef?: React.Ref<FlatList<YearListRow>>;
   readonly tCommon: (key: string, options?: any) => string;
@@ -40,17 +45,33 @@ export default function YearTasksList({
   onToggle,
   onOpen,
   onOpenSeries,
+  onAddToDay,
+  addFromDate,
   onScrollOffset,
   listRef,
   tCommon,
 }: YearTasksListProps) {
+  const addBackground = useThemeColor({}, "accent");
+  const addForeground = useThemeColor({}, "onAccent");
+
   const renderRow = ({ item }: { item: YearListRow }) => {
     switch (item.kind) {
       case "date":
         return (
-          <ThemedText style={[styles.dateHeader, { borderBottomColor: `${accent}55` }]}>
-            {formatDayLabel(item.dateKey, names)}
-          </ThemedText>
+          <View style={[styles.dateRow, { borderBottomColor: `${accent}55` }]}>
+            <ThemedText style={styles.dateText}>{formatDayLabel(item.dateKey, names)}</ThemedText>
+            {onAddToDay && (!addFromDate || item.dateKey >= addFromDate) && (
+              <TouchableOpacity
+                onPress={() => onAddToDay(item.dateKey)}
+                accessibilityRole="button"
+                accessibilityLabel={tCommon("yearView.addTask")}
+                hitSlop={8}
+                style={[styles.addButton, { backgroundColor: addBackground }]}
+              >
+                <ThemedText style={[styles.addText, { color: addForeground }]}>+</ThemedText>
+              </TouchableOpacity>
+            )}
+          </View>
         );
 
       case "task": {
@@ -169,6 +190,33 @@ const styles = StyleSheet.create({
     paddingBottom: 3,
     borderBottomWidth: 1,
     textTransform: "capitalize",
+  },
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 12,
+    marginBottom: 4,
+    paddingBottom: 3,
+    borderBottomWidth: 1,
+  },
+  dateText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "capitalize",
+  },
+  addButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addText: {
+    fontSize: 18,
+    lineHeight: 21,
+    fontWeight: "600",
   },
   seriesTitle: {
     marginTop: 18,

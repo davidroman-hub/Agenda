@@ -6,6 +6,7 @@ import {
   clampYear,
   dateKeysOfYear,
   daysInMonth,
+  filterDaysByStatus,
   formatDayLabel,
   buildListRows,
   getDayMark,
@@ -13,6 +14,7 @@ import {
   getMonthGrid,
   getMonthMarks,
   getMonthMetrics,
+  getSideSplit,
   getStackedCalendarHeight,
   getYearLayout,
   MAX_YEAR,
@@ -24,6 +26,8 @@ import {
   scopeSeries,
   scopeStats,
   shiftYear,
+  SIDE_HANDLE_MARGIN,
+  SIDE_HANDLE_WIDTH,
   toDateKey,
   weekdayInitials,
   YearIndex,
@@ -550,5 +554,122 @@ describe("buildListRows", () => {
 
   it("sin nada, sin filas", () => {
     expect(buildListRows([], [])).toEqual([]);
+  });
+});
+
+describe("filterDaysByStatus", () => {
+  const index = build(2026, {
+    "2026-05-01": { 1: task("a", "Hecha 1", { completed: true }), 2: task("b", "Pendiente 1") },
+    "2026-05-02": { 1: task("c", "Hecha 2", { completed: true }) },
+    "2026-05-03": { 1: task("d", "Pendiente 2") },
+  });
+  const days = scopeDays(index, { kind: "year" });
+  const textsOf = (list: ReturnType<typeof scopeDays>) => list.flatMap((day) => day.entries.map((entry) => entry.task.text));
+
+  it("'all' deja los días tal cual", () => {
+    expect(filterDaysByStatus(days, "all")).toEqual(days);
+  });
+
+  it("'done' deja solo las hechas y quita los días que se quedan sin tareas", () => {
+    const done = filterDaysByStatus(days, "done");
+    expect(done.map((day) => day.dateKey)).toEqual(["2026-05-01", "2026-05-02"]);
+    expect(textsOf(done)).toEqual(["Hecha 1", "Hecha 2"]);
+    expect(scopeStats(done)).toEqual({ total: 2, completed: 2 });
+  });
+
+  it("'pending' deja solo las que faltan y quita los días que se quedan sin tareas", () => {
+    const pending = filterDaysByStatus(days, "pending");
+    expect(pending.map((day) => day.dateKey)).toEqual(["2026-05-01", "2026-05-03"]);
+    expect(textsOf(pending)).toEqual(["Pendiente 1", "Pendiente 2"]);
+    expect(scopeStats(pending)).toEqual({ total: 2, completed: 0 });
+  });
+
+  it("hechas y pendientes suman el total, y no se toca la lista de entrada", () => {
+    const done = scopeStats(filterDaysByStatus(days, "done")).total;
+    const pending = scopeStats(filterDaysByStatus(days, "pending")).total;
+    expect(done + pending).toBe(scopeStats(days).total);
+    expect(days[0].entries).toHaveLength(2);
+    expect(days[0].total).toBe(2);
+  });
+
+  it("sin días, o sin ninguna que cumpla, queda vacío", () => {
+    expect(filterDaysByStatus([], "done")).toEqual([]);
+    const onlyPending = scopeDays(build(2026, { "2026-05-03": { 1: task("d", "Pendiente") } }), { kind: "year" });
+    expect(filterDaysByStatus(onlyPending, "done")).toEqual([]);
+  });
+
+  it("una ocurrencia de una serie cuenta con el estado de ese día", () => {
+    const repeated = build(
+      2026,
+      { "2026-03-05": { 1: task("c", "Semanal") } },
+      [pattern("c", "weekly", "2026-03-05")],
+      { "c-2026-03-12": true }
+    );
+    const march = scopeDays(repeated, { kind: "month", month: 3 });
+    expect(filterDaysByStatus(march, "done").map((day) => day.dateKey)).toEqual(["2026-03-12"]);
+    expect(filterDaysByStatus(march, "pending").map((day) => day.dateKey)).not.toContain("2026-03-12");
+    expect(filterDaysByStatus(march, "pending").map((day) => day.dateKey)).toContain("2026-03-19");
+  });
+});
+
+describe("getSideSplit: el asa de estirar junto a las argollas", () => {
+  // Un móvil en horizontal (lomo compacto de 12, argollas de 14) y una tablet (lomo de 22, argollas de 34)
+  const layouts = [
+    { name: "móvil", spreadWidth: 900, padding: 8, seamGap: 12, ringWidth: 14 },
+    { name: "tablet", spreadWidth: 1200, padding: 8, seamGap: 22, ringWidth: 34 },
+  ];
+
+  for (const layout of layouts) {
+    describe(layout.name, () => {
+      const at = (share: number) =>
+        getSideSplit({ spreadWidth: layout.spreadWidth, padding: layout.padding, seamGap: layout.seamGap, ringWidth: layout.ringWidth, share });
+
+      it("el calendario, el hueco del lomo y las tareas llenan el ancho", () => {
+        const split = at(0.4);
+        const tasks = split.span - split.calendarWidth;
+        expect(layout.padding * 2 + split.calendarWidth + split.gap + tasks).toBeCloseTo(layout.spreadWidth, 6);
+      });
+
+      it("el calendario mide exactamente su parte del ancho repartible", () => {
+        const split = at(0.4);
+        expect(split.calendarWidth).toBeCloseTo(0.4 * split.span, 6);
+      });
+
+      it("las argollas caen en medio del hueco del lomo", () => {
+        const split = at(0.4);
+        expect(split.spineCenter).toBeCloseTo(layout.padding + split.calendarWidth + layout.seamGap / 2, 6);
+      });
+
+      it("el asa queda pegada a la derecha de las argollas, sin taparlas, y acaba donde empiezan las tareas", () => {
+        const split = at(0.4);
+        const ringsRight = split.spineCenter + layout.ringWidth / 2;
+        expect(split.handleLeft).toBeGreaterThanOrEqual(ringsRight);
+        expect(split.handleLeft - ringsRight).toBeLessThanOrEqual(SIDE_HANDLE_MARGIN + 1e-6);
+        expect(split.handleLeft + SIDE_HANDLE_WIDTH).toBeCloseTo(layout.padding + split.calendarWidth + split.gap, 6);
+      });
+
+      it("arrastrar mueve el asa, las argollas y el borde del calendario lo mismo que el dedo", () => {
+        const before = at(0.4);
+        const dx = 60;
+        const after = at(0.4 + dx / before.span);
+        expect(after.handleLeft - before.handleLeft).toBeCloseTo(dx, 6);
+        expect(after.spineCenter - before.spineCenter).toBeCloseTo(dx, 6);
+        expect(after.calendarWidth - before.calendarWidth).toBeCloseTo(dx, 6);
+      });
+    });
+  }
+
+  it("respeta los límites del reparto", () => {
+    const base = { spreadWidth: 900, padding: 8, seamGap: 12, ringWidth: 14 };
+    const span = getSideSplit({ ...base, share: 0.5 }).span;
+    expect(getSideSplit({ ...base, share: 0 }).calendarWidth).toBeCloseTo(0.25 * span, 6);
+    expect(getSideSplit({ ...base, share: 1 }).calendarWidth).toBeCloseTo(0.65 * span, 6);
+    expect(Number.isFinite(getSideSplit({ ...base, share: NaN }).calendarWidth)).toBe(true);
+  });
+
+  it("sin medir todavía el contenedor no da números raros", () => {
+    const split = getSideSplit({ spreadWidth: 0, padding: 8, seamGap: 12, ringWidth: 14, share: 0.4 });
+    expect(split.span).toBeGreaterThanOrEqual(1);
+    for (const value of Object.values(split)) expect(Number.isFinite(value)).toBe(true);
   });
 });

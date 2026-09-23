@@ -14,6 +14,7 @@
 
   "tabs": {
     "agenda": "Agenda",
+    "calendar": "Calendario",
     "pastTasks": "Attività Passate",
     "reminders": "Promemoria",
     "settings": "Impostazioni",
@@ -328,8 +329,14 @@
     "titleMonth": "Attività di {{month}} {{year}}",
     "titleDay": "Attività del {{date}}",
     "summary": "Attività: {{total}} · Fatte: {{done}}",
+    "summaryTotal": "Attività: {{total}}",
+    "summaryDone": "Fatte: {{done}}",
+    "summaryPending": "In sospeso: {{pending}}",
+    "emptyFiltered": "Nessuna attività corrisponde a questo filtro",
     "showYear": "Mostra tutto l'anno",
+    "resizeLabel": "Regola la dimensione delle attività",
     "openInBook": "Apri nel libro",
+    "addTask": "Aggiungi attività",
     "empty": "Nessuna attività in questo periodo",
     "repeatsTitle": "Ripetizioni",
     "occurrences": "Volte quest'anno: {{count}}",

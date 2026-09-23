@@ -1,6 +1,40 @@
 export const changeLogLocales = {
   en: {
-    changes: `🚀 **Version 1.10.0 - Notes, Attachments, Task Types, Year View & Backups**
+    changes: `🚀 **Version 1.12.0 - Done & Pending Filters and a Better Landscape Year View**
+
+📱 **What's new:**
+• **Filter the year view by status**: the summary now reads "Tasks: N · Done: N · Pending: N" and each word is a button. "Done" shows only the completed tasks, "Pending" only the ones left, and "Tasks" clears the filter and shows all of them. It works for the whole year, a month or a day
+
+📖 **Year view in landscape:**
+• The handle to resize the tasks area now sits right next to the book rings and follows your finger. Before, it showed up inside the calendar, far from them
+• The rings are more spaced out, and the handle is bigger and easier to grab
+• The calendar takes exactly the share you set (by default, a third of the screen on a phone)
+
+🚀 **Version 1.11.0 - New Bottom Bar, Faster Year View & Simpler Widgets**
+
+📱 **What's new:**
+• **New bottom bar**: Agenda, Calendar, Notes, Reminders and Settings. "Calendar" opens the year view and "Notes" opens your notes
+• **Add tasks from the year view**: a ＋ next to the title of a selected day and next to each date in the month and year lists. It only appears for today and future days
+• **Tap the day number** in the book to jump to that day in the year view
+• **Icons in the task and note editors and the bug report**: cancel, delete, mark as completed, save and send are now icons
+
+⚡ **Faster:**
+• Tasks from the year view now open, save and close right there, without loading the whole book
+• The book redraws less when you save
+
+📱 **Widgets:**
+• Tapping a task in the tasks widget takes you to that day; tapping a note opens the notes section. The ＋ buttons still create a new task or note
+• Vertical photos in the notes widget now appear upright instead of sideways
+
+🐛 **Fixes:**
+• Dark mode: the "Add" button when creating a task type was white on white
+• Task type tabs no longer appear in Notes, since notes are not tasks
+
+🗑️ **Removed:**
+• The Past Tasks tab: the year view shows the tasks of any year, month or day, including repeating ones
+• The calendar pop-up that opened next to the day number
+
+🚀 **Version 1.10.0 - Notes, Attachments, Task Types, Year View & Backups**
 
 📝 **What's new:**
 • **Notes**: a new section with colorful post-its pinned on a cork board, separate from your tasks. Press and hold one to drag it and reorder them. Each note can carry files and images
@@ -92,7 +126,41 @@ export const changeLogLocales = {
 • **Seamless Language Switching**: Both app and widget update language without restart`,
   },
   es: {
-    changes: `🚀 **Versión 1.10.0 - Notas, Adjuntos, Tipos de Tarea, Vista de Año y Copia de Seguridad**
+    changes: `🚀 **Versión 1.12.0 - Filtros de Hechas y Faltantes y Vista de Año Mejorada en Horizontal**
+
+📱 **Novedades:**
+• **Filtra la vista de año por estado**: el resumen ahora dice "Tareas: N · Hechas: N · Faltantes: N" y cada palabra es un botón. "Hechas" enseña solo las tareas hechas, "Faltantes" solo las que faltan y "Tareas" quita el filtro y las enseña todas. Funciona en el año entero, en un mes o en un día
+
+📖 **Vista de año en horizontal:**
+• El asa para estirar la parte de las tareas ahora está justo al lado de las argollas del libro y sigue a tu dedo. Antes salía dentro del calendario, lejos de ellas
+• Las argollas van más separadas y el asa es más grande y fácil de agarrar
+• El calendario ocupa justo el reparto que elijas (por defecto, un tercio de la pantalla en un móvil)
+
+🚀 **Versión 1.11.0 - Barra Nueva, Vista de Año Más Rápida y Widgets Más Simples**
+
+📱 **Novedades:**
+• **Barra de abajo nueva**: Agenda, Calendario, Notas, Recordatorios y Ajustes. "Calendario" abre la vista de año y "Notas" abre tus notas
+• **Añadir tareas desde la vista de año**: un ＋ junto al título de un día seleccionado y junto a cada fecha de las listas de un mes o del año. Solo sale de hoy en adelante
+• **Toca el número del día** en el libro para ir a ese día en la vista de año
+• **Iconos en los editores de tareas y notas y en el reporte de errores**: cancelar, eliminar, marcar como completada, guardar y enviar ahora son iconos
+
+⚡ **Más rápido:**
+• Las tareas de la vista de año se abren, guardan y cierran en el sitio, sin cargar todo el libro
+• El libro se vuelve a dibujar menos al guardar
+
+📱 **Widgets:**
+• Tocar una tarea del widget de tareas lleva a ese día; tocar una nota abre la sección de notas. Los botones ＋ siguen creando una tarea o nota nueva
+• Las fotos verticales del widget de notas ya se ven derechas en vez de tumbadas
+
+🐛 **Correcciones:**
+• Modo oscuro: el botón "Añadir" al crear un tipo de tarea era blanco sobre blanco
+• Las pestañas de tipos de tarea ya no salen en Notas, porque las notas no son tareas
+
+🗑️ **Eliminado:**
+• La pestaña Tareas pasadas: la vista de año enseña las tareas de cualquier año, mes o día, incluidas las repetidas
+• El calendario emergente que se abría junto al número del día
+
+🚀 **Versión 1.10.0 - Notas, Adjuntos, Tipos de Tarea, Vista de Año y Copia de Seguridad**
 
 📝 **Novedades:**
 • **Notas**: una sección nueva con post-its de colores clavados en un tablero de corcho, aparte de tus tareas. Mantén pulsado uno para arrastrarlo y reordenarlos. Cada nota puede llevar archivos e imágenes
@@ -184,7 +252,41 @@ export const changeLogLocales = {
 • **Cambio de Idioma Fluido**: Tanto la app como el widget actualizan el idioma sin reiniciar`,
   },
   fr: {
-    changes: `🚀 **Version 1.10.0 - Notes, Pièces jointes, Types de tâche, Vue annuelle et Sauvegarde**
+    changes: `🚀 **Version 1.12.0 - Filtres Faites et En attente, et Vue annuelle améliorée en paysage**
+
+📱 **Nouveautés :**
+• **Filtrer la vue annuelle par statut** : le résumé indique désormais « Tâches : N · Faites : N · En attente : N » et chaque mot est un bouton. « Faites » n'affiche que les tâches terminées, « En attente » que celles qui restent, et « Tâches » supprime le filtre et les affiche toutes. Cela fonctionne pour l'année entière, un mois ou un jour
+
+📖 **Vue annuelle en paysage :**
+• La poignée pour redimensionner la zone des tâches se trouve maintenant juste à côté des anneaux du livre et suit votre doigt. Avant, elle apparaissait dans le calendrier, loin des anneaux
+• Les anneaux sont plus espacés, et la poignée est plus grande et plus facile à saisir
+• Le calendrier occupe exactement la part que vous choisissez (par défaut, un tiers de l'écran sur un téléphone)
+
+🚀 **Version 1.11.0 - Nouvelle barre, Vue annuelle plus rapide et Widgets plus simples**
+
+📱 **Nouveautés :**
+• **Nouvelle barre du bas** : Agenda, Calendrier, Notes, Rappels et Réglages. « Calendrier » ouvre la vue annuelle et « Notes » ouvre vos notes
+• **Ajouter des tâches depuis la vue annuelle** : un ＋ à côté du titre d'un jour sélectionné et à côté de chaque date des listes d'un mois ou de l'année. Il n'apparaît qu'à partir d'aujourd'hui
+• **Touchez le numéro du jour** dans le livre pour aller à ce jour dans la vue annuelle
+• **Icônes dans les éditeurs de tâches et de notes et le rapport de bug** : annuler, supprimer, marquer comme terminée, enregistrer et envoyer sont désormais des icônes
+
+⚡ **Plus rapide :**
+• Les tâches de la vue annuelle s'ouvrent, s'enregistrent et se ferment sur place, sans charger tout le livre
+• Le livre se redessine moins à l'enregistrement
+
+📱 **Widgets :**
+• Toucher une tâche du widget de tâches mène à ce jour ; toucher une note ouvre la section des notes. Les boutons ＋ créent toujours une nouvelle tâche ou note
+• Les photos verticales du widget de notes s'affichent désormais droites et non couchées
+
+🐛 **Corrections :**
+• Mode sombre : le bouton « Ajouter » à la création d'un type de tâche était blanc sur blanc
+• Les onglets de types de tâche n'apparaissent plus dans Notes, car les notes ne sont pas des tâches
+
+🗑️ **Supprimé :**
+• L'onglet Tâches passées : la vue annuelle affiche les tâches de n'importe quelle année, mois ou jour, y compris les répétitives
+• Le calendrier contextuel qui s'ouvrait à côté du numéro du jour
+
+🚀 **Version 1.10.0 - Notes, Pièces jointes, Types de tâche, Vue annuelle et Sauvegarde**
 
 📝 **Nouveautés :**
 • **Notes** : une nouvelle section avec des post-it de couleur épinglés sur un tableau de liège, séparée de vos tâches. Maintenez-en un appuyé pour le faire glisser et les réordonner. Chaque note peut contenir des fichiers et des images
@@ -276,7 +378,41 @@ export const changeLogLocales = {
 • **Changement de Langue Fluide**: L'app et le widget mettent à jour la langue sans redémarrage`,
   },
   it: {
-    changes: `🚀 **Versione 1.10.0 - Note, Allegati, Tipi di Attività, Vista Annuale e Backup**
+    changes: `🚀 **Versione 1.12.0 - Filtri Fatte e In sospeso e Vista Annuale Migliorata in Orizzontale**
+
+📱 **Novità:**
+• **Filtra la vista annuale per stato**: il riepilogo ora dice "Attività: N · Fatte: N · In sospeso: N" e ogni parola è un pulsante. "Fatte" mostra solo le attività completate, "In sospeso" solo quelle rimaste e "Attività" toglie il filtro e le mostra tutte. Funziona per l'intero anno, per un mese o per un giorno
+
+📖 **Vista annuale in orizzontale:**
+• La maniglia per ridimensionare l'area delle attività ora sta proprio accanto agli anelli del libro e segue il dito. Prima compariva dentro il calendario, lontano dagli anelli
+• Gli anelli sono più distanziati, e la maniglia è più grande e facile da afferrare
+• Il calendario occupa esattamente la parte che scegli (di default, un terzo dello schermo su un telefono)
+
+🚀 **Versione 1.11.0 - Nuova Barra, Vista Annuale Più Veloce e Widget Più Semplici**
+
+📱 **Novità:**
+• **Nuova barra in basso**: Agenda, Calendario, Note, Promemoria e Impostazioni. "Calendario" apre la vista annuale e "Note" apre le tue note
+• **Aggiungi attività dalla vista annuale**: un ＋ accanto al titolo di un giorno selezionato e accanto a ogni data delle liste di un mese o dell'anno. Compare solo da oggi in poi
+• **Tocca il numero del giorno** nel libro per andare a quel giorno nella vista annuale
+• **Icone negli editor di attività e note e nella segnalazione bug**: annulla, elimina, segna come completata, salva e invia sono ora icone
+
+⚡ **Più veloce:**
+• Le attività della vista annuale si aprono, si salvano e si chiudono sul posto, senza caricare tutto il libro
+• Il libro si ridisegna meno quando salvi
+
+📱 **Widget:**
+• Toccare un'attività del widget delle attività porta a quel giorno; toccare una nota apre la sezione note. I pulsanti ＋ creano sempre una nuova attività o nota
+• Le foto verticali del widget delle note ora si vedono dritte e non sdraiate
+
+🐛 **Correzioni:**
+• Modalità scura: il pulsante "Aggiungi" nella creazione di un tipo di attività era bianco su bianco
+• Le schede dei tipi di attività non compaiono più in Note, perché le note non sono attività
+
+🗑️ **Rimosso:**
+• La scheda Attività passate: la vista annuale mostra le attività di qualsiasi anno, mese o giorno, comprese quelle ripetute
+• Il calendario a comparsa che si apriva accanto al numero del giorno
+
+🚀 **Versione 1.10.0 - Note, Allegati, Tipi di Attività, Vista Annuale e Backup**
 
 📝 **Novità:**
 • **Note**: una nuova sezione con post-it colorati appuntati su una bacheca di sughero, separata dalle attività. Tieni premuto uno per trascinarlo e riordinarli. Ogni nota può contenere file e immagini

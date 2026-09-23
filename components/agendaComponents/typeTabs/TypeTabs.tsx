@@ -5,26 +5,21 @@ import useAgendaSectionStore from "@/stores/agenda-section-store";
 import useAgendaTasksStore from "@/stores/agenda-tasks-store";
 import useTaskTypesStore from "@/stores/task-types-store";
 import { getStripTabs } from "@/utils/agenda-strip";
-import { NOTES_ACCENT } from "@/utils/notes";
 import { hasUntypedTasks, resolveFilter } from "@/utils/task-types";
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import TaskTypesManager from "./TaskTypesManager";
 
 // Tira de pestañas de la agenda: las de tareas ("Todas", "Sin tipo" y una por cada tipo; solo
-// "Agenda" mientras no haya tipos) y, fijos a la derecha, el conmutador Libro/Año y "Notas". Los tipos
-// filtran lo que se ve, sea el libro o el año; Libro/Año y Notas cambian el contenido de debajo.
+// "Agenda" mientras no haya tipos). Los tipos filtran lo que se ve, sea el libro o el año. Cambiar entre
+// Agenda, Calendario y Notas se hace desde la barra de abajo (components/section-tabs.tsx).
 export default function TypeTabs() {
   const { tCommon } = useI18n();
   const types = useTaskTypesStore((state) => state.types);
   const activeFilter = useTaskTypesStore((state) => state.activeFilter);
   const setActiveFilter = useTaskTypesStore((state) => state.setActiveFilter);
   const section = useAgendaSectionStore((state) => state.section);
-  const showNotes = useAgendaSectionStore((state) => state.showNotes);
   const showAgenda = useAgendaSectionStore((state) => state.showAgenda);
-  const agendaView = useAgendaSectionStore((state) => state.agendaView);
-  const showBook = useAgendaSectionStore((state) => state.showBook);
-  const showYear = useAgendaSectionStore((state) => state.showYear);
   const tasksByDate = useAgendaTasksStore((state) => state.tasksByDate);
   const [managerVisible, setManagerVisible] = useState(false);
 
@@ -41,8 +36,6 @@ export default function TypeTabs() {
     [tasksByDate, knownTypeIds],
   );
   const tabs = getStripTabs({ types, hasUntyped, filter, section });
-  const notesSelected = section === "notes";
-  const inAgenda = section === "agenda";
 
   return (
     <View style={styles.container}>
@@ -109,57 +102,6 @@ export default function TypeTabs() {
             </ThemedText>
           </TouchableOpacity>
         </ScrollView>
-
-        <View style={styles.viewToggle}>
-          {(["book", "year"] as const).map((view) => {
-            const selected = inAgenda && agendaView === view;
-            return (
-              <TouchableOpacity
-                key={view}
-                onPress={view === "book" ? showBook : showYear}
-                accessibilityRole="tab"
-                accessibilityState={{ selected }}
-                accessibilityLabel={tCommon(
-                  view === "book" ? "yearView.toggleBook" : "yearView.toggleYear",
-                )}
-                style={[
-                  styles.tab,
-                  styles.viewTab,
-                  selected && { borderBottomColor: tintColor, backgroundColor: `${tintColor}22` },
-                ]}
-              >
-                <ThemedText style={[styles.tabText, selected && styles.tabTextSelected]}>
-                  {view === "book" ? "📖" : "🗓️"}
-                </ThemedText>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <TouchableOpacity
-          onPress={showNotes}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: notesSelected }}
-          style={[
-            styles.tab,
-            styles.notesTab,
-            notesSelected && {
-              borderBottomColor: NOTES_ACCENT,
-              backgroundColor: `${NOTES_ACCENT}33`,
-            },
-          ]}
-        >
-          <ThemedText
-            numberOfLines={1}
-            style={[
-              styles.tabText,
-              { color: textColor },
-              notesSelected && styles.tabTextSelected,
-            ]}
-          >
-            📝 {tCommon("tabs.notes")}
-          </ThemedText>
-        </TouchableOpacity>
       </View>
 
       <TaskTypesManager
@@ -181,24 +123,6 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
-  },
-  // Libro / Año: dos botones de icono, siempre a la vista junto a "Notas"
-  viewToggle: {
-    flexDirection: "row",
-    borderLeftWidth: 1,
-    borderLeftColor: "rgba(128,128,128,0.25)",
-  },
-  viewTab: {
-    paddingHorizontal: 9,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  // "Notas" queda siempre a la vista, por muchos tipos que haya, y separada de las de tareas
-  notesTab: {
-    marginRight: 12,
-    borderLeftWidth: 1,
-    borderLeftColor: "rgba(128,128,128,0.25)",
-    borderTopLeftRadius: 0,
   },
   tabs: {
     paddingHorizontal: 12,

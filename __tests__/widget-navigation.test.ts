@@ -4,33 +4,12 @@ import useNotesNavigationStore from "../stores/notes-navigation-store";
 import {
   requestNewTaskFromWidget,
   requestNoteFromWidget,
-  requestTaskFromWidget,
 } from "../services/widget-navigation";
 
 beforeEach(() => {
   useBookNavigationStore.setState({ target: null });
   useNotesNavigationStore.setState({ target: null });
   useAgendaSectionStore.setState({ section: "agenda" });
-});
-
-describe("requestTaskFromWidget", () => {
-  it("pide abrir la tarea en su día", () => {
-    expect(requestTaskFromWidget("2026-09-22", "t1")).toBe(true);
-
-    expect(useBookNavigationStore.getState().target).toMatchObject({ date: "2026-09-22", taskId: "t1" });
-  });
-
-  it.each([
-    ["sin fecha", undefined, "t1"],
-    ["fecha mal formada", "22/09/2026", "t1"],
-    ["sin id", "2026-09-22", undefined],
-    ["id vacío", "2026-09-22", ""],
-    ["parámetros repetidos (array)", ["2026-09-22"], "t1"],
-  ])("%s: no pide ninguna tarea", (_name, date, id) => {
-    expect(requestTaskFromWidget(date, id)).toBe(false);
-
-    expect(useBookNavigationStore.getState().target).toBeNull();
-  });
 });
 
 describe("requestNewTaskFromWidget (el botón + del widget de tareas)", () => {
@@ -48,30 +27,17 @@ describe("requestNewTaskFromWidget (el botón + del widget de tareas)", () => {
 });
 
 describe("requestNoteFromWidget (el widget de notas)", () => {
-  it("una nota concreta: abre las notas y pide esa nota", () => {
-    requestNoteFromWidget("note-1", false);
-
-    expect(useAgendaSectionStore.getState().section).toBe("notes");
-    expect(useNotesNavigationStore.getState().target).toMatchObject({ id: "note-1" });
-  });
-
   it("el botón +: abre las notas y pide una nueva", () => {
-    requestNoteFromWidget(undefined, true);
+    requestNoteFromWidget(true);
 
     expect(useAgendaSectionStore.getState().section).toBe("notes");
     expect(useNotesNavigationStore.getState().target).toMatchObject({ id: "new" });
   });
 
-  it("sin id ni nueva (tocar el tablero): solo abre las notas", () => {
-    requestNoteFromWidget(undefined, false);
+  it("sin nueva (tocar una nota o el tablero): solo abre las notas", () => {
+    requestNoteFromWidget(false);
 
     expect(useAgendaSectionStore.getState().section).toBe("notes");
-    expect(useNotesNavigationStore.getState().target).toBeNull();
-  });
-
-  it("un id vacío no pide ninguna nota", () => {
-    requestNoteFromWidget("", false);
-
     expect(useNotesNavigationStore.getState().target).toBeNull();
   });
 });

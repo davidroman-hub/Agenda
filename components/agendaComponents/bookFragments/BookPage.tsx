@@ -7,32 +7,23 @@ import useBookSettingsStore from "@/stores/boook-settings";
 import useTaskTypesStore from "@/stores/task-types-store";
 import useRepeatingTasksStore from "@/stores/repeating-tasks-store";
 import { dateToLocalDateString } from "@/utils/date-utils";
-import { deleteRepeatingOccurrence } from "@/services/repeating-occurrence-service";
 import { getTotalLines } from "@/utils/book-lines";
 import { findFreeLine, findTaskLine } from "@/utils/book-navigation";
-import { Attachment } from "@/utils/attachments";
 import { filterVisibleLines, resolveFilter } from "@/utils/task-types";
 import { buildDayTasks } from "@/utils/day-tasks";
-import {
-  promptDeleteRepeatingOccurrence,
-  promptDeleteRepeatingSeries,
-} from "@/utils/repeat-delete-prompts";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
 
-import AnotherCalendarModal from "@/components/calendar/anotherCalendarModal";
-import useCalendarSettingsStore from "@/stores/Calendar-store";
-import Icon from "react-native-vector-icons/FontAwesome";
+import useAgendaSectionStore from "@/stores/agenda-section-store";
 import { styles } from "../bookStyles";
 import AddExtraLine from "./BookAddExtraLine";
-import TaskEditModal from "./TaskEditModal";
-import { RepeatOption } from "./TaskRepeat";
+import DayTaskEditModal from "./DayTaskEditModal";
 
 interface BookPageProps {
   readonly day: Date;
   readonly dayIndex: number;
   readonly isLeftPage?: boolean;
-  readonly viewMode: string;
+  readonly columns: number;
   readonly colorScheme: string;
   readonly colors: any;
   readonly dynamicStyles: any;
@@ -47,7 +38,7 @@ export default function BookPage({
   day,
   dayIndex,
   isLeftPage = false,
-  viewMode,
+  columns,
   colorScheme,
   colors,
   dynamicStyles,
@@ -65,7 +56,7 @@ export default function BookPage({
 
   // Obtener configuración de líneas por página
   const { linesPerPage } = useBookSettingsStore();
-  const { linesStatus } = useAgendaTasksStore();
+  const linesStatus = useAgendaTasksStore((state) => state.linesStatus);
 
   const extraLines = linesStatus[dateKey]?.extraLines || 0;
 
@@ -79,26 +70,13 @@ export default function BookPage({
     (state) => state.repeatingTaskCompletions
   );
 
-  const { setCalendarIsOpen, calendarIsopen, selectDate } =
-    useCalendarSettingsStore();
 
-  // Obtener funciones del store de patrones de repetición
-  const addRepeatingPattern = useRepeatingTasksStore(
-    (state) => state.addRepeatingPattern
-  );
-  const removeRepeatingPattern = useRepeatingTasksStore(
-    (state) => state.removeRepeatingPattern
-  );
   const toggleRepeatingTaskCompletion = useRepeatingTasksStore(
     (state) => state.toggleRepeatingTaskCompletion
   );
-  const getRepeatingPatternForTask = useRepeatingTasksStore(
-    (state) => state.getRepeatingPatternForTask
+  const originalToggleTaskCompletion = useAgendaTasksStore(
+    (state) => state.toggleTaskCompletion
   );
-
-  // Store de tareas para acceder a todas las tareas por su ID
-  const getAllTasks = useAgendaTasksStore((state) => state.getAllTasks);
-  const getTaskForLine = useAgendaTasksStore((state) => state.getTaskForLine);
 
   // Tipos de tarea y pestaña activa. El filtro solo decide qué filas se dibujan: qué líneas están
   // ocupadas se sigue calculando con TODAS las tareas del día (allTasks), así una tarea nueva
@@ -126,12 +104,6 @@ export default function BookPage({
   // Líneas que dibuja esta página: las del ajuste + las extra del día, y nunca menos que
   // la última línea con una tarea (si no, al bajar el ajuste esas tareas dejarían de verse)
   const totalUserLines = getTotalLines(allTasks, linesPerPage, extraLines);
-  const {
-    addTask,
-    updateTask,
-    deleteTask,
-    toggleTaskCompletion: originalToggleTaskCompletion,
-  } = useAgendaTasksStore();
 
   // Función personalizada para manejar el toggle de tareas normales y repetidas
   const handleToggleTaskCompletion = (date: string, lineNumber: number) => {
@@ -241,265 +213,12 @@ export default function BookPage({
     if (line !== null) handleLinePress(line);
   });
 
-  const handleSaveTask = async (
-    text: string,
-    reminder?: string | null,
-    repeat?: RepeatOption,
-    typeId?: string | null,
-    attachments?: Attachment[]
-  ) => {
-    // Los adjuntos solo se tocan si el modal los envía; una clave `undefined` borraría los que ya tiene
-    const attachmentUpdate = attachments ? { attachments } : {};
-
-    if (editingLine !== null) {
-      const existingTask = getTaskForPageLine(editingLine);
-
-      if (existingTask) {
-        // Verificar si es una tarea repetida virtual (isRepeatingTask = true)
-        if (existingTask.isRepeatingTask) {
-          // Editando una instancia virtual de tarea repetida
-          if (repeat && repeat !== "none") {
-            // Mantener como tarea repetida - actualizar SOLO la tarea original
-            const allExistingTasks = getAllTasks();
-            let foundOriginal = false;
-
-            // Buscar la tarea original en todas las fechas
-            for (const [date, tasks] of Object.entries(allExistingTasks)) {
-              for (const [line, task] of Object.entries(tasks)) {
-                if (task && task.id === existingTask.repeatingTaskId) {
-                  // Actualizar la tarea original
-                  await updateTask(date, Number.parseInt(line, 10), {
-                    text,
-                    reminder,
-                    repeat,
-                    typeId,
-                    ...attachmentUpdate,
-                  });
-
-                  // Actualizar el patrón de repetición (la función ya maneja duplicados)
-                  addRepeatingPattern({
-                    originalTaskId: task.id,
-                    repeatOption: repeat,
-                    startDate: date,
-                  });
-
-                  foundOriginal = true;
-                  break;
-                }
-              }
-              if (foundOriginal) break;
-            }
-          } else {
-            // Convertir tarea repetida virtual a tarea normal
-            // 1. Primero eliminar el patrón de repetición para detener la generación de instancias
-            removeRepeatingPattern(existingTask.repeatingTaskId!);
-            // 2. Encontrar la primera línea disponible del día para crear la tarea normal
-            let availableLine = 1;
-            for (let i = 1; i <= totalUserLines; i++) {
-              if (!allTasks[i]) {
-                availableLine = i;
-                break;
-              }
-            }
-            await addTask(dateKey, availableLine, text, reminder, "none", typeId, attachments);
-          }
-        } else {
-          // Verificar si es la tarea original de un patrón de repetición
-          const existingPattern = getRepeatingPatternForTask(existingTask.id);
-
-          if (existingPattern && existingPattern.isActive) {
-            // Estamos editando la tarea original de un patrón repetido
-            if (repeat && repeat !== "none") {
-              // Actualizar la tarea primero
-              await updateTask(dateKey, editingLine, {
-                text,
-                reminder,
-                repeat,
-                typeId,
-                ...attachmentUpdate,
-              });
-
-              // Agregar/actualizar patrón de repetición (la función ya maneja duplicados)
-              addRepeatingPattern({
-                originalTaskId: existingTask.id,
-                repeatOption: repeat,
-                startDate: dateKey,
-              });
-            } else {
-              // Convertir de repetida a normal - eliminar patrón
-              removeRepeatingPattern(existingTask.id);
-              await updateTask(dateKey, editingLine, {
-                text,
-                reminder,
-                repeat: "none",
-                typeId,
-                ...attachmentUpdate,
-              });
-            }
-          } else if (repeat && repeat !== "none") {
-            // Convertir tarea normal a tarea repetida
-            // 1. Crear un patrón de repetición usando el ID de la tarea existente
-            addRepeatingPattern({
-              originalTaskId: existingTask.id,
-              repeatOption: repeat,
-              startDate: dateKey,
-            });
-            // 2. Actualizar la tarea para incluir la info de repetición
-            await updateTask(dateKey, editingLine, {
-              text,
-              reminder,
-              repeat,
-              typeId,
-              ...attachmentUpdate,
-            });
-          } else {
-            // Actualizar tarea normal usando la línea directamente
-            const allExistingTasks = getAllTasks();
-            const dayTasks = allExistingTasks[dateKey] || {};
-
-            // Buscar la línea original de la tarea por su ID
-            let originalLineNumber: number | null = null;
-            for (const [line, originalTask] of Object.entries(dayTasks)) {
-              if (originalTask && originalTask.id === existingTask.id) {
-                originalLineNumber = Number.parseInt(line, 10);
-                break;
-              }
-            }
-
-            if (originalLineNumber !== null) {
-              await updateTask(dateKey, originalLineNumber, {
-                text,
-                reminder,
-                repeat,
-                typeId,
-                ...attachmentUpdate,
-              });
-            }
-          }
-        }
-      } else if (repeat && repeat !== "none") {
-        // Nueva tarea repetida
-        // Si estamos en una línea virtual, encontrar una línea real disponible
-        let targetLine = editingLine;
-        if (editingLine > totalUserLines) {
-          // Buscar primera línea disponible
-          for (let i = 1; i <= totalUserLines; i++) {
-            if (!allTasks[i]) {
-              targetLine = i;
-              break;
-            }
-          }
-        }
-
-        // 1. Crear la tarea normal primero
-        await addTask(dateKey, targetLine, text, reminder, repeat, typeId, attachments);
-
-        // 2. Obtener la tarea recién creada usando el store directamente
-        // Usar un pequeño delay para asegurar que el store se actualice
-        const newTask = getTaskForLine(dateKey, targetLine);
-        if (newTask) {
-          // 3. Crear el patrón de repetición
-          addRepeatingPattern({
-            originalTaskId: newTask.id,
-            repeatOption: repeat,
-            startDate: dateKey,
-          });
-        } else {
-          // Si no podemos obtener la tarea inmediatamente, intentar después del siguiente render
-          setTimeout(() => {
-            const delayedTask = getTaskForLine(dateKey, targetLine);
-            if (delayedTask) {
-              addRepeatingPattern({
-                originalTaskId: delayedTask.id,
-                repeatOption: repeat,
-                startDate: dateKey,
-              });
-            }
-          }, 100);
-        }
-      } else {
-        // Nueva tarea normal
-        // Si estamos en una línea virtual, encontrar una línea real disponible
-        let targetLine = editingLine;
-        if (editingLine > totalUserLines) {
-          // Buscar primera línea disponible
-          for (let i = 1; i <= totalUserLines; i++) {
-            if (!allTasks[i]) {
-              targetLine = i;
-              break;
-            }
-          }
-        }
-        await addTask(dateKey, targetLine, text, reminder, repeat, typeId, attachments);
-      }
-
-      // No hace falta forzar nada más: la página se recalcula sola porque está
-      // suscrita a las tareas, los patrones y los completados (ver buildDayTasks)
-      setModalVisible(false);
-      setEditingLine(null);
-      setEditingTask("");
-    }
-  };
-
-  // ¿Es una tarea que pertenece a una serie repetida? (una instancia, o la original de la serie)
-  const isPartOfSeries = (task: AgendaTask | null) =>
-    Boolean(
-      task &&
-        (task.isRepeatingTask || getRepeatingPatternForTask(task.id)?.isActive)
-    );
-
-  const closeEditModal = () => {
-    setModalVisible(false);
-    setEditingLine(null);
-    setEditingTask("");
-  };
-
-  const handleDeleteTask = async () => {
-    if (editingLine !== null) {
-      const existingTask = getTaskForPageLine(editingLine);
-
-      if (existingTask?.isRepeatingTask) {
-        // Una ocurrencia de una serie: se pregunta si se quiere borrar solo esta,
-        // esta y las siguientes, o toda la serie. Si se cancela, el modal sigue abierto.
-        promptDeleteRepeatingOccurrence(tCommon, async (scope) => {
-          await deleteRepeatingOccurrence(scope, existingTask.repeatingTaskId!, dateKey);
-          closeEditModal();
-        });
-        return;
-      }
-
-      if (existingTask && isPartOfSeries(existingTask)) {
-        // La tarea original de una serie: borrarla borra toda la serie, así que se confirma
-        promptDeleteRepeatingSeries(tCommon, async () => {
-          await deleteRepeatingOccurrence("all", existingTask.id, dateKey);
-          closeEditModal();
-        });
-        return;
-      }
-
-      if (existingTask) {
-        // Eliminar tarea normal - buscar su línea original
-        const allExistingTasks = getAllTasks();
-        const dayTasks = allExistingTasks[dateKey] || {};
-
-        // Buscar la línea original de la tarea por su ID
-        let originalLineNumber: number | null = null;
-        for (const [line, originalTask] of Object.entries(dayTasks)) {
-          if (originalTask && originalTask.id === existingTask.id) {
-            originalLineNumber = Number.parseInt(line, 10);
-            break;
-          }
-        }
-
-        if (originalLineNumber !== null) {
-          await deleteTask(dateKey, originalLineNumber);
-        }
-      }
-
-      setModalVisible(false);
-      setEditingLine(null);
-      setEditingTask("");
-    }
+  // El número del día es un atajo a ese día en la vista de año
+  const openDayInYear = () => {
+    const year = Number(dateKey.slice(0, 4));
+    const section = useAgendaSectionStore.getState();
+    section.setYearFocus({ year, scope: { kind: "day", dateKey } });
+    section.showYear();
   };
 
   const handleCancelEdit = () => {
@@ -518,7 +237,7 @@ export default function BookPage({
 
   // Determinar estilo de página según el modo de vista
   let pageStyle;
-  if (viewMode === "expanded") {
+  if (columns > 1) {
     if (isLeftPage) {
       pageStyle = [dynamicStyles.page, styles.leftPage];
     } else {
@@ -535,13 +254,13 @@ export default function BookPage({
         style={[
           styles.pageHeader,
           dynamicStyles.pageHeaderBorder,
-          viewMode === "expanded" ? styles.expandedPageHeader : null,
+          columns > 1 ? styles.expandedPageHeader : null,
         ]}
       >
         <ThemedText
           style={[
             styles.dayName,
-            viewMode === "expanded" ? styles.expandedDayName : null,
+            columns > 1 ? styles.expandedDayName : null,
           ]}
         >
           {dateInfo.dayName}
@@ -549,42 +268,26 @@ export default function BookPage({
         <ThemedView style={styles.dateContainer}>
           <ThemedView style={styles.dayNumberContainer}>
             <TouchableOpacity
-              onPress={() => {
-                setCalendarIsOpen(!calendarIsopen);
-                selectDate(dateToLocalDateString(day));
-              }}
+              onPress={openDayInYear}
+              accessibilityRole="button"
             >
               <ThemedText
                 style={[
                   styles.dayNumber,
                   dynamicStyles.dayNumber,
-                  viewMode === "expanded" ? styles.expandedDayNumber : null,
+                  columns > 1 ? styles.expandedDayNumber : null,
                   { marginRight: 5, marginTop: 2 },
                 ]}
               >
                 {dateInfo.dayNumber}
               </ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.externalLinkButton, dynamicStyles.calendarButton]}
-              onPress={() => {
-                console.log(dateToLocalDateString(day), "day local date");
-                setCalendarIsOpen(!calendarIsopen);
-                selectDate(dateToLocalDateString(day));
-              }}
-            >
-              <Icon
-                name="calendar"
-                size={12}
-                color={colors.accent}
-              />
-            </TouchableOpacity>
           </ThemedView>
 
           <ThemedText
             style={[
               styles.monthYear,
-              viewMode === "expanded" ? styles.expandedMonthYear : null,
+              columns > 1 ? styles.expandedMonthYear : null,
             ]}
           >
             {dateInfo.monthName} {dateInfo.year}
@@ -780,7 +483,7 @@ export default function BookPage({
                           </TouchableOpacity>
                           <LinkableText
                             style={{
-                              ...(viewMode === "expanded"
+                              ...(columns > 1
                                 ? dynamicStyles.expandedTaskText
                                 : dynamicStyles.taskText),
                               flex: 1,
@@ -809,7 +512,7 @@ export default function BookPage({
                     return (
                       <ThemedText
                         style={[
-                          viewMode === "expanded"
+                          columns > 1
                             ? dynamicStyles.expandedTaskText
                             : dynamicStyles.taskText,
                           { opacity: 0.4, fontStyle: "italic" },
@@ -826,45 +529,14 @@ export default function BookPage({
 
       {!inert && (
         <>
-          {/* Modal del calendario */}
-          <AnotherCalendarModal
-            visible={calendarIsopen}
-            onClose={() => setCalendarIsOpen(false)}
-          />
-
           {/* Modal para editar tareas */}
-          <TaskEditModal
+          <DayTaskEditModal
             tCommon={tCommon}
+            dateKey={dateKey}
             visible={modalVisible}
+            editingLine={editingLine}
             initialText={editingTask}
-            initialReminder={
-              editingLine ? getTaskForPageLine(editingLine)?.reminder : undefined
-            }
-            initialTypeId={
-              editingLine ? getTaskForPageLine(editingLine)?.typeId : undefined
-            }
-            initialAttachments={
-              editingLine ? getTaskForPageLine(editingLine)?.attachments : undefined
-            }
-            initialRepeat={
-              (editingLine
-                ? (getTaskForPageLine(editingLine)?.repeat as RepeatOption)
-                : undefined) || "none"
-            }
-            onSave={handleSaveTask}
-            toggleTaskCompletion={handleToggleTaskCompletion}
-            date={dateKey}
-            completed={
-              editingLine
-                ? getTaskForPageLine(editingLine)?.completed ?? false
-                : false
-            }
-            lineNumber={editingLine as number}
-            onCancel={handleCancelEdit}
-            onDelete={editingTask ? handleDeleteTask : undefined}
-            confirmDelete={
-              !isPartOfSeries(editingLine ? getTaskForPageLine(editingLine) : null)
-            }
+            onClose={handleCancelEdit}
           />
         </>
       )}

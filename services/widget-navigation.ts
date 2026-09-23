@@ -4,17 +4,18 @@ import useNotesNavigationStore from "../stores/notes-navigation-store";
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const isDateKey = (value: unknown): value is string => typeof value === "string" && DATE_KEY.test(value);
-const isId = (value: unknown): value is string => typeof value === "string" && value !== "";
 
 /**
- * Atiende el toque en una tarea del widget (justagenda://widget-task?date=…&id=…): pide al libro que
- * vaya al día de la tarea y la abra, igual que al tocar una notificación. La navegación a la agenda
- * la hace la ruta (app/widget-task.tsx). Devuelve true si había una tarea válida a la que ir.
+ * Atiende el toque en una tarea del widget (justagenda://widget-task?date=…&id=…): lleva el libro a ese
+ * día y nada más. No se abre la tarea: abrir el editor nada más llegar era lo que se atascaba, y el
+ * usuario la toca ya con el día delante. La navegación a la agenda la hace la ruta
+ * (app/widget-task.tsx). Devuelve true si la fecha era válida.
  */
-export function requestTaskFromWidget(date: unknown, taskId: unknown): boolean {
-  if (!isDateKey(date) || !isId(taskId)) return false;
+export function requestDayFromWidget(date: unknown): boolean {
+  if (!isDateKey(date)) return false;
 
-  useBookNavigationStore.getState().requestTarget(date, taskId);
+  // El id vacío no coincide con ninguna tarea: el libro solo va al día
+  useBookNavigationStore.getState().requestTarget(date, "");
   return true;
 }
 
@@ -30,13 +31,11 @@ export function requestNewTaskFromWidget(date: unknown): boolean {
 }
 
 /**
- * Los toques del widget de notas (justagenda://widget-note): abre las notas y, según se pida, una nota
- * concreta (`id`), una nueva (`isNew`) o solo el tablero.
+ * Los toques del widget de notas (justagenda://widget-note): abren la sección de notas, sin abrir
+ * ninguna nota. Solo el "+" (`isNew`) abre además el editor de una nota nueva.
  */
-export function requestNoteFromWidget(id: unknown, isNew: boolean): void {
+export function requestNoteFromWidget(isNew: boolean): void {
   useAgendaSectionStore.getState().showNotes();
 
-  const notes = useNotesNavigationStore.getState();
-  if (isNew) notes.requestNewNote();
-  else if (isId(id)) notes.requestNote(id);
+  if (isNew) useNotesNavigationStore.getState().requestNewNote();
 }

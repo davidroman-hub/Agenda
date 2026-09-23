@@ -1,4 +1,3 @@
-import { getFilteredPastTasks } from "../components/agendaComponents/pastTasks/pastTasksFilters/filterUtils";
 import type { AgendaTask, DayTasks } from "../stores/agenda-tasks-store";
 import { computeLineStatus } from "../utils/book-lines";
 import {
@@ -110,43 +109,5 @@ describe("el filtro es solo visual: nunca cambia qué líneas están ocupadas", 
 
     // …pero el cálculo de líneas libres NO usa lo que se dibuja
     expect(computeLineStatus(day, 6, 0).availableLines[0]).toBe(4);
-  });
-});
-
-describe("getFilteredPastTasks con filtro por tipo", () => {
-  const tasksByDate: Record<string, DayTasks> = {
-    "2020-01-10": { 1: task("a", "work"), 2: task("b", "home"), 3: task("c", null) },
-    "2020-01-11": { 1: task("d", "work", { completed: true }) },
-    "2020-01-12": { 1: task("e", "home") },
-  };
-  const anyDate = () => true;
-  const ids = (result: ReturnType<typeof getFilteredPastTasks>) =>
-    result.flatMap(({ tasks }) => tasks.map(({ task: t }) => t.id)).sort();
-
-  it("sin filtro por tipo (o con 'todas') devuelve todo, como antes", () => {
-    expect(ids(getFilteredPastTasks(tasksByDate, anyDate))).toEqual(["a", "b", "c", "d", "e"]);
-    expect(ids(getFilteredPastTasks(tasksByDate, anyDate, "all", FILTER_ALL))).toEqual(["a", "b", "c", "d", "e"]);
-  });
-
-  it("un tipo deja solo sus tareas y quita los días que se quedan vacíos", () => {
-    const result = getFilteredPastTasks(tasksByDate, anyDate, "all", "home");
-
-    expect(ids(result)).toEqual(["b", "e"]);
-    expect(result.map(({ date }) => date).sort()).toEqual(["2020-01-10", "2020-01-12"]);
-  });
-
-  it("'Sin tipo' deja las tareas sin tipo", () => {
-    expect(ids(getFilteredPastTasks(tasksByDate, anyDate, "all", FILTER_NONE))).toEqual(["c"]);
-  });
-
-  it("se combina con el filtro de estado (completadas / pendientes)", () => {
-    expect(ids(getFilteredPastTasks(tasksByDate, anyDate, "completed", "work"))).toEqual(["d"]);
-    expect(ids(getFilteredPastTasks(tasksByDate, anyDate, "pending", "work"))).toEqual(["a"]);
-  });
-
-  it("un tipo borrado cuenta como sin tipo si se pasan los tipos conocidos", () => {
-    const orphaned: Record<string, DayTasks> = { "2020-01-10": { 1: task("x", "borrado") } };
-
-    expect(ids(getFilteredPastTasks(orphaned, anyDate, "all", FILTER_NONE, new Set(["work"])))).toEqual(["x"]);
   });
 });

@@ -8,6 +8,7 @@ import { Attachment, draftAddedFileNames } from "@/utils/attachments";
 import { initialTypeChoice } from "@/utils/task-types";
 import React, { useState } from "react";
 import { Alert, Modal, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 import AttachmentsField from "../attachments/AttachmentsField";
 import { modalStyles } from "./TaskEditionModalStyles";
 import TaskReminder from "./TaskReminder";
@@ -273,15 +274,10 @@ export default function TaskEditModal({
                 modalStyles(colorScheme).cancelButton,
               ]}
               onPress={handleCancel}
+              accessibilityRole="button"
+              accessibilityLabel={tCommon("buttons.cancel")}
             >
-              <ThemedText
-                style={[
-                  modalStyles(colorScheme).buttonText,
-                  modalStyles(colorScheme).cancelButtonText,
-                ]}
-              >
-                {tCommon("buttons.cancel")}
-              </ThemedText>
+              <Icon name="times" size={24} color={colorScheme === "dark" ? "#ffffff" : "#333333"} />
             </TouchableOpacity>
 
             {Boolean(initialText && onDelete) && (
@@ -291,15 +287,10 @@ export default function TaskEditModal({
                   modalStyles(colorScheme).deleteButton,
                 ]}
                 onPress={handleDelete}
+                accessibilityRole="button"
+                accessibilityLabel={tCommon("buttons.delete")}
               >
-                <ThemedText
-                  style={[
-                    modalStyles(colorScheme).buttonText,
-                    modalStyles(colorScheme).deleteButtonText,
-                  ]}
-                >
-                  {tCommon("buttons.delete")}
-                </ThemedText>
+                <Icon name="trash" size={22} color="#ffffff" />
               </TouchableOpacity>
             )}
 
@@ -312,17 +303,14 @@ export default function TaskEditModal({
                     : modalStyles(colorScheme).completedButton,
                 ]}
                 onPress={handleCompleted}
-              >
-                <ThemedText
-                  style={[
-                    modalStyles(colorScheme).buttonTextSmall,
-                    modalStyles(colorScheme).saveButtonText,
-                  ]}
-                >
-                  {completed
+                accessibilityRole="button"
+                accessibilityLabel={
+                  completed
                     ? tCommon("taskEditModal.markAsIncomplete")
-                    : tCommon("taskEditModal.markAsCompleted")}
-                </ThemedText>
+                    : tCommon("taskEditModal.markAsCompleted")
+                }
+              >
+                <Icon name={completed ? "undo" : "check"} size={22} color="#ffffff" />
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -331,15 +319,10 @@ export default function TaskEditModal({
                 modalStyles(colorScheme).saveButton,
               ]}
               onPress={handleSave}
+              accessibilityRole="button"
+              accessibilityLabel={tCommon("buttons.save")}
             >
-              <ThemedText
-                style={[
-                  modalStyles(colorScheme).buttonText,
-                  modalStyles(colorScheme).saveButtonText,
-                ]}
-              >
-                {tCommon("buttons.save")}
-              </ThemedText>
+              <Icon name="save" size={22} color="#ffffff" />
             </TouchableOpacity>
           </View>
         </ThemedView>

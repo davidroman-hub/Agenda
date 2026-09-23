@@ -14,6 +14,7 @@
 
   "tabs": {
     "agenda": "Agenda",
+    "calendar": "Calendario",
     "pastTasks": "Tareas Pasadas",
     "reminders": "Recordatorios",
     "settings": "Ajustes",
@@ -324,8 +325,14 @@
     "titleMonth": "Tareas de {{month}} {{year}}",
     "titleDay": "Tareas del {{date}}",
     "summary": "Tareas: {{total}} · Hechas: {{done}}",
+    "summaryTotal": "Tareas: {{total}}",
+    "summaryDone": "Hechas: {{done}}",
+    "summaryPending": "Faltantes: {{pending}}",
+    "emptyFiltered": "Ninguna tarea con este filtro",
     "showYear": "Ver todo el año",
+    "resizeLabel": "Ajustar el tamaño de las tareas",
     "openInBook": "Abrir en el libro",
+    "addTask": "Añadir tarea",
     "empty": "No hay tareas en este periodo",
     "repeatsTitle": "Se repiten",
     "occurrences": "Veces este año: {{count}}",
